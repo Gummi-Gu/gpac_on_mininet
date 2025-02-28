@@ -1,80 +1,100 @@
 import sys
 import logging
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import http.client
-from urllib.parse import urljoin, urlparse
-
+from flask import Flask, request, Response
+from flask_cors import CORS, cross_origin
+import requests
 
 # 配置日志
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%H:%M:%S'
+)
 logger = logging.getLogger(__name__)
 
-class ProxyHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        try:
-            # 解析目标服务器URL，将请求转发到目标服务器
-            target_url = f"http://{self.server.target_server}:{self.server.target_port}{self.path}"
-            parsed_url = urlparse(target_url)
-            target_host = parsed_url.hostname
-            target_port = parsed_url.port
+app = Flask(__name__)
+CORS(app,
+     origins="*",
+     methods=["GET", "HEAD", "OPTIONS"],
+     allow_headers=["Range", "Content-Type"],
+     expose_headers=["Content-Range", "Content-Length", "Content-Type"],
+     max_age=86400)
 
-            # 日志记录目标服务器的请求信息
-            logger.info(f"Forwarding request to {target_host}:{target_port}{self.path}")
-
-            # 设置连接到目标服务器
-            conn = http.client.HTTPConnection(target_host, target_port, timeout=10)
-
-            # 转发请求头
-            headers = {key: self.headers[key] for key in self.headers if key.lower() not in ['host', 'accept-encoding']}
-
-            # 向目标服务器发送GET请求
-            conn.request("GET", self.path, headers=headers)
-
-            # 获取目标服务器的响应
-            response = conn.getresponse()
-
-            # 日志记录目标服务器的响应状态
-            logger.info(f"Received response {response.status} from {target_host}:{target_port}")
-
-            # 设置响应状态码
-            self.send_response(response.status)
-
-            # 转发响应头
-            for header, value in response.getheaders():
-                if header.lower() not in ['transfer-encoding', 'connection', 'content-encoding']:
-                    self.send_header(header, value)
-            self.end_headers()
-
-            # 流式传输响应内容
-            while chunk := response.read(8192):
-                self.wfile.write(chunk)
-
-            # 关闭连接
-            conn.close()
-
-        except Exception as e:
-            # 捕获异常并记录日志
-            logger.error(f"Error processing request: {str(e)}")
-            self.send_error(502, f"Bad Gateway: {str(e)}")
+app.config.update({
+    'TARGET_SERVER': None,
+    'TARGET_PORT': None,
+    'STREAM_CHUNK_SIZE': 1024 * 128  # 128KB
+})
 
 
-def run_server(target_server, target_port, port=8000):
-    server_address = ('', port)
-    httpd = ThreadingHTTPServer(server_address, ProxyHandler)
-    httpd.target_server = target_server  # 将目标服务器地址传递给处理器
-    httpd.target_port = target_port  # 将目标服务器端口传递给处理器
-    logger.info(f"Starting reverse proxy server on port {port} with target {target_server}:{target_port}...")
-    httpd.serve_forever()
+@app.route('/', defaults={'path': ''}, methods=['GET', 'HEAD'])
+@app.route('/<path:path>', methods=['GET', 'HEAD'])
+@cross_origin()  # 为每个路由单独应用CORS
+def proxy(path):
+    try:
+        # 构建目标URL
+        target_url = f"http://{app.config['TARGET_SERVER']}:{app.config['TARGET_PORT']}/{path}"
+        logger.info(f"Proxying {request.method} to: {target_url}")
+
+        # 转发请求头（保留Range头）
+        headers = {
+            key: value
+            for key, value in request.headers
+            if key.lower() not in ['host', 'accept-encoding']
+        }
+
+        # 发起代理请求
+        resp = requests.request(
+            method=request.method,
+            url=target_url,
+            headers=headers,
+            stream=True,
+            timeout=30
+        )
+
+        # 构建响应头
+        excluded_headers = ['content-encoding', 'connection', 'transfer-encoding']
+        response_headers = {
+            key: value
+            for key, value in resp.raw.headers.items()
+            if key.lower() not in excluded_headers
+        }
+
+        # 流式传输生成器
+        def generate():
+            try:
+                for chunk in resp.iter_content(app.config['STREAM_CHUNK_SIZE']):
+                    if chunk:
+                        yield chunk
+            finally:
+                resp.close()
+                logger.debug("Connection closed")
+
+        return Response(
+            generate(),
+            status=resp.status_code,
+            headers=response_headers
+        )
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Proxy error: {str(e)}")
+        return Response(f"Bad Gateway: {str(e)}", status=502)
+
+
+def run_server(target_server, target_port, proxy_port=8000):
+    app.config['TARGET_SERVER'] = target_server
+    app.config['TARGET_PORT'] = target_port
+
+    # 启动服务器
+    from werkzeug.serving import ThreadedWSGIServer
+    server = ThreadedWSGIServer('0.0.0.0', proxy_port, app)
+    logger.info(f"Starting CORS-enabled proxy on :{proxy_port}")
+    server.serve_forever()
 
 
 if __name__ == '__main__':
-    # 从命令行参数获取目标服务器的地址和端口
     if len(sys.argv) < 3:
-        logger.error("Usage: python proxy_server.py <target-server-ip> <target-server-port>")
+        logger.error("Usage: python proxy.py <target-server> <target-port> [proxy-port]")
         sys.exit(1)
 
-    target_server = sys.argv[1]  # 获取目标服务器地址
-    target_port = int(sys.argv[2])  # 获取目标服务器端口
-
-    # 启动代理服务器
-    run_server(target_server, target_port)
+    run_server(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 8000)
