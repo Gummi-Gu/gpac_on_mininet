@@ -36,7 +36,7 @@ net = Mininet(topo=SimpleTopo(), controller=Controller)
 
 # 启动网络
 net.start()
-
+'''
 # 获取网络中的主机对象（可选）
 h1 = net.get('h1')
 h2 = net.get('h2')
@@ -53,9 +53,6 @@ h3.cmd('dhclient h3-eth0')
 print(h1.cmd('ifconfig'))
 print(h2.cmd('ifconfig'))
 print(h3.cmd('ifconfig'))
-
+'''
 # 进入 Mininet 的交互式命令行界面
 CLI(net)
-
-# 当你在 Mininet CLI 中输入 exit 时，网络将停止
-net.stop()
