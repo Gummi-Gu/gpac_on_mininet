@@ -1,8 +1,13 @@
 import sys
+import logging
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import http.client
 from urllib.parse import urlparse, urljoin
 
+
+# 配置日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class ProxyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -11,6 +16,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
             parsed_url = urlparse(urljoin(self.server.target_server, self.path))
             target_host = parsed_url.hostname
             target_port = parsed_url.port or 80  # 默认为 80
+
+            # 日志记录目标服务器的请求信息
+            logger.info(f"Forwarding request to {target_host}:{target_port}{parsed_url.path}")
 
             # 设置连接到目标服务器
             conn = http.client.HTTPConnection(target_host, target_port, timeout=10)
@@ -23,6 +31,9 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
             # 获取目标服务器的响应
             response = conn.getresponse()
+
+            # 日志记录目标服务器的响应状态
+            logger.info(f"Received response {response.status} from {target_host}:{target_port}")
 
             # 设置响应状态码
             self.send_response(response.status)
@@ -41,6 +52,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
             conn.close()
 
         except Exception as e:
+            # 捕获异常并记录日志
+            logger.error(f"Error processing request: {str(e)}")
             self.send_error(502, f"Bad Gateway: {str(e)}")
 
 
@@ -49,14 +62,14 @@ def run_server(target_server, target_port, port=8000):
     httpd = ThreadingHTTPServer(server_address, ProxyHandler)
     httpd.target_server = target_server  # 将目标服务器地址传递给处理器
     httpd.target_port = target_port  # 将目标服务器端口传递给处理器
-    print(f"Starting reverse proxy server on port {port} with target {target_server}:{target_port}...")
+    logger.info(f"Starting reverse proxy server on port {port} with target {target_server}:{target_port}...")
     httpd.serve_forever()
 
 
 if __name__ == '__main__':
     # 从命令行参数获取目标服务器的地址和端口
     if len(sys.argv) < 3:
-        print("Usage: python proxy_server.py <target-server-url> <target-server-port>")
+        logger.error("Usage: python proxy_server.py <target-server-url> <target-server-port>")
         sys.exit(1)
 
     target_server = sys.argv[1]  # 获取目标服务器地址
