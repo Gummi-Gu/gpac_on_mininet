@@ -31,13 +31,15 @@ class SimpleTopo(Topo):
 topos = { 'SimpleTopo': lambda: SimpleTopo() }
 net = Mininet(topo=SimpleTopo(), controller=Controller)
 
+# 启动网络
+net.start()
+
 # 宿主机网络初始化
 os.system('ifconfig eth1 0.0.0.0')
 os.system('ovs-vsctl add-port s1 eth1')
-print(os.system('sudo ovs-vsctl show'))
+print(os.system('ovs-vsctl show'))
 
-# 启动网络
-net.start()
+
 '''
 # 获取网络中的主机对象（可选）
 h1 = net.get('h1')
