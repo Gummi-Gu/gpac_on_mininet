@@ -37,8 +37,8 @@ class MyCustomDASHAlgo:
         select_num=self.set_quality(group.idx,x,y)
         #print(f"[DASH]{stats.buffer} {stats.buffer_min} {stats.buffer_max} {stats.download_rate}")
         print(f'[DASH]For {group.idx} We choose {select_num}')
-        Factory.quantitycollector.collect_data(timestamp=time.time(),resolution=group.qualities.height,frame_rate_std=group.qualities.fps,
-                                               real_time_bandwidth=stats.download_rate,buffer_size=stats.buffer,)
+        #Factory.quantitycollector.collect_data(timestamp=time.time(),resolution=group.qualities.height,frame_rate_std=group.qualities.fps,
+        #                                      real_time_bandwidth=stats.download_rate,buffer_size=stats.buffer,)
         return select_num
         try:
             response = requests.get(f'http://127.0.0.1:12567/dash', params={'value': newq})
