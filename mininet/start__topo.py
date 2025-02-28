@@ -40,7 +40,7 @@ os.system('ovs-vsctl add-port s1 eth1')
 print(os.system('ovs-vsctl show'))
 
 
-'''
+
 # 获取网络中的主机对象（可选）
 h1 = net.get('h1')
 h2 = net.get('h2')
@@ -57,6 +57,6 @@ h3.cmd('dhclient h3-eth0')
 print(h1.cmd('ifconfig'))
 print(h2.cmd('ifconfig'))
 print(h3.cmd('ifconfig'))
-'''
+
 # 进入 Mininet 的交互式命令行界面
 CLI(net)
