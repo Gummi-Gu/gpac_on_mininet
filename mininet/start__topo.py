@@ -58,5 +58,10 @@ print(h1.cmd('ifconfig'))
 print(h2.cmd('ifconfig'))
 print(h3.cmd('ifconfig'))
 
+# git库
+h1.cmd('')
+
+#启动服务器
+h1.cmd('cd gpac_on_mininet/')
 # 进入 Mininet 的交互式命令行界面
 CLI(net)
