@@ -27,7 +27,9 @@ class SimpleTopo(Topo):
         self.addLink(s1, s2)
 
 # 宿主机网络初始化
-os.system('ifconfig ens37 0.0.0.0')
+os.system('ifconfig eth1 0.0.0.0')
+os.system('ovs-vsctl add-port s1 eth1')
+print(os.system('sudo ovs-vsctl show'))
 # 创建拓扑并启动网络
 topos = { 'SimpleTopo': lambda: SimpleTopo() }
 net = Mininet(topo=SimpleTopo(), controller=Controller)
