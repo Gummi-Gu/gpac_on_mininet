@@ -2,7 +2,7 @@ import sys
 import logging
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import http.client
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urljoin, urlparse
 
 
 # 配置日志
@@ -12,13 +12,14 @@ logger = logging.getLogger(__name__)
 class ProxyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            # 解析目标服务器URL
-            parsed_url = urlparse(urljoin(self.server.target_server, self.path))
+            # 解析目标服务器URL，将请求转发到目标服务器
+            target_url = f"http://{self.server.target_server}:{self.server.target_port}{self.path}"
+            parsed_url = urlparse(target_url)
             target_host = parsed_url.hostname
-            target_port = parsed_url.port or 80  # 默认为 80
+            target_port = parsed_url.port
 
             # 日志记录目标服务器的请求信息
-            logger.info(f"Forwarding request to {target_host}:{target_port}{parsed_url.path}")
+            logger.info(f"Forwarding request to {target_host}:{target_port}{self.path}")
 
             # 设置连接到目标服务器
             conn = http.client.HTTPConnection(target_host, target_port, timeout=10)
@@ -27,7 +28,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             headers = {key: self.headers[key] for key in self.headers if key.lower() not in ['host', 'accept-encoding']}
 
             # 向目标服务器发送GET请求
-            conn.request("GET", parsed_url.path, headers=headers)
+            conn.request("GET", self.path, headers=headers)
 
             # 获取目标服务器的响应
             response = conn.getresponse()
@@ -69,7 +70,7 @@ def run_server(target_server, target_port, port=8000):
 if __name__ == '__main__':
     # 从命令行参数获取目标服务器的地址和端口
     if len(sys.argv) < 3:
-        logger.error("Usage: python proxy_server.py <target-server-url> <target-server-port>")
+        logger.error("Usage: python proxy_server.py <target-server-ip> <target-server-port>")
         sys.exit(1)
 
     target_server = sys.argv[1]  # 获取目标服务器地址
