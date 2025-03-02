@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 
-class Viewpoint:
+class Rendering:
     def __init__(self):
         # 设置输出参数
         self.v = None
@@ -35,7 +35,7 @@ class Viewpoint:
         self.angle_log_thread.start()
 
     def write_to_file(self):
-        with open("Viewpointlog/"+self.filename, 'a') as file:
+        with open("Client/Viewpointlog/"+self.filename, 'a') as file:
             while self.running:
                 file.write("Writing to file...\n")
                 time.sleep(1)  # 每秒写一次
