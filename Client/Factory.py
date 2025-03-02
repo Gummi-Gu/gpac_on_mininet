@@ -1,18 +1,18 @@
 import BufferFilter
 import DASH
-import Viewpoint
-import QualityCollector
+import Rendering
+import Interfaces
 
 dash=None
-viewpoint=None
+rendering=None
 fs=None
 bufferFilter=None
-quantitycollector=None
+dashinterface=None
 
 def init():
-    global dash,viewpoint,fs,bufferFilter,quantitycollector
+    global dash,rendering,fs,bufferFilter, dashinterface
     dash= DASH.MyCustomDASHAlgo()
-    viewpoint= Viewpoint.Viewpoint()
+    rendering= Rendering.Rendering()
     fs = BufferFilter.MyFilterSession()
     bufferFilter= BufferFilter.MyFilter(fs)
-    quantitycollector=QualityCollector.VideoQualityMetrics()
+    dashinterface=Interfaces.DashInterface()
