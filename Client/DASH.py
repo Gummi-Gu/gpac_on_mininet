@@ -4,6 +4,7 @@ import time
 import requests
 
 import Factory
+from Client.Factory import dashinterface
 
 
 class MyCustomDASHAlgo:
@@ -31,23 +32,15 @@ class MyCustomDASHAlgo:
         #
         # In this example we simply cycle through qualities
         # Send the newq value via GET request to 127.0.0.1:12567/dash
-        x, y = Factory.viewpoint.get_view_position()
+        x, y = Factory.rendering.get_view_position()
         if x is None or y is None:
             return 0
-        select_num=self.set_quality(group.idx,x,y)
-        #print(f"[DASH]{stats.buffer} {stats.buffer_min} {stats.buffer_max} {stats.download_rate}")
-        print(f'[DASH]For {group.idx} We choose {select_num}')
-        #Factory.quantitycollector.collect_data(timestamp=time.time(),resolution=group.qualities.height,frame_rate_std=group.qualities.fps,
-        #                                      real_time_bandwidth=stats.download_rate,buffer_size=stats.buffer,)
-        return select_num
-        try:
-            response = requests.get(f'http://127.0.0.1:12567/dash', params={'value': newq})
-            if response.status_code == 200:
-                select_num = response.json().get('value', 0)
-            else:
-                print(f"Failed to send. Status code: {response.status_code}")
-        except requests.RequestException as e:
-            print(f"Error sending request: {e}")
+        select_num=Factory.dashinterface.set_quality(group.idx,x,y,self.srd_position)
+        #print(f'[DASH]group_idx {group.idx} download_rate {stats.download_rate} buffer {stats.buffer+1000} fps {group.qualities[select_num].bandwidth}')
+        sample_slices = [
+            {"idx": group.idx, "bitrate": group.qualities[select_num].bandwidth, "download_speed": group.qualities[select_num].bandwidth, "fps": str(group.qualities[select_num].fps), "resolution": f'{group.qualities[select_num].width}x{group.qualities[select_num].height}'}
+        ]
+        self.send_video_data(stats.buffer,stats.buffer_max,stats.download_rate,sample_slices)
         return select_num
 
     # this callback is optional, use it only if your algo may abort a running transfer (this can be very costly as it will require closing and reopening the HTTP connection for HTTP 1.1  )
@@ -58,58 +51,30 @@ class MyCustomDASHAlgo:
         print('download monitor group ' + str(group.idx) + ' stats ' + str(stats) );
         return -1
 
-    def set_quality(self, slice_idx, view_x=50, view_y=50):
+    def send_video_data(self,buffer_length, max_buffer_length, download_speed,slices):
         """
-        根据鼠标位置设置切片的质量
-        :param slice_idx: 给定的切片序号（从0开始）
-        :param view_x: 鼠标的x坐标
-        :param view_y: 鼠标的y坐标
-        :return: 切片的质量（4, 3, -1）
+        发送视频传输数据到 Flask 服务器。
+
+        :param buffer_length: 当前 buffer 长度（秒）
+        :param max_buffer_length: 最大 buffer 长度（秒）
+        :param slices: 一个包含视频切片信息的列表，每个切片是一个字典
         """
-        if slice_idx != 0:
-            return self.srd_quantity[slice_idx]
-        n = len(self.srd_position)  # 切片总数
-        self.srd_quantity=[2 for i in range(n)]
-        rows = cols = int(math.sqrt(n))  # 行列数（取根号向下取整）
+        url = "http://localhost:5000/update"
+        data = {
+            "buffer_length": buffer_length,
+            "max_buffer_length": max_buffer_length,
+            "download_speed": download_speed,
+            "slices": slices
+        }
 
-        # 遍历所有切片，寻找鼠标所在的切片
-        for idx, target_slice in enumerate(self.srd_position):
-            x, y, w, h = target_slice.x, target_slice.y, target_slice.w, target_slice.h
-
-            # 判断鼠标是否在当前切片内
-            if x <= view_x <= x + w and y <= view_y <= y + h:
-                #print(f'x = {mouse_x} y = {mouse_y} the mouse_tile_idx is {idx}')
-
-                self.srd_quantity[idx] = 3   # 鼠标在目标切片内，返回质量3
-
-                # 计算周围切片的索引范围
-                row, col = divmod(idx-1, cols)  # 当前切片的行列位置
-
-                # 上下左右相邻切片的序号
-                adjacent_indexes = []
-                if row > 0:  # 上方
-                    adjacent_indexes.append(idx - cols)
-                if row < rows - 1:  # 下方
-                    adjacent_indexes.append(idx + cols)
-                if col > 0:  # 左方
-                    adjacent_indexes.append(idx - 1)
-                if col < cols - 1:  # 右方
-                    adjacent_indexes.append(idx + 1)
-
-                # 对角线相邻的切片
-                if row > 0 and col > 0:  # 左上
-                    adjacent_indexes.append(idx - cols - 1)
-                if row > 0 and col < cols - 1:  # 右上
-                    adjacent_indexes.append(idx - cols + 1)
-                if row < rows - 1 and col > 0:  # 左下
-                    adjacent_indexes.append(idx + cols - 1)
-                if row < rows - 1 and col < cols - 1:  # 右下
-                    adjacent_indexes.append(idx + cols + 1)
-
-                # 限制切片索引的范围
-                valid_adjacent_indexes = [i for i in adjacent_indexes if 0 <= i < len(self.srd_position)]
-
-                # 判断是否为相邻切片
-                for i in valid_adjacent_indexes:
-                    self.srd_quantity[i] = 2
-        return 0
+        try:
+            response = requests.post(url, json=data)
+            if response.status_code == 200:
+                pass
+                #print("数据发送成功:", response.json())
+            else:
+                pass
+                #print("数据发送失败:", response.status_code, response.text)
+        except requests.exceptions.RequestException as e:
+            pass
+            #print("请求错误:", e)
