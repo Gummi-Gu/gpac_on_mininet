@@ -234,14 +234,14 @@ if __name__ == '__main__':
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
-        #CLI(net)
+        CLI(net)
         
         
-        request_gen = RequestGenerator(client)
-        monitor = TrafficMonitor(server, request_gen)
+        #request_gen = RequestGenerator(client)
+        #monitor = TrafficMonitor(server, request_gen)
 
-        request_gen.start()
-        monitor.start()
+        #request_gen.start()
+        #monitor.start()
 
 
 
@@ -250,8 +250,8 @@ if __name__ == '__main__':
         
     except KeyboardInterrupt:
         info("\nStopping services...")
-        request_gen.stop()
-        monitor.stop()
+        #request_gen.stop()
+        #monitor.stop()
        
     finally:
         net.stop()
