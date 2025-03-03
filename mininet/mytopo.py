@@ -22,8 +22,12 @@ class SimpleTopo(Topo):
 
         # 连接交换机之间
         self.addLink(s1, s2)
+
+
 topos = { 'SimpleTopo': lambda: SimpleTopo() }
 net = Mininet(topo=SimpleTopo(), controller=Controller)
 
 # 启动网络
 net.start()
+
+CLI(net)
