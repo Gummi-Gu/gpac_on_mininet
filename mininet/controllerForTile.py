@@ -20,8 +20,8 @@ TRAFFIC_CLASSES = {
     'low': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:20'}
 }
 FILE_SIZES = {
-    'high': 5 * 1024 * 1024,  # 5MB in bytes
-    'low': 1 * 1024 * 1024  # 1MB in bytes
+    'high': 50 * 1024 * 1024,  # 5MB in bytes
+    'low': 10 * 1024 * 1024  # 1MB in bytes
 }
 
 
@@ -102,6 +102,7 @@ class RequestGenerator:
                 self.total_data[url_type] += FILE_SIZES[url_type]
 
         except Exception as e:
+            time.sleep(5)
             print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
 
     def _generate_requests(self):
@@ -109,7 +110,7 @@ class RequestGenerator:
         while self.running:
             url_type = random.choice(['high', 'low'])
             threading.Thread(target=self._fetch, args=(url_type,)).start()
-            time.sleep(3+random.uniform(0.1, REQUEST_INTERVAL))
+            time.sleep(random.uniform(0.1, REQUEST_INTERVAL))
 
     def start(self):
         """Start request generator"""
