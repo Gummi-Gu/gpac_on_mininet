@@ -1,4 +1,6 @@
 import sys
+import time
+
 import requests
 '''
 # 从命令行获取 URL 参数
@@ -9,7 +11,7 @@ else:
     sys.exit(1)
 '''
 while True:
-    url='http://10.0.0.1:1080/high/chunk1.ms4'
+    url='http://10.0.0.1:1080/high/chunk1.m4s'
     # 请求并处理异常
     try:
         response = requests.get(url)
@@ -22,3 +24,4 @@ while True:
         print('Request error:', e)
     except Exception as e:
         print('Unknown error:', e)
+    time.sleep(1)
