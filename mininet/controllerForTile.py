@@ -91,15 +91,12 @@ class RequestGenerator:
         """Execute single request and update metrics"""
         url = f'http://{SERVER_IP}:{PORT}/{url_type}/chunk1.m4s'
 
-        response = self.client.cmd(f'python3 request_test.py {url}')
-        print(response)
-        '''
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-
+            print(self.client.cmd(f'curl -v {url} > /dev/null'))
             response = self.client.cmd(f'python3 request_test.py {url}')
 
             if "error" in response.lower():
@@ -122,16 +119,15 @@ class RequestGenerator:
         finally:
 
             with self.lock:
-
                 if self.active_requests[url_type] > 0:
                     self.active_requests[url_type] -= 1
 
-        '''
     def _generate_requests(self):
         """Generate random requests continuously"""
         while self.running:
             url_type = random.choice(['high', 'low'])
-            threading.Thread(target=self._fetch, args=(url_type,)).start()
+            #threading.Thread(target=self._fetch, args=(url_type,)).start()
+            self._fetch(url_type)
             time.sleep(random.uniform(1, REQUEST_INTERVAL))
 
     def start(self):
