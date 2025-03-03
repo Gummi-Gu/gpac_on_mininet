@@ -92,7 +92,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
+            tmp_str=(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
             duration = time.time() - start_time
 
             with self.lock:
@@ -102,6 +102,7 @@ class RequestGenerator:
                 self.total_data[url_type] += FILE_SIZES[url_type]
 
         except Exception as e:
+            print(tmp_str)
             print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
             time.sleep(5)
 
@@ -213,6 +214,7 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
+    client.cmd('ping -c 1 10.0.0.1')
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
@@ -220,10 +222,10 @@ if __name__ == '__main__':
         
         
         request_gen = RequestGenerator(client)
-        #monitor = TrafficMonitor(server, request_gen)
+        monitor = TrafficMonitor(server, request_gen)
 
         request_gen.start()
-        #monitor.start()
+        monitor.start()
 
 
 
@@ -233,7 +235,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         info("\nStopping services...")
         request_gen.stop()
-        #monitor.stop()
+        monitor.stop()
        
     finally:
         net.stop()
