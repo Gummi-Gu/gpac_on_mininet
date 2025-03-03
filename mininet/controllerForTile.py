@@ -70,7 +70,7 @@ def setup_server(server):
     server.cmd(f'mkdir -p {DASH_DIR}/high {DASH_DIR}/low')
     server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/high/chunk1.m4s bs=1M count=5')
     server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/low/chunk1.m4s bs=1M count=1')
-    #server.cmd(f'cd {DASH_DIR} && python3 -m http.server 80 &')
+    #server.cmd(f'cd {DASH_DIR} && python3 test.py &')
 
 
 class RequestGenerator:
@@ -91,7 +91,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -s http://10.0.0.1:1080/high/chunk1.m4s
+            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s
             duration = time.time() - start_time
 
             with self.lock:
