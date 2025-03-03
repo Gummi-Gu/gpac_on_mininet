@@ -211,26 +211,26 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
-    #CLI(net)
-
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
-
+        CLI(net)
         
         
-        request_gen = RequestGenerator(client)
+        #request_gen = RequestGenerator(client)
         #monitor = TrafficMonitor(server, request_gen)
 
-        request_gen.start()
+        #request_gen.start()
         #monitor.start()
+
+
 
         while True:
             time.sleep(1)
         
     except KeyboardInterrupt:
         info("\nStopping services...")
-        request_gen.stop()
+        #request_gen.stop()
         #monitor.stop()
        
     finally:
