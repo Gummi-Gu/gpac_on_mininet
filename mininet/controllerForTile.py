@@ -19,8 +19,8 @@ TRAFFIC_CLASSES = {
     'low': {'mark': 20, 'rate': '500kbit', 'ceil': '500kbit', 'classid': '1:20'}
 }
 FILE_SIZES = {
-    'high': 100 * 1024 * 1024,  # 100MB in bytes
-    'low': 50 * 1024 * 1024  # 50MB in bytes
+    'high': 5 * 1024 * 1024,  # 5MB in bytes
+    'low': 1 * 1024 * 1024  # 1MB in bytes
 }
 
 
@@ -90,7 +90,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -s --no-cache {url} > /dev/null'))
+            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#-m
             duration = time.time() - start_time
 
             with self.lock:
