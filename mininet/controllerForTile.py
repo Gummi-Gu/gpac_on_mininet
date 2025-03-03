@@ -93,7 +93,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            tmp_str=(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
+            tmp_str=(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
             duration = time.time() - start_time
 
             with self.lock:
