@@ -17,7 +17,7 @@ import random
 SERVER_IP = '10.0.0.1'
 PORT=1080
 DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
-REQUEST_INTERVAL = 0.5  # New request interval (seconds)
+REQUEST_INTERVAL = 1  # New request interval (seconds)
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:10'},
     'low': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:20'}
@@ -132,7 +132,7 @@ class RequestGenerator:
         while self.running:
             url_type = random.choice(['high', 'low'])
             threading.Thread(target=self._fetch, args=(url_type,)).start()
-            time.sleep(random.uniform(0.1, REQUEST_INTERVAL))
+            time.sleep(random.uniform(1, REQUEST_INTERVAL))
 
     def start(self):
         """Start request generator"""
