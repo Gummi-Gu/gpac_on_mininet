@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+from time import sleep
+
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Controller
@@ -104,6 +106,7 @@ class RequestGenerator:
 
         except Exception as e:
             print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
+            time.sleep(20)
             input("press enter to continue")
 
 
