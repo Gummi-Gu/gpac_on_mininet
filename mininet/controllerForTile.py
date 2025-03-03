@@ -13,7 +13,7 @@ import random
 # ================== Configuration ==================
 SERVER_IP = '10.0.0.1'
 PORT=1080
-DASH_DIR = '/home/mininet/gpac_on_mininet/dash'
+DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
 REQUEST_INTERVAL = 5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '1mbit', 'ceil': '1mbit', 'classid': '1:10'},
