@@ -92,7 +92,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s
+            print(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
             duration = time.time() - start_time
 
             with self.lock:
@@ -214,13 +214,13 @@ if __name__ == '__main__':
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
-        CLI(net)
+        #CLI(net)
         
         
-        #request_gen = RequestGenerator(client)
+        request_gen = RequestGenerator(client)
         #monitor = TrafficMonitor(server, request_gen)
 
-        #request_gen.start()
+        request_gen.start()
         #monitor.start()
 
 
@@ -230,7 +230,7 @@ if __name__ == '__main__':
         
     except KeyboardInterrupt:
         info("\nStopping services...")
-        #request_gen.stop()
+        request_gen.stop()
         #monitor.stop()
        
     finally:
