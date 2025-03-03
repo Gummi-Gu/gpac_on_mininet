@@ -96,17 +96,20 @@ class RequestGenerator:
 
             start_time = time.time()
             # 在指定的客户端节点上运行 HTTP 请求
-            command = f'python3 -c "import requests; ' \
-                      f'try: response = requests.get(\'{url}\'); ' \
-                      f'print(response.text); ' \
-                      f'except requests.exceptions.Timeout as e: ' \
-                      f'print(\'Timeout error:\', e); ' \
-                      f'except requests.exceptions.TooManyRedirects as e: ' \
-                      f'print(\'Too many redirects:\', e); ' \
-                      f'except requests.exceptions.RequestException as e: ' \
-                      f'print(\'Request error:\', e); ' \
-                      f'except Exception as e: ' \
-                      f'print(\'Unknown error:\', e)"'
+            command = (
+                f'python3 -c "import requests; '
+                f'try: '
+                f'    response = requests.get(\'{url}\'); '
+                f'    print(response.text); '
+                f'except requests.exceptions.Timeout as e: '
+                f'    print(\'Timeout error:\', e); '
+                f'except requests.exceptions.TooManyRedirects as e: '
+                f'    print(\'Too many redirects:\', e); '
+                f'except requests.exceptions.RequestException as e: '
+                f'    print(\'Request error:\', e); '
+                f'except Exception as e: '
+                f'    print(\'Unknown error:\', e)"'
+            )
 
             response = self.client.cmd(command)
 
@@ -223,7 +226,7 @@ class TrafficMonitor:
             print(f"Total Transferred: {total_mb:.2f} MB")
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
-            input("press entry")
+            input("press entry to contine\n")
 
     def start(self):
         """Start monitoring"""
