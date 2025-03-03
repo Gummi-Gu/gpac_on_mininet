@@ -220,10 +220,10 @@ if __name__ == '__main__':
         
         
         request_gen = RequestGenerator(client)
-        monitor = TrafficMonitor(server, request_gen)
+        #monitor = TrafficMonitor(server, request_gen)
 
         request_gen.start()
-        monitor.start()
+        #monitor.start()
 
         while True:
             time.sleep(1)
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         info("\nStopping services...")
         request_gen.stop()
-        monitor.stop()
+        #monitor.stop()
        
     finally:
         net.stop()
