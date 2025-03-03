@@ -16,8 +16,8 @@ PORT=1080
 DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
 REQUEST_INTERVAL = 5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '10mbit', 'ceil': '1mbit', 'classid': '1:10'},
-    'low': {'mark': 20, 'rate': '2mbit', 'ceil': '500kbit', 'classid': '1:20'}
+    'high': {'mark': 10, 'rate': '10mbit', 'ceil': '1m0bit', 'classid': '1:10'},
+    'low': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:20'}
 }
 FILE_SIZES = {
     'high': 5 * 1024 * 1024,  # 5MB in bytes
