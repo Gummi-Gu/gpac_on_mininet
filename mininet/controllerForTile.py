@@ -195,7 +195,7 @@ class TrafficMonitor:
             print(f"Total Transferred: {total_mb:.2f} MB")
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
-            time.sleep(5)
+            input("press entry")
 
     def start(self):
         """Start monitoring"""
