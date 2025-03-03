@@ -39,22 +39,29 @@ class TrafficControl:
     @staticmethod
     def setup_tc(server):
         cmds = [
+            # 清空现有配置
             'tc qdisc del dev server-eth0 root 2>/dev/null',
+            # 创建HTB队列
             'tc qdisc add dev server-eth0 root handle 1: htb',
             'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 10mbit',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]}',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]}',
+            # 创建子类（保持原带宽设置）
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
+            # 创建过滤器
             'tc filter add dev server-eth0 parent 1: protocol ip handle 10 fw flowid 1:10',
-            'tc filter add dev server-eth0 parent 1: protocol ip handle 20 fw flowid 1:20',
-            'tc qdisc add dev server-eth0 parent 1:10 sfq perturb 10',
-            'tc qdisc add dev server-eth0 parent 1:20 sfq perturb 10'
+            'tc filter add dev server-eth0 parent 1: protocol ip handle 20 fw flowid 1:20'
         ]
-        for cmd in cmds:
+        # 设置连接标记规则
+        connmark_cmds = [
+            # 对入口请求打连接标记
+            'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "GET /high/" --algo bm --from 60 -j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "GET /low/" --algo bm --from 60 -j CONNMARK --set-mark 20',
+            # 出口方向恢复数据包标记
+            'iptables -t mangle -A OUTPUT -p tcp --sport 80 -j CONNMARK --restore-mark'
+        ]
+
+        for cmd in cmds + connmark_cmds:
             server.cmd(cmd)
-        server.cmd(
-            'iptables -t mangle -A PREROUTING -m string --string "GET /high/" --algo bm --from 60 -j MARK --set-mark 10')
-        server.cmd(
-            'iptables -t mangle -A PREROUTING -m string --string "GET /low/" --algo bm --from 60 -j MARK --set-mark 20')
 
 
 def setup_server(server):
