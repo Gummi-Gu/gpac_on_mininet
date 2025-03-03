@@ -76,6 +76,8 @@ class RequestGenerator:
             with self.lock:
                 self.active_requests[url_type] += 1
             self.client.cmd(f'curl -s {url} > /dev/null')
+            time.sleep(0.5)
+            print(f"fetch {url_type}")
         finally:
             with self.lock:
                 self.active_requests[url_type] -= 1
