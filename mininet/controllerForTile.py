@@ -2,6 +2,7 @@
 import os
 from time import sleep
 
+import requests
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Controller
@@ -95,19 +96,29 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print('request')
-            self.client.cmd(f'curl -v  {url} > /dev/null')#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
-            print('success')
+            response = requests.get(url, stream=True)  # 流式下载以准确统计时间
+            response.raise_for_status()  # 自动检查 HTTP 错误状态码（如 404）
+
+            # 计算实际传输数据大小（优先用 Content-Length，避免依赖 FILE_SIZES）
+            content_length = int(response.headers.get('Content-Length', 0))
+            data_size = content_length if content_length > 0 else FILE_SIZES.get(url_type, 0)
             duration = time.time() - start_time
 
             with self.lock:
                 self.active_requests[url_type] -= 1
                 self.completed_requests[url_type] += 1
                 self.total_transfer_time[url_type] += duration
-                self.total_data[url_type] += FILE_SIZES[url_type]
+                self.total_data[url_type] += data_size
 
+        except requests.exceptions.RequestException as e:
+            print(f"HTTP 请求失败: {type(e).__name__}, 错误详情: {str(e)}")
         except Exception as e:
-            print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
+            print(f"未知错误: {type(e).__name__}, 消息: {str(e)}")
+        finally:
+            # 确保异常时也减少活跃请求数
+            with self.lock:
+                if self.active_requests[url_type] > 0:
+                    self.active_requests[url_type] -= 1
 
 
     def _generate_requests(self):
