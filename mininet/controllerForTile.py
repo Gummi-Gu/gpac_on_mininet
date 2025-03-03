@@ -59,6 +59,7 @@ class TrafficControl:
         # 设置连接标记规则
         connmark_cmds = [
             # 对入口请求打连接标记
+
             'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "/high/" --algo bm --from 60 -j CONNMARK --set-mark 10',
             'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "/low/" --algo bm --from 60 -j CONNMARK --set-mark 20',
             # 出口方向恢复数据包标记
@@ -235,7 +236,7 @@ if __name__ == '__main__':
         request_gen.start()
         monitor.start()
 
-        CLI(net)
+        #CLI(net)
 
         while True:
             time.sleep(1)
