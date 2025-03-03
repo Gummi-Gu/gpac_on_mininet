@@ -29,7 +29,7 @@ FILE_SIZES = {
 class DynamicTopo(Topo):
     def __init__(self):
         Topo.__init__(self)
-        server = self.addHost('server')
+        server = self.addHost('server', ip='10.0.0.1')
         client = self.addHost('client')
         switch = self.addSwitch('s1')
         self.addLink(server, switch, cls=TCLink, bw=10)
