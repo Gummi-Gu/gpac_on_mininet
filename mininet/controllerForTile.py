@@ -69,7 +69,7 @@ def setup_server(server):
     server.cmd(f'mkdir -p {DASH_DIR}/high {DASH_DIR}/low')
     server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/high/chunk1.m4s bs=1M count=100')
     server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/low/chunk1.m4s bs=1M count=50')
-    server.cmd(f'cd {DASH_DIR} && python3 -m http.server 80 &')
+    #server.cmd(f'cd {DASH_DIR} && python3 -m http.server 80 &')
 
 
 class RequestGenerator:
@@ -84,13 +84,13 @@ class RequestGenerator:
 
     def _fetch(self, url_type):
         """Execute single request and update metrics"""
-        url = f'http://{SERVER_IP}/{url_type}/chunk1.m4s'
+        url = f'http://{SERVER_IP}:80/{url_type}/chunk1.m4s'
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#-m
+            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -s http://10.0.0.1:80/high/chunk1.m4s
             duration = time.time() - start_time
 
             with self.lock:
