@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 import os
-
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Controller
 from mininet.link import TCLink
 from mininet.log import setLogLevel, info
-from mininet.cli import CLI
 import time
 import threading
 import random
 
-# ================== 配置参数 ==================
+# ================== Configuration ==================
 SERVER_IP = '10.0.0.1'
 DASH_DIR = '/tmp/dash'
-REQUEST_INTERVAL = 5  # 新请求间隔（秒）
+REQUEST_INTERVAL = 5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '1mbit', 'ceil': '1mbit', 'classid': '1:10'},
     'low': {'mark': 20, 'rate': '500kbit', 'ceil': '500kbit', 'classid': '1:20'}
 }
+FILE_SIZES = {
+    'high': 100 * 1024 * 1024,  # 100MB in bytes
+    'low': 50 * 1024 * 1024  # 50MB in bytes
+}
 
 
-# ==============================================
+# ===================================================
 
 class DynamicTopo(Topo):
     def __init__(self):
@@ -67,38 +69,46 @@ class RequestGenerator:
         self.client = client
         self.running = True
         self.active_requests = {'high': 0, 'low': 0}
+        self.completed_requests = {'high': 0, 'low': 0}
+        self.total_transfer_time = {'high': 0.0, 'low': 0.0}
+        self.total_data = {'high': 0, 'low': 0}
         self.lock = threading.Lock()
 
     def _fetch(self, url_type):
-        """执行单个请求并更新状态"""
+        """Execute single request and update metrics"""
         url = f'http://{SERVER_IP}/{url_type}/chunk1.m4s'
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
+
+            start_time = time.time()
             self.client.cmd(f'curl -s {url} > /dev/null')
-            time.sleep(0.8)
-            print(f"fetch {url_type}")
-        finally:
+            duration = time.time() - start_time
+
             with self.lock:
                 self.active_requests[url_type] -= 1
+                self.completed_requests[url_type] += 1
+                self.total_transfer_time[url_type] += duration
+                self.total_data[url_type] += FILE_SIZES[url_type]
+
+        except Exception as e:
+            print(f"Request failed: {str(e)}")
 
     def _generate_requests(self):
-        """持续生成随机请求"""
+        """Generate random requests continuously"""
         while self.running:
             url_type = random.choice(['high', 'low'])
-            thread = threading.Thread(target=self._fetch, args=(url_type,))
-            thread.start()
+            threading.Thread(target=self._fetch, args=(url_type,)).start()
             time.sleep(random.uniform(0.1, REQUEST_INTERVAL))
-            print(f"generating requests {url_type}")
 
     def start(self):
-        """启动请求生成器"""
+        """Start request generator"""
         self.thread = threading.Thread(target=self._generate_requests)
         self.thread.daemon = True
         self.thread.start()
 
     def stop(self):
-        """停止所有请求"""
+        """Stop all requests"""
         self.running = False
         self.thread.join()
 
@@ -110,34 +120,78 @@ class TrafficMonitor:
         self.running = True
 
     def _get_tc_stats(self):
-        """获取带宽统计信息"""
-        stats = {
+        """Get bandwidth statistics"""
+        return {
             'high': self.server.cmd('tc -s class show dev server-eth0 | grep "1:10"'),
             'low': self.server.cmd('tc -s class show dev server-eth0 | grep "1:20"')
         }
-        return stats
+
+    def _format_speed(self, speed_bps):
+        """Format speed display"""
+        if speed_bps >= 1e6:
+            return f"{speed_bps / 1e6:.2f} Mbps"
+        elif speed_bps >= 1e3:
+            return f"{speed_bps / 1e3:.2f} Kbps"
+        return f"{speed_bps:.2f} bps"
 
     def _display(self):
-        """实时显示监控信息"""
+        """Real-time monitoring display"""
         while self.running:
             os.system('clear')
             stats = self._get_tc_stats()
-            print("\n=== Server bandwidth statistics ===")
-            print(f"[High] Active Requests: {self.request_gen.active_requests['high']}")
+
+            with self.request_gen.lock:
+                high_active = self.request_gen.active_requests['high']
+                low_active = self.request_gen.active_requests['low']
+                high_completed = self.request_gen.completed_requests['high']
+                low_completed = self.request_gen.completed_requests['low']
+                high_total_time = self.request_gen.total_transfer_time['high']
+                low_total_time = self.request_gen.total_transfer_time['low']
+                high_total_data = self.request_gen.total_data['high']
+                low_total_data = self.request_gen.total_data['low']
+
+            # Calculate metrics
+            high_avg_speed = (high_total_data / high_total_time * 8) if high_total_time > 0 else 0
+            low_avg_speed = (low_total_data / low_total_time * 8) if low_total_time > 0 else 0
+
+            high_avg_latency = (high_total_time / high_completed * 1000) if high_completed > 0 else 0
+            low_avg_latency = (low_total_time / low_completed * 1000) if low_completed > 0 else 0
+
+            high_total_mb = high_total_data / (1024 * 1024)
+            low_total_mb = low_total_data / (1024 * 1024)
+            total_mb = high_total_mb + low_total_mb
+
+            # Display metrics
+            print("\n=== Real-time Network Monitoring ===")
+            print("=== Traffic Class Statistics ===")
+            print(f"[HIGH] Active: {high_active}\tCompleted: {high_completed}")
+            print(f"       Avg Speed: {self._format_speed(high_avg_speed)}")
+            print(f"       Avg Latency: {high_avg_latency:.2f} ms")
+            print(f"       Total Data: {high_total_mb:.2f} MB")
+            print("   TC Statistics:")
             print(stats['high'])
-            print(f"\n[Low] Active Requests: {self.request_gen.active_requests['low']}")
+
+            print(f"\n[LOW] Active: {low_active}\tCompleted: {low_completed}")
+            print(f"      Avg Speed: {self._format_speed(low_avg_speed)}")
+            print(f"      Avg Latency: {low_avg_latency:.2f} ms")
+            print(f"      Total Data: {low_total_mb:.2f} MB")
+            print("  TC Statistics:")
             print(stats['low'])
-            print("\npress Ctrl+C to stop...")
-            time.sleep(0.2)
+
+            print("\n=== Global Statistics ===")
+            print(f"Total Transferred: {total_mb:.2f} MB")
+            print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
+            print("\nPress Ctrl+C to exit...")
+            time.sleep(1)
 
     def start(self):
-        """启动监控"""
+        """Start monitoring"""
         self.thread = threading.Thread(target=self._display)
         self.thread.daemon = True
         self.thread.start()
 
     def stop(self):
-        """停止监控"""
+        """Stop monitoring"""
         self.running = False
         self.thread.join()
 
@@ -152,19 +206,16 @@ if __name__ == '__main__':
         setup_server(server)
         TrafficControl.setup_tc(server)
 
-        # 初始化请求生成器和监控器
         request_gen = RequestGenerator(client)
         monitor = TrafficMonitor(server, request_gen)
 
-        # 启动线程
         request_gen.start()
         monitor.start()
 
-        # 保持主线程运行
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        info("\nstop...\n")
+        info("\nStopping services...")
         request_gen.stop()
         monitor.stop()
     finally:
