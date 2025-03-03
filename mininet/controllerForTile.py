@@ -209,9 +209,10 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
+    print("start")
     CLI(net)
-    time.sleep(10)
-    net.stop()
+    #time.sleep(10)
+    #net.stop()
     '''
     try:
         setup_server(server)
