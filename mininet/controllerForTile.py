@@ -96,7 +96,7 @@ class RequestGenerator:
 
             start_time = time.time()
 
-            response = self.client.cmd('python3 request_test.py')
+            response = self.client.cmd(f'python3 request_test.py {url}')
 
             if "error" in response.lower():
                 print(f"Error encountered on client {self.client.name}: {response}")
