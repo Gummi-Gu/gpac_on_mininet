@@ -229,7 +229,7 @@ if __name__ == '__main__':
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
-        CLI(net)
+        #CLI(net)
         
         
         request_gen = RequestGenerator(client)
