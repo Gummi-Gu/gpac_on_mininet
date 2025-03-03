@@ -70,7 +70,8 @@ def setup_server(server):
     server.cmd(f'mkdir -p {DASH_DIR}/high {DASH_DIR}/low')
     server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/high/chunk1.m4s bs=1M count=5')
     server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/low/chunk1.m4s bs=1M count=1')
-    #server.cmd(f'cd {DASH_DIR} && python3 test.py &')
+    server.cmd(f'cd {DASH_DIR}')
+    server.cmd(f'screen -dmS flask_server python3 {DASH_DIR}/test.py')
 
 
 class RequestGenerator:
