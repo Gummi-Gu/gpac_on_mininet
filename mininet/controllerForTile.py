@@ -95,28 +95,42 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(url)
-            response = requests.get(url, stream=True)  # 流式下载以准确统计时间
-            response.raise_for_status()  # 自动检查 HTTP 错误状态码（如 404）
+            # 在指定的客户端节点上运行 HTTP 请求
+            command = f'python3 -c "import requests; ' \
+                      f'try: response = requests.get(\'{url}\'); ' \
+                      f'print(response.text); ' \
+                      f'except requests.exceptions.Timeout as e: ' \
+                      f'print(\'Timeout error:\', e); ' \
+                      f'except requests.exceptions.TooManyRedirects as e: ' \
+                      f'print(\'Too many redirects:\', e); ' \
+                      f'except requests.exceptions.RequestException as e: ' \
+                      f'print(\'Request error:\', e); ' \
+                      f'except Exception as e: ' \
+                      f'print(\'Unknown error:\', e)"'
 
-            # 计算实际传输数据大小（优先用 Content-Length，避免依赖 FILE_SIZES）
-            content_length = int(response.headers.get('Content-Length', 0))
-            data_size = content_length if content_length > 0 else FILE_SIZES.get(url_type, 0)
+            response = self.cmd(command)
+
+            if "error" in response.lower():
+                print(f"Error encountered on client {self.name}: {response}")
+                return
+
             duration = time.time() - start_time
 
             with self.lock:
                 self.active_requests[url_type] -= 1
                 self.completed_requests[url_type] += 1
                 self.total_transfer_time[url_type] += duration
-                self.total_data[url_type] += data_size
+                self.total_data[url_type] += FILE_SIZES[url_type]
 
-        except requests.exceptions.RequestException as e:
-            print(f"HTTP request fail: {type(e).__name__}, detail: {str(e)}")
+
         except Exception as e:
-            print(f"unknown failure: {type(e).__name__}, message: {str(e)}")
+
+            print(f"Unknown failure: {type(e).__name__}, message: {str(e)}")
+
         finally:
-            # 确保异常时也减少活跃请求数
+
             with self.lock:
+
                 if self.active_requests[url_type] > 0:
                     self.active_requests[url_type] -= 1
 
