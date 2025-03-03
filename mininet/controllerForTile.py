@@ -93,7 +93,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            tmp_str=(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
+            print(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
             duration = time.time() - start_time
 
             with self.lock:
@@ -103,9 +103,8 @@ class RequestGenerator:
                 self.total_data[url_type] += FILE_SIZES[url_type]
 
         except Exception as e:
-            print(tmp_str)
             print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
-            time.sleep(5)
+            input("press enter to continue")
 
 
     def _generate_requests(self):
