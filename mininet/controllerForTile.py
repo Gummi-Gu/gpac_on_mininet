@@ -151,8 +151,8 @@ class TrafficMonitor:
                 low_total_data = self.request_gen.total_data['low']
 
             # Calculate metrics
-            high_avg_speed = (high_total_data / high_total_time * 8) if high_total_time > 0 else 0
-            low_avg_speed = (low_total_data / low_total_time * 8) if low_total_time > 0 else 0
+            high_avg_speed = (high_total_data / max(0.01,high_total_time) * 8) if high_total_time > 0 else 0
+            low_avg_speed = (low_total_data / max(0.01,low_total_time) * 8) if low_total_time > 0 else 0
 
             high_avg_latency = (high_total_time / high_completed * 1000) if high_completed > 0 else 0
             low_avg_latency = (low_total_time / low_completed * 1000) if low_completed > 0 else 0
@@ -179,7 +179,6 @@ class TrafficMonitor:
             print(stats['low'])
 
             print("\n=== Global Statistics ===")
-            print(server.cmd("tc class show dev server-eth0"))
             print(f"Total Transferred: {total_mb:.2f} MB")
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
