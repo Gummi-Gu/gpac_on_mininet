@@ -95,7 +95,9 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            result=self.client.cmd(f'curl -v  {url} > /dev/null')#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
+            print('request')
+            self.client.cmd(f'curl -v  {url} > /dev/null')#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
+            print('success')
             duration = time.time() - start_time
 
             with self.lock:
