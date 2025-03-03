@@ -87,6 +87,7 @@ class RequestGenerator:
     def _fetch(self, url_type):
         """Execute single request and update metrics"""
         url = f'http://{SERVER_IP}:{PORT}/{url_type}/chunk1.m4s'
+        tmp_str=""
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
