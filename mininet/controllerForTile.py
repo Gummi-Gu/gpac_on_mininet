@@ -76,7 +76,7 @@ class RequestGenerator:
             with self.lock:
                 self.active_requests[url_type] += 1
             self.client.cmd(f'curl -s {url} > /dev/null')
-            time.sleep(0.3)
+            time.sleep(0.8)
             print(f"fetch {url_type}")
         finally:
             with self.lock:
@@ -128,7 +128,7 @@ class TrafficMonitor:
             print(f"\n[Low] Active Requests: {self.request_gen.active_requests['low']}")
             print(stats['low'])
             print("\npress Ctrl+C to stop...")
-            time.sleep(2)
+            time.sleep(0.2)
 
     def start(self):
         """启动监控"""
