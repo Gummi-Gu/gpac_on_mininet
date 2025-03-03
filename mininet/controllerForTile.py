@@ -213,7 +213,6 @@ if __name__ == '__main__':
     setup_server(server)
     TrafficControl.setup_tc(server)
     CLI(net)
-    #time.sleep(10)
 
     '''
     try:
