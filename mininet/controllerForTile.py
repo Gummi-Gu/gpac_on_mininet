@@ -59,8 +59,8 @@ class TrafficControl:
         # 设置连接标记规则
         connmark_cmds = [
             # 对入口请求打连接标记
-            'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "GET /high/" --algo bm --from 60 -j CONNMARK --set-mark 10',
-            'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "GET /low/" --algo bm --from 60 -j CONNMARK --set-mark 20',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "/high/" --algo bm --from 60 -j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 80 -m string --string "/low/" --algo bm --from 60 -j CONNMARK --set-mark 20',
             # 出口方向恢复数据包标记
             'iptables -t mangle -A OUTPUT -p tcp --sport 80 -j CONNMARK --restore-mark'
         ]
@@ -224,7 +224,6 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
-    client.cmd('ping -c 1 10.0.0.1')
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
