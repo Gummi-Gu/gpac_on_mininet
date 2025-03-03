@@ -95,6 +95,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
+
             # 在指定的客户端节点上运行 HTTP 请求
             command = (
                 f'python3 -c "import requests; '
