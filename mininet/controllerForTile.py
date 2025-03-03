@@ -102,8 +102,9 @@ class RequestGenerator:
                 self.total_data[url_type] += FILE_SIZES[url_type]
 
         except Exception as e:
-            time.sleep(5)
             print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
+            time.sleep(5)
+
 
     def _generate_requests(self):
         """Generate random requests continuously"""
