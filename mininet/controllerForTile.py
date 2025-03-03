@@ -30,7 +30,7 @@ class DynamicTopo(Topo):
     def __init__(self):
         Topo.__init__(self)
         server = self.addHost('server', ip='10.0.0.1')
-        client = self.addHost('client')
+        client = self.addHost('client', ip='10.0.0.2')
         switch = self.addSwitch('s1')
         self.addLink(server, switch, cls=TCLink, bw=10)
         self.addLink(client, switch, cls=TCLink, bw=10)
