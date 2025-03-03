@@ -92,7 +92,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s
+            print(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s
             duration = time.time() - start_time
 
             with self.lock:
@@ -109,7 +109,7 @@ class RequestGenerator:
         while self.running:
             url_type = random.choice(['high', 'low'])
             threading.Thread(target=self._fetch, args=(url_type,)).start()
-            time.sleep(random.uniform(0.1, REQUEST_INTERVAL))
+            time.sleep(3+random.uniform(0.1, REQUEST_INTERVAL))
 
     def start(self):
         """Start request generator"""
