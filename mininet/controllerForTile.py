@@ -236,6 +236,8 @@ if __name__ == '__main__':
         request_gen.start()
         monitor.start()
 
+        client.cmd('screen')
+        server.cmd('screen')
         #CLI(net)
 
         while True:
