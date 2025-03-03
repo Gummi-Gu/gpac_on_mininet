@@ -87,6 +87,7 @@ class RequestGenerator:
             thread = threading.Thread(target=self._fetch, args=(url_type,))
             thread.start()
             time.sleep(random.uniform(0.1, REQUEST_INTERVAL))
+            print(f"generating requests {url_type}")
 
     def start(self):
         """启动请求生成器"""
