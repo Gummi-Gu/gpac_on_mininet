@@ -99,7 +99,7 @@ def concurrent_requests(client):
             duration = time.time() - start
             results[type_].append(duration)
         except Exception as e:
-            print(f"请求失败: {str(e)}")
+            print(f"request fail: {str(e)}")
 
     threads = [threading.Thread(target=fetch, args=(url,)) for url in urls]
     for t in threads: t.start()
@@ -109,13 +109,13 @@ def concurrent_requests(client):
     for type_ in results:
         if results[type_]:
             avg_time = sum(results[type_]) / len(results[type_])
-            print(f"{type_} 平均传输时间: {avg_time:.2f}s")
+            print(f"{type_} Average transmission time: {avg_time:.2f}s")
 
 
 def monitor(server):
     """实时监控带宽使用情况"""
     while True:
-        info('\n[实时监控] 服务器带宽统计:\n')
+        info('\n[Real time monitoring] Server bandwidth statistics:\n')
         info(server.cmd('tc -s class show dev server-eth0'))
         time.sleep(2)
 
@@ -137,11 +137,11 @@ if __name__ == '__main__':
         monitor_thread.start()
 
         # 执行并发测试
-        info("\n=== 开始并发带宽测试 ===\n")
+        info("\n=== start request test ===\n")
         concurrent_requests(client)
 
         # 保留CLI用于手动测试
         CLI(net)
     finally:
         net.stop()
-        info("\n=== 测试完成，资源已清理 ===\n")
+        info("\n=== stop ===\n")
