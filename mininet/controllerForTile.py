@@ -111,9 +111,9 @@ class RequestGenerator:
                 self.total_data[url_type] += data_size
 
         except requests.exceptions.RequestException as e:
-            print(f"HTTP 请求失败: {type(e).__name__}, 错误详情: {str(e)}")
+            print(f"HTTP request fail: {type(e).__name__}, detail: {str(e)}")
         except Exception as e:
-            print(f"未知错误: {type(e).__name__}, 消息: {str(e)}")
+            print(f"unknown failure: {type(e).__name__}, message: {str(e)}")
         finally:
             # 确保异常时也减少活跃请求数
             with self.lock:
