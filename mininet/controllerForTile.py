@@ -225,7 +225,10 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
+
     try:
+        client.cmd('screen -dm bash')  # 启动一个新的独立的 screen 会话
+        server.cmd('screen -dm bash')
         setup_server(server)
         TrafficControl.setup_tc(server)
         
@@ -236,8 +239,6 @@ if __name__ == '__main__':
         request_gen.start()
         monitor.start()
 
-        client.cmd('screen')
-        server.cmd('screen')
         #CLI(net)
 
         while True:
