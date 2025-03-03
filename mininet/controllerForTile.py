@@ -97,8 +97,6 @@ class RequestGenerator:
             start_time = time.time()
             result=self.client.cmd(f'curl -v  {url} > /dev/null')#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
             duration = time.time() - start_time
-            if result.exit_status != 0:
-                raise Exception("Curl failed")
 
             with self.lock:
                 self.active_requests[url_type] -= 1
