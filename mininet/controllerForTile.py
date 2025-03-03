@@ -146,7 +146,7 @@ class TrafficMonitor:
     def _get_tc_stats(self):
         """Get bandwidth statistics"""
         return {
-            'high': self.server.cmd('tc -s class show dev server-eth0 | grep "1:10'),
+            'high': self.server.cmd('tc -s class show dev server-eth0 | grep "1:10"'),
             'low': self.server.cmd('tc -s class show dev server-eth0 | grep "1:20"')
         }
 
