@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import subprocess
 from time import sleep
 
 import requests
@@ -97,13 +96,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-
-            process = subprocess.Popen(
-                ['curl', '-v', url],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
-            process.wait()  # 等待进程完成
+            print(self.client.cmd(f'curl -v {url} > /dev/null'))
 
             duration = time.time() - start_time
 
@@ -113,10 +106,13 @@ class RequestGenerator:
                 self.total_transfer_time[url_type] += duration
                 self.total_data[url_type] += FILE_SIZES[url_type]
 
+
         except Exception as e:
+
             print(f"Unknown failure: {type(e).__name__}, message: {str(e)}")
 
         finally:
+
             with self.lock:
                 if self.active_requests[url_type] > 0:
                     self.active_requests[url_type] -= 1
@@ -125,7 +121,8 @@ class RequestGenerator:
         """Generate random requests continuously"""
         while self.running:
             url_type = random.choice(['high', 'low'])
-            threading.Thread(target=self._fetch, args=(url_type,)).start()
+            #threading.Thread(target=self._fetch, args=(url_type,)).start()
+            self._fetch(url_type)
             time.sleep(random.uniform(1, REQUEST_INTERVAL))
 
     def start(self):
