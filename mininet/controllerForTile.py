@@ -96,23 +96,7 @@ class RequestGenerator:
 
             start_time = time.time()
 
-            # 在指定的客户端节点上运行 HTTP 请求
-            command = (
-                f'python3 -c "import requests; '
-                f'try: '
-                f'    response = requests.get(\'{url}\'); '
-                f'    print(response.text); '
-                f'except requests.exceptions.Timeout as e: '
-                f'    print(\'Timeout error:\', e); '
-                f'except requests.exceptions.TooManyRedirects as e: '
-                f'    print(\'Too many redirects:\', e); '
-                f'except requests.exceptions.RequestException as e: '
-                f'    print(\'Request error:\', e); '
-                f'except Exception as e: '
-                f'    print(\'Unknown error:\', e)"'
-            )
-
-            response = self.client.cmd(command)
+            response = self.client.cmd('python3 request_test.py')
 
             if "error" in response.lower():
                 print(f"Error encountered on client {self.client.name}: {response}")
