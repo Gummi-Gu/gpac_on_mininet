@@ -239,7 +239,7 @@ if __name__ == '__main__':
         #request_gen.start()
         #monitor.start()
 
-        #CLI(net)
+        CLI(net)
 
         while True:
             time.sleep(1)
