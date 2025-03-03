@@ -108,10 +108,10 @@ class RequestGenerator:
                       f'except Exception as e: ' \
                       f'print(\'Unknown error:\', e)"'
 
-            response = self.cmd(command)
+            response = self.client.cmd(command)
 
             if "error" in response.lower():
-                print(f"Error encountered on client {self.name}: {response}")
+                print(f"Error encountered on client {self.client.name}: {response}")
                 return
 
             duration = time.time() - start_time
