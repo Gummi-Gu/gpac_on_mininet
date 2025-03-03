@@ -228,7 +228,6 @@ if __name__ == '__main__':
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
-        #CLI(net)
         
         
         request_gen = RequestGenerator(client)
@@ -237,7 +236,7 @@ if __name__ == '__main__':
         request_gen.start()
         monitor.start()
 
-
+        CLI(net)
 
         while True:
             time.sleep(1)
