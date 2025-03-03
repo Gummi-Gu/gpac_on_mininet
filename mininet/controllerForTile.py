@@ -5,6 +5,7 @@ from mininet.net import Mininet
 from mininet.node import Controller
 from mininet.link import TCLink
 from mininet.log import setLogLevel, info
+from mininet.cli import CLI  # 导入 Mininet 的 CLI
 import time
 import threading
 import random
@@ -89,7 +90,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            self.client.cmd(f'curl -s --no-cache {url} > /dev/null')
+            print(self.client.cmd(f'curl -s --no-cache {url} > /dev/null'))
             duration = time.time() - start_time
 
             with self.lock:
@@ -213,6 +214,8 @@ if __name__ == '__main__':
         setup_server(server)
         TrafficControl.setup_tc(server)
 
+        CLI(net)
+        '''
         request_gen = RequestGenerator(client)
         monitor = TrafficMonitor(server, request_gen)
 
@@ -221,9 +224,11 @@ if __name__ == '__main__':
 
         while True:
             time.sleep(1)
+        
     except KeyboardInterrupt:
         info("\nStopping services...")
         request_gen.stop()
         monitor.stop()
+        '''
     finally:
         net.stop()
