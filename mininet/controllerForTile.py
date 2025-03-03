@@ -29,7 +29,7 @@ FILE_SIZES = {
 class DynamicTopo(Topo):
     def __init__(self):
         Topo.__init__(self)
-        server = self.addHost('server', ip=SERVER_IP)
+        server = self.addHost('server')
         client = self.addHost('client')
         switch = self.addSwitch('s1')
         self.addLink(server, switch, cls=TCLink, bw=10)
@@ -205,11 +205,11 @@ class TrafficMonitor:
 
 
 if __name__ == '__main__':
-    setLogLevel('error')
+    #setLogLevel('error')
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
-    server, client = net.get('server', 'client')
-    print("start")
+    #server, client = net.get('server', 'client')
+    #print("start")
     CLI(net)
     #time.sleep(10)
     #net.stop()
