@@ -90,12 +90,12 @@ class RequestGenerator:
     def _fetch(self, url_type):
         """Execute single request and update metrics"""
         url = f'http://{SERVER_IP}:{PORT}/{url_type}/chunk1.m4s'
-        tmp_str=""
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
+            print(url)
             response = requests.get(url, stream=True)  # 流式下载以准确统计时间
             response.raise_for_status()  # 自动检查 HTTP 错误状态码（如 404）
 
