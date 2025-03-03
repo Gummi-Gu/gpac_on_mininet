@@ -1,7 +1,7 @@
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Controller
-from mininet.util import dumpNodeConnections
+from mininet.cli import CLI  # 导入 Mininet 的 CLI
 
 class SimpleTopo(Topo):
     def __init__(self):
