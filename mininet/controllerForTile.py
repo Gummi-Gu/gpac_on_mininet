@@ -16,7 +16,7 @@ import random
 SERVER_IP = '10.0.0.1'
 PORT=1080
 DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
-REQUEST_INTERVAL = 5  # New request interval (seconds)
+REQUEST_INTERVAL = 0.5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:10'},
     'low': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:20'}
@@ -95,7 +95,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -v  {url} > /dev/null'))#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
+            self.client.cmd(f'curl -v  {url} > /dev/null')#curl -v http://10.0.0.1:1080/high/chunk1.m4s > /dev/null
             duration = time.time() - start_time
 
             with self.lock:
@@ -106,8 +106,6 @@ class RequestGenerator:
 
         except Exception as e:
             print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
-            time.sleep(20)
-            input("press enter to continue")
 
 
     def _generate_requests(self):
