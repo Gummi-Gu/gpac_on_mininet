@@ -16,8 +16,8 @@ PORT=1080
 DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
 REQUEST_INTERVAL = 5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '1mbit', 'ceil': '1mbit', 'classid': '1:10'},
-    'low': {'mark': 20, 'rate': '500kbit', 'ceil': '500kbit', 'classid': '1:20'}
+    'high': {'mark': 10, 'rate': '10mbit', 'ceil': '1mbit', 'classid': '1:10'},
+    'low': {'mark': 20, 'rate': '2mbit', 'ceil': '500kbit', 'classid': '1:20'}
 }
 FILE_SIZES = {
     'high': 5 * 1024 * 1024,  # 5MB in bytes
@@ -192,7 +192,7 @@ class TrafficMonitor:
             print(f"Total Transferred: {total_mb:.2f} MB")
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
-            time.sleep(1)
+            time.sleep(5)
 
     def start(self):
         """Start monitoring"""
@@ -211,7 +211,7 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
-    CLI(net)
+    #CLI(net)
 
     try:
         setup_server(server)
