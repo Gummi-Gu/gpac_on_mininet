@@ -12,7 +12,8 @@ import random
 
 # ================== Configuration ==================
 SERVER_IP = '10.0.0.1'
-DASH_DIR = '/tmp/dash'
+PORT=1080
+DASH_DIR = '/home/mininet/gpac_on_mininet/dash'
 REQUEST_INTERVAL = 5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '1mbit', 'ceil': '1mbit', 'classid': '1:10'},
@@ -67,8 +68,8 @@ class TrafficControl:
 
 def setup_server(server):
     server.cmd(f'mkdir -p {DASH_DIR}/high {DASH_DIR}/low')
-    server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/high/chunk1.m4s bs=1M count=100')
-    server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/low/chunk1.m4s bs=1M count=50')
+    server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/high/chunk1.m4s bs=1M count=5')
+    server.cmd(f'dd if=/dev/urandom of={DASH_DIR}/low/chunk1.m4s bs=1M count=1')
     #server.cmd(f'cd {DASH_DIR} && python3 -m http.server 80 &')
 
 
@@ -84,13 +85,13 @@ class RequestGenerator:
 
     def _fetch(self, url_type):
         """Execute single request and update metrics"""
-        url = f'http://{SERVER_IP}:80/{url_type}/chunk1.m4s'
+        url = f'http://{SERVER_IP}:{PORT}/{url_type}/chunk1.m4s'
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -s http://10.0.0.1:80/high/chunk1.m4s
+            print(self.client.cmd(f'curl -s  {url} > /dev/null'))#curl -s http://10.0.0.1:1080/high/chunk1.m4s
             duration = time.time() - start_time
 
             with self.lock:
