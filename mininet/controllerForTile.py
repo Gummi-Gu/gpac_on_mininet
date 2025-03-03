@@ -211,12 +211,8 @@ if __name__ == '__main__':
     net = Mininet(topo=DynamicTopo(), controller=Controller)
     net.start()
     server, client = net.get('server', 'client')
-    #print("start")
-    setup_server(server)
-    TrafficControl.setup_tc(server)
     CLI(net)
 
-    '''
     try:
         setup_server(server)
         TrafficControl.setup_tc(server)
@@ -239,4 +235,3 @@ if __name__ == '__main__':
        
     finally:
         net.stop()
-    '''
