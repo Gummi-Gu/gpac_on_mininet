@@ -82,7 +82,7 @@ class RequestGenerator:
                 self.active_requests[url_type] += 1
 
             start_time = time.time()
-            self.client.cmd(f'curl -s {url} > /dev/null')
+            self.client.cmd(f'curl -s --no-cache {url} > /dev/null')
             duration = time.time() - start_time
 
             with self.lock:
