@@ -16,7 +16,7 @@ PORT=1080
 DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
 REQUEST_INTERVAL = 5  # New request interval (seconds)
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '10mbit', 'ceil': '1m0bit', 'classid': '1:10'},
+    'high': {'mark': 10, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:10'},
     'low': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:20'}
 }
 FILE_SIZES = {
@@ -33,8 +33,8 @@ class DynamicTopo(Topo):
         server = self.addHost('server', ip='10.0.0.1')
         client = self.addHost('client', ip='10.0.0.2')
         switch = self.addSwitch('s1')
-        self.addLink(server, switch, cls=TCLink, bw=10)
-        self.addLink(client, switch, cls=TCLink, bw=10)
+        self.addLink(server, switch, cls=TCLink, bw=50)
+        self.addLink(client, switch, cls=TCLink, bw=50)
 
 
 class TrafficControl:
@@ -102,7 +102,7 @@ class RequestGenerator:
                 self.total_data[url_type] += FILE_SIZES[url_type]
 
         except Exception as e:
-            print(f"Request failed: {str(e)}")
+            print(f"Exception Type: {type(e).__name__}, Message: '{str(e)}'")
 
     def _generate_requests(self):
         """Generate random requests continuously"""
