@@ -90,6 +90,10 @@ class RequestGenerator:
     def _fetch(self, url_type):
         """Execute single request and update metrics"""
         url = f'http://{SERVER_IP}:{PORT}/{url_type}/chunk1.m4s'
+
+        response = self.client.cmd(f'python3 request_test.py {url}')
+        print(response)
+        '''
         try:
             with self.lock:
                 self.active_requests[url_type] += 1
@@ -122,7 +126,7 @@ class RequestGenerator:
                 if self.active_requests[url_type] > 0:
                     self.active_requests[url_type] -= 1
 
-
+        '''
     def _generate_requests(self):
         """Generate random requests continuously"""
         while self.running:
