@@ -4,15 +4,16 @@ import Rendering
 import Interfaces
 
 dash=None
-rendering=None
+viewpoint=None
 fs=None
 bufferFilter=None
-dashinterface=None
+quantitycollector=None
+dash_interface=None
 
 def init():
-    global dash,rendering,fs,bufferFilter, dashinterface
+    global dash,viewpoint,fs,bufferFilter,dash_interface
+    dash_interface=Interfaces.DashInterface()
     dash= DASH.MyCustomDASHAlgo()
-    rendering= Rendering.Rendering()
+    viewpoint= Rendering.Viewpoint()
     fs = BufferFilter.MyFilterSession()
     bufferFilter= BufferFilter.MyFilter(fs)
-    dashinterface=Interfaces.DashInterface()

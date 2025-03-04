@@ -82,7 +82,7 @@ class MyFilter(gpac.FilterCustom):
 
                     #playout buffer refilled
                     title += " - resuming"
-                    self.buffering = True
+                    self.buffering = False
 
                 if self.re_buffer:
                     #playout buffer underflow
@@ -118,7 +118,7 @@ class MyFilter(gpac.FilterCustom):
 
             equi_height, equi_width = rgb.shape[:2]
 
-            map_x,map_y= Factory.rendering.focal_cal(equi_width, equi_height)
+            map_x,map_y= Factory.viewpoint.focal_cal(equi_width, equi_height)
 
             # 重映射图像
             output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)

@@ -1,11 +1,13 @@
 import math
 
+import Factory
+
 
 class DashInterface:
     def __init__(self):
         self.srd_quantity = None
 
-    def set_quality(self, slice_idx, view_x=50, view_y=50, srd_position=None):
+    def set_quality(self, slice_idx, srd_position=None):
         """
         根据鼠标位置设置切片的质量
         :param slice_idx: 给定的切片序号（从0开始）
@@ -13,6 +15,9 @@ class DashInterface:
         :param view_y: 鼠标的y坐标
         :return: 切片的质量
         """
+        view_x, view_y = Factory.viewpoint.get_view_position()
+        if view_x is None or view_y is None:
+            return 0
         if slice_idx != 0:
             return self.srd_quantity[slice_idx]
         n = len(srd_position)  # 切片总数

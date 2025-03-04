@@ -29,7 +29,7 @@ if __name__ == '__main__':
         src = fs.load_src(sys.argv[1])
     #otherwise load one of our DASH sequences
     else:
-        src = fs.load_src("http://127.0.0.1:12567/files/dash_tiled.mpd")
+        src = fs.load_src("http://127.0.0.1:12567/files/dash_tiled.mpd#VR")
 
     # load our custom filter and assign its source
     my_filter = Factory.bufferFilter

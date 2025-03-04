@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 
-class Rendering:
+class Viewpoint:
     def __init__(self):
         # 设置输出参数
         self.v = None
@@ -28,17 +28,7 @@ class Rendering:
         timestamp = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
         self.filename = f"{timestamp}.txt"
         self.running = True
-        # 启动一个线程，进行文件写入操作
-        self.angle_log_thread = threading.Thread(target=self.write_to_file)
-        self.angle_log_thread.daemon = True
-        atexit.register(self.stop_writing)
-        self.angle_log_thread.start()
 
-    def write_to_file(self):
-        with open("Client/Viewpointlog/"+self.filename, 'a') as file:
-            while self.running:
-                file.write("Writing to file...\n")
-                time.sleep(1)  # 每秒写一次
 
     def stop_writing(self):
         # 停止写入
@@ -111,7 +101,7 @@ class Rendering:
         phi = np.arcsin(z_world)
         self.u = theta / (2 * np.pi) * equi_width
         self.v = (phi + np.pi / 2) / np.pi * equi_height
-        #print(f"[Viewpoint]视点在原图中的位置：({self.u}, {self.v})")
+        print(f"[Viewpoint]视点在原图中的位置：({self.u}, {self.v})")
 
 
 
@@ -144,4 +134,3 @@ class Rendering:
         # 启动监听器
         with keyboard.Listener(on_press=self.on_press) as listener:
             listener.join()
-
