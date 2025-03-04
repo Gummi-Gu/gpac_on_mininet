@@ -48,7 +48,7 @@ class TrafficControl:
             'tc qdisc del dev server-eth0 root 2>/dev/null',
             # 创建HTB队列
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 50mbit',
+            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 100mbit',
             # 创建子类（保持原带宽设置）
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
@@ -59,8 +59,8 @@ class TrafficControl:
         # 设置连接标记规则
         connmark_cmds = [
             # 对入口请求打连接标记
-            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "high"-j CONNMARK --set-mark 10',
-            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "low"-j CONNMARK --set-mark 20',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "high" -j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "low" -j CONNMARK --set-mark 20',
             #'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -j CONNMARK --set-mark 10',
             #'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --string "/high/" --algo bm --from 60 -j CONNMARK --set-mark 10',
             #'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --string "/low/" --algo bm --from 60 -j CONNMARK --set-mark 20',
