@@ -2,6 +2,7 @@
 import atexit
 import threading
 import time
+import Factory
 
 from pynput import keyboard
 
@@ -94,7 +95,7 @@ class Viewpoint:
         phi = np.arcsin(z_world)
         self.u = theta / (2 * np.pi) * equi_width
         self.v = (phi + np.pi / 2) / np.pi * equi_height
-        #print(f"[Viewpoint]视点在原图中的位置：({self.u}, {self.v})")
+
 
 
 
@@ -109,13 +110,13 @@ class Viewpoint:
                 print("Exiting...")
                 return False  # 停止监听
             elif key.char == 'a':  # 左转
-                self.yaw -= 5
+                self.yaw -= 25
             elif key.char == 'd':  # 右转
-                self.yaw += 5
+                self.yaw += 25
             elif key.char == 'w':  # 上仰
-                self.pitch += 5
+                self.pitch += 25
             elif key.char == 's':  # 下俯
-                self.pitch -= 5
+                self.pitch -= 25
             #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
             self.yaw= self.yaw% 360
             self.pitch= self.pitch % 360
@@ -127,3 +128,16 @@ class Viewpoint:
         # 启动监听器
         with keyboard.Listener(on_press=self.on_press) as listener:
             listener.join()
+
+class Render:
+    def render(self,rgb,title):
+        equi_height, equi_width = rgb.shape[:2]
+
+        map_x,map_y= Factory.viewpoint.focal_cal(equi_width, equi_height)
+
+        # 重映射图像
+        output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
+        #resize_factor = 0.625
+        #small_rgb = cv2.resize(rgb, (int(equi_width * resize_factor), int(equi_height * resize_factor)))
+        cv2.imshow('360 View', cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
+        cv2.setWindowTitle('360 View', title)

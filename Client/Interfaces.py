@@ -1,5 +1,5 @@
 import math
-
+import pyautogui
 import Factory
 
 
@@ -15,7 +15,11 @@ class DashInterface:
         :param view_y: 鼠标的y坐标
         :return: 切片的质量
         """
+        #view_x, view_y = pyautogui.position()
+        #view_x=view_x*1.6
+        #view_y=view_y*1.6
         view_x, view_y = Factory.viewpoint.get_view_position()
+        print(f"[Dash_Interface]视点在原图中的位置：({view_x}, {view_y})")
         if view_x is None or view_y is None:
             return 0
         if slice_idx != 0:

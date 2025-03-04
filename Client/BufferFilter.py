@@ -116,16 +116,7 @@ class MyFilter(gpac.FilterCustom):
                 yuv = data.reshape((self.height * 3 // 2, self.width))
                 rgb = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB_NV12)
 
-            equi_height, equi_width = rgb.shape[:2]
-
-            map_x,map_y= Factory.viewpoint.focal_cal(equi_width, equi_height)
-
-            # 重映射图像
-            output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
-
-            #small_rgb = cv2.resize(rgb,(int(self.width * resize_factor), int(self.height * resize_factor)))
-            cv2.imshow('360 View', cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
-            cv2.setWindowTitle('360 View',title)
+            Factory.render.render(rgb,title)
 
             #get packet duration for later sleep
             dur = pck.dur
