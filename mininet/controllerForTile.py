@@ -48,7 +48,7 @@ class TrafficControl:
             'tc qdisc del dev server-eth0 root 2>/dev/null',
             # 创建HTB队列
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 100mbit',
+            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 200mbit',
             # 创建子类（保持原带宽设置）
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
@@ -71,6 +71,12 @@ class TrafficControl:
         for cmd in cmds + connmark_cmds:
             server.cmd(cmd)
 
+    @staticmethod
+    def adjust_bandwidth(server, class_type, rate, ceil):
+        class_config = TRAFFIC_CLASSES[class_type]
+        cmd = f'tc class change dev server-eth0 parent 1:1 classid {class_config["classid"]} htb rate {rate} ceil {ceil}'
+        server.cmd(cmd)
+
 
 def setup_server(server):
     server.cmd(f'mkdir -p {DASH_DIR}/high {DASH_DIR}/low')
@@ -88,6 +94,7 @@ class RequestGenerator:
         self.completed_requests = {'high': 0, 'low': 0}
         self.total_transfer_time = {'high': 0.0, 'low': 0.0}
         self.total_data = {'high': 0, 'low': 0}
+        self.last_transfer_time = {'high': 0.0, 'low': 0.0}
         self.lock = threading.Lock()
 
     def _fetch(self, url_type):
@@ -107,6 +114,7 @@ class RequestGenerator:
                 self.completed_requests[url_type] += 1
                 self.total_transfer_time[url_type] += duration
                 self.total_data[url_type] += FILE_SIZES[url_type]
+                self.last_transfer_time[url_type] = duration
 
 
         except Exception as e:
@@ -121,6 +129,7 @@ class RequestGenerator:
 
     def _generate_requests(self):
         """Generate random requests continuously"""
+        self.client.cmd(f'ping {SERVER_IP} -c 5')
         while self.running:
             url_type = random.choice(['high', 'low'])
             #threading.Thread(target=self._fetch, args=(url_type,)).start()
@@ -175,10 +184,15 @@ class TrafficMonitor:
                 low_total_time = self.request_gen.total_transfer_time['low']
                 high_total_data = self.request_gen.total_data['high']
                 low_total_data = self.request_gen.total_data['low']
+                high_last_time = self.request_gen.last_transfer_time['high']
+                low_last_time = self.request_gen.last_transfer_time['low']
 
             # Calculate metrics
-            high_avg_speed = (high_total_data / max(0.01,high_total_time) * 8) if high_total_time > 0 else 0
-            low_avg_speed = (low_total_data / max(0.01,low_total_time) * 8) if low_total_time > 0 else 0
+            high_avg_speed = (high_total_data / max(0.1,high_total_time) * 8) if high_total_time > 0 else 0
+            low_avg_speed = (low_total_data / max(0.1,low_total_time) * 8) if low_total_time > 0 else 0
+
+            high_last_speed = FILE_SIZES['high'] / max(0.1,high_last_time) * 8 if high_last_time > 0 else 0
+            low_last_speed = FILE_SIZES['low'] / max(0.1,low_last_time) * 8 if low_last_time > 0 else 0
 
             high_avg_latency = (high_total_time / high_completed * 1000) if high_completed > 0 else 0
             low_avg_latency = (low_total_time / low_completed * 1000) if low_completed > 0 else 0
@@ -193,6 +207,7 @@ class TrafficMonitor:
             print(f"[HIGH] Active: {high_active}\tCompleted: {high_completed}")
             print(f"       Avg Speed: {self._format_speed(high_avg_speed)}")
             print(f"       Avg Latency: {high_avg_latency:.2f} ms")
+            print(f"       Last Speed: {self._format_speed(high_last_speed)}")
             print(f"       Total Data: {high_total_mb:.2f} MB")
             print("   TC Statistics:")
             print(stats['high'])
@@ -200,6 +215,7 @@ class TrafficMonitor:
             print(f"\n[LOW] Active: {low_active}\tCompleted: {low_completed}")
             print(f"      Avg Speed: {self._format_speed(low_avg_speed)}")
             print(f"      Avg Latency: {low_avg_latency:.2f} ms")
+            print(f"      Last Speed: {self._format_speed(low_last_speed)}")
             print(f"      Total Data: {low_total_mb:.2f} MB")
             print("  TC Statistics:")
             print(stats['low'])
@@ -209,6 +225,15 @@ class TrafficMonitor:
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
             input("press entry to contine\n")
+            user_input = input("\nPress Enter to update or type 'up' to increase bandwidth: ")
+            if user_input.strip().lower() == 'up':
+                # 提高带宽
+                TrafficControl.adjust_bandwidth(self.server, 'high', '100mbit', '100mbit')
+                TrafficControl.adjust_bandwidth(self.server, 'low', '20mbit', '20mbit')
+            elif user_input.strip().lower() == 'down':
+                # 提高带宽
+                TrafficControl.adjust_bandwidth(self.server, 'high', '50mbit', '50mbit')
+                TrafficControl.adjust_bandwidth(self.server, 'low', '10mbit', '10mbit')
 
     def start(self):
         """Start monitoring"""
