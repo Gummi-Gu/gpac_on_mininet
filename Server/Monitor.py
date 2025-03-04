@@ -49,5 +49,5 @@ def monitor_cli(stdscr):
         stdscr.refresh()
         time.sleep(1)
 
-if __name__ == "__main__":
+def start_monitor():
     curses.wrapper(monitor_cli)

@@ -29,13 +29,6 @@ class Viewpoint:
         self.filename = f"{timestamp}.txt"
         self.running = True
 
-
-    def stop_writing(self):
-        # 停止写入
-        self.running = False
-        # 等待写入线程退出
-        self.angle_log_thread.join()
-
     def focal_cal(self, equi_width=4096, equi_height=2048):
         focal = self.output_width / (2 * np.tan(np.radians(self.fov / 2)))
 
@@ -101,7 +94,7 @@ class Viewpoint:
         phi = np.arcsin(z_world)
         self.u = theta / (2 * np.pi) * equi_width
         self.v = (phi + np.pi / 2) / np.pi * equi_height
-        print(f"[Viewpoint]视点在原图中的位置：({self.u}, {self.v})")
+        #print(f"[Viewpoint]视点在原图中的位置：({self.u}, {self.v})")
 
 
 
