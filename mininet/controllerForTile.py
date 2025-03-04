@@ -19,8 +19,8 @@ PORT=1080
 DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
 REQUEST_INTERVAL = 1  # New request interval (seconds)
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:10'},
-    'low': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:20'}
+    'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
+    'low': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:20'}
 }
 FILE_SIZES = {
     'high': 5 * 1024 * 1024,  # 5MB in bytes
@@ -48,7 +48,7 @@ class TrafficControl:
             'tc qdisc del dev server-eth0 root 2>/dev/null',
             # 创建HTB队列
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 20mbit',
+            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 50mbit',
             # 创建子类（保持原带宽设置）
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
