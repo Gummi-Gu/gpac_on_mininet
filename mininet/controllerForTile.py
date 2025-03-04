@@ -224,7 +224,6 @@ class TrafficMonitor:
             print(f"Total Transferred: {total_mb:.2f} MB")
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
-            input("press entry to contine\n")
             user_input = input("\nPress Enter to update or type 'up' to increase bandwidth: ")
             if user_input.strip().lower() == 'up':
                 # 提高带宽
