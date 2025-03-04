@@ -59,7 +59,9 @@ class TrafficControl:
         # 设置连接标记规则
         connmark_cmds = [
             # 对入口请求打连接标记
-            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "high"-j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "low"-j CONNMARK --set-mark 20',
+            #'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -j CONNMARK --set-mark 10',
             #'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --string "/high/" --algo bm --from 60 -j CONNMARK --set-mark 10',
             #'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --string "/low/" --algo bm --from 60 -j CONNMARK --set-mark 20',
             # 出口方向恢复数据包标记
