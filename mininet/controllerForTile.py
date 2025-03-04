@@ -229,10 +229,12 @@ class TrafficMonitor:
                 # 提高带宽
                 TrafficControl.adjust_bandwidth(self.server, 'high', '100mbit', '100mbit')
                 TrafficControl.adjust_bandwidth(self.server, 'low', '20mbit', '20mbit')
+                print('bandwidth adjusted')
             elif user_input.strip().lower() == 'down':
                 # 提高带宽
                 TrafficControl.adjust_bandwidth(self.server, 'high', '50mbit', '50mbit')
                 TrafficControl.adjust_bandwidth(self.server, 'low', '10mbit', '10mbit')
+                print('bandwidth adjusted')
 
     def start(self):
         """Start monitoring"""
