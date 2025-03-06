@@ -12,6 +12,7 @@ class MyCustomDASHAlgo:
             retry_delay=1,
             max_queue_size=100
         )
+        #self.comm.start()
 
     def on_period_reset(self, type):
         print('period reset type ' + str(type))
@@ -33,11 +34,11 @@ class MyCustomDASHAlgo:
         # In this example we simply cycle through qualities
         # Send the newq value via GET request to 127.0.0.1:12567/dash
         select_num=Factory.dash_interface.set_quality(group.idx,self.srd_position)
-        sample_slices = [
-            {"idx": group.idx, "bitrate": group.qualities[select_num].bandwidth,
-             "download_speed": group.qualities[select_num].bandwidth, "fps": str(group.qualities[select_num].fps),
-             "resolution": f'{group.qualities[select_num].width}x{group.qualities[select_num].height}'}
-        ]
+        #sample_slices = [
+        #    {"idx": group.idx, "bitrate": group.qualities[select_num].bandwidth,
+        #     "download_speed": group.qualities[select_num].bandwidth, "fps": str(group.qualities[select_num].fps),
+        #     "resolution": f'{group.qualities[select_num].width}x{group.qualities[select_num].height}'}
+        #]
         #self.comm.send(self.packet_video_data(stats.buffer, stats.buffer_max, stats.download_rate, sample_slices))
         #print(f"[DASH]{stats.buffer} {stats.buffer_min} {stats.buffer_max} {stats.download_rate}")
         #print(f'[DASH]For {group.idx} We choose {select_num}')
