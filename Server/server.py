@@ -112,22 +112,24 @@ def get_states():
 
     with stats_lock:
         for track_id, data in tracks.items():
+            if track_id == 1:
+                continue
             # 1\5秒统计
             stats_1_5s.append({
-                "1.track": track_id,
-                "2.speed(1s)": f"{data['last_sec_speed']/1024:.2f} MB/s",
+                "1.No": track_id-1,
+                "2.1sSpd": f"{data['last_sec_speed']/1024:.2f} MB/s",
                # "3.time(1s)": f"{data['last_sec_time'] * 1000:.2f} ms",
                # "4.bytes(1s)": f"{data['last_sec_bytes'] / 1024:.2f} KB",
-                "5.category": data["category"],
-                "6.speed(5s)": f"{data['five_sec_speed']/1024:.2f} MB/s",
+                "5.cat": data["category"],
+                "6.5sSpd": f"{data['five_sec_speed']/1024:.2f} MB/s",
                 #"7.time(5s)": f"{data['five_sec_time'] * 1000:.2f} ms",
                 #"8.bytes(5s)": f"{data['five_sec_bytes'] / 1024:.2f} KB",
-                "9.category(5s)": data["five_category"],
-                "10.count": f"{data['count']}",
-                "11.total_bytes": f"{data['total_bytes'] / 1024:.2f} KB",
+                "9.5sCat": data["five_category"],
+                "10.cnt": f"{data['count']}",
+                "11.totKB": f"{data['total_bytes'] / 1024:.2f} KB",
                 #"12.total_time": f"{data['total_time'] * 1000:.2f} ms",
-                "13.avg_latency": f"{data['avg_latency'] * 1000:.2f} ms",
-                "14.avg_speed": f"{data['total_avg_speed']/1024:.2f} MB/s"
+                "13.avgLat": f"{data['avg_latency'] * 1000:.2f} ms",
+                "14.avgSpd": f"{data['total_avg_speed']/1024:.2f} MB/s"
             })
 
         for category, data in stats.items():
