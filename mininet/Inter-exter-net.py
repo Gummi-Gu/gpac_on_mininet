@@ -95,9 +95,12 @@ def setup_network():
     client.cmd('screen -dm bash_client')
     server.cmd('screen -dm bash_server')
     TrafficControl.setup_tc(server)
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
-    client.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS proxy python3 proxy.py')
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server')
+    server.cmd('screen -dmS server python3 server.py')
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server')
+    server.cmd('screen -dmS monitor python3 monitor.py')
+    client.cmd('cd /home/mininet/gpac_on_mininet/mininet')
+    client.cmd('screen -dmS proxy python3 proxy.py')
     # 进入 CLI
     CLI(net)
 
