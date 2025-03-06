@@ -32,5 +32,5 @@ def dash():
 if __name__ == '__main__':
     if not os.path.exists(FILE_DIRECTORY):
         os.makedirs(FILE_DIRECTORY)  # 确保文件目录存在
-    app.run(debug=True, host='0.0.0.0', port=12567)
+    app.run(debug=True, host='0.0.0.0', port=1256)
 

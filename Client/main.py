@@ -17,7 +17,7 @@ Factory.init()
 
 if __name__ == '__main__':
 
-    cv2.namedWindow('360 View')
+   # cv2.namedWindow('360 View')
     #cv2.setMouseCallback('360 View', mouse_callback)
 
     #create a custom filter session
@@ -29,7 +29,7 @@ if __name__ == '__main__':
         src = fs.load_src(sys.argv[1])
     #otherwise load one of our DASH sequences
     else:
-        src = fs.load_src("http://127.0.0.1:12567/files/dash_tiled.mpd#VR")
+        src = fs.load_src("http://127.0.0.1:1256/files/dash_tiled.mpd")
 
     # load our custom filter and assign its source
     my_filter = Factory.bufferFilter
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # and run
     fs.run()
 
-    fs.print_graph()
+    #fs.print_graph()
 
     fs.delete()
     gpac.close()

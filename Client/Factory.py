@@ -2,6 +2,7 @@ import BufferFilter
 import DASH
 import Rendering
 import Interfaces
+import Message
 
 dash=None
 viewpoint=None
@@ -10,6 +11,7 @@ bufferFilter=None
 dash_interface=None
 render=None
 Monitor_URL= "http://localhost:5000/update"
+ThreadedCommunication=Message.ThreadedCommunication
 
 def init():
     global dash,viewpoint,fs,bufferFilter,dash_interface,render

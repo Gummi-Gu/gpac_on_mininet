@@ -16,6 +16,7 @@ class MyFilterSession(gpac.FilterSession):
         # bind the dashin filter to our algorithm object
         if f.name == "dashin":
             f.bind(Factory.dash)
+
 class MyFilter(gpac.FilterCustom):
     def __init__(self, session):
         gpac.FilterCustom.__init__(self, session, "PYRawVid")
@@ -63,7 +64,7 @@ class MyFilter(gpac.FilterCustom):
 
     # process
     def process(self):
-        first_time=time.time()
+        start_time=time.time()
         #only one PID in this example
         for pid in self.ipids:
             title = 'GPAC cv2'
@@ -127,6 +128,6 @@ class MyFilter(gpac.FilterCustom):
             cv2.waitKey(1)
 
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
-            time.sleep(max(0,dur-(time.time() - first_time)))
-
+            time.sleep(max(0,dur-(time.time() - start_time)))
+            #print("[BufferFilter]",time.time() - start_time)
         return 0

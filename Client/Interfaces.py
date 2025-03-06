@@ -1,4 +1,6 @@
 import math
+import time
+
 import pyautogui
 import Factory
 
@@ -15,13 +17,14 @@ class DashInterface:
         :param view_y: 鼠标的y坐标
         :return: 切片的质量
         """
+        start_time=time.time()
         #view_x, view_y = pyautogui.position()
         #view_x=view_x*1.6
         #view_y=view_y*1.6
         view_x, view_y = Factory.viewpoint.get_view_position()
-        print(f"[Dash_Interface]视点在原图中的位置：({view_x}, {view_y})")
+        #print(f"[Dash_Interface]视点在原图中的位置：({view_x}, {view_y})")
         if view_x is None or view_y is None:
-            return 0
+            return 3
         if slice_idx != 0:
             return self.srd_quantity[slice_idx]
         n = len(srd_position)  # 切片总数

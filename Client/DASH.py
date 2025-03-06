@@ -1,16 +1,17 @@
-import math
-import time
-
-import requests
-
 import Factory
-
 
 class MyCustomDASHAlgo:
     #get notifications when a DASH period starts or ends
     def __init__(self):
         self.srd_position=[]
         self.srd_quantity=[]
+        self.comm = Factory.ThreadedCommunication(
+            url=Factory.Monitor_URL,
+            timeout=5,
+            retries=2,
+            retry_delay=1,
+            max_queue_size=100
+        )
 
     def on_period_reset(self, type):
         print('period reset type ' + str(type))
@@ -37,7 +38,7 @@ class MyCustomDASHAlgo:
              "download_speed": group.qualities[select_num].bandwidth, "fps": str(group.qualities[select_num].fps),
              "resolution": f'{group.qualities[select_num].width}x{group.qualities[select_num].height}'}
         ]
-        self.send_video_data(stats.buffer, stats.buffer_max, stats.download_rate, sample_slices)
+        #self.comm.send(self.packet_video_data(stats.buffer, stats.buffer_max, stats.download_rate, sample_slices))
         #print(f"[DASH]{stats.buffer} {stats.buffer_min} {stats.buffer_max} {stats.download_rate}")
         #print(f'[DASH]For {group.idx} We choose {select_num}')
         return select_num
@@ -51,7 +52,7 @@ class MyCustomDASHAlgo:
         return -1
 
 
-    def send_video_data(self,buffer_length, max_buffer_length, download_speed,slices):
+    def packet_video_data(self,buffer_length, max_buffer_length, download_speed,slices):
         """
         发送视频传输数据到 Flask 服务器。
 
@@ -59,22 +60,10 @@ class MyCustomDASHAlgo:
         :param max_buffer_length: 最大 buffer 长度（秒）
         :param slices: 一个包含视频切片信息的列表，每个切片是一个字典
         """
-        url=Factory.Monitor_URL
         data = {
             "buffer_length": buffer_length,
             "max_buffer_length": max_buffer_length,
             "download_speed": download_speed,
             "slices": slices
         }
-
-        try:
-            response = requests.post(url, json=data)
-            if response.status_code == 200:
-                pass
-                #print("数据发送成功:", response.json())
-            else:
-                pass
-                #print("数据发送失败:", response.status_code, response.text)
-        except requests.exceptions.RequestException as e:
-            pass
-            #print("请求错误:", e)
+        return data

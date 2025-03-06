@@ -17,10 +17,10 @@ class Viewpoint:
         self.u = None
         self.output_width = 800
         self.output_height = 600
-        self.fov = 90  # 视场角（单位：度）
+        self.fov = 120  # 视场角（单位：度）
         # 初始视角参数
         self.yaw = 0.0  # 偏航角
-        self.pitch = 0.0  # 俯仰角
+        self.pitch = 90  # 俯仰角
 
         self.angle_thread = threading.Thread(target=self.listen_for_keys)
         self.angle_thread.daemon = True  # 设置为守护线程，确保程序退出时线程也会退出
@@ -31,6 +31,7 @@ class Viewpoint:
         self.running = True
 
     def focal_cal(self, equi_width=4096, equi_height=2048):
+        start_time=time.time()
         focal = self.output_width / (2 * np.tan(np.radians(self.fov / 2)))
 
         # 生成像素网格
@@ -95,6 +96,7 @@ class Viewpoint:
         phi = np.arcsin(z_world)
         self.u = theta / (2 * np.pi) * equi_width
         self.v = (phi + np.pi / 2) / np.pi * equi_height
+        #print("[Rendering]",time.time()-start_time)
 
 
 
@@ -110,13 +112,13 @@ class Viewpoint:
                 print("Exiting...")
                 return False  # 停止监听
             elif key.char == 'a':  # 左转
-                self.yaw -= 25
+                self.yaw -= 15
             elif key.char == 'd':  # 右转
-                self.yaw += 25
+                self.yaw += 15
             elif key.char == 'w':  # 上仰
-                self.pitch += 25
+                self.pitch += 15
             elif key.char == 's':  # 下俯
-                self.pitch -= 25
+                self.pitch -= 15
             #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
             self.yaw= self.yaw% 360
             self.pitch= self.pitch % 360
