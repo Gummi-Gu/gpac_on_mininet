@@ -10,7 +10,7 @@ fs=None
 bufferFilter=None
 dash_interface=None
 render=None
-Monitor_URL= "http://localhost:5000/update"
+Monitor_URL= "http://127.0.0.1:10087/update"
 ThreadedCommunication=Message.ThreadedCommunication
 
 def init():
