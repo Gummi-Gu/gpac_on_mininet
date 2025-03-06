@@ -93,8 +93,4 @@ def run_server(target_server, target_port, proxy_port=8000):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        logger.error("Usage: python proxy.py <target-server> <target-port> [proxy-port]")
-        sys.exit(1)
-
-    run_server(sys.argv[1], sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 8000)
+    run_server("10.0.0.1", 10086, 10086)
