@@ -4,6 +4,47 @@ from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
 
+TRAFFIC_CLASSES = {
+    'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
+    'low': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:20'}
+}
+
+
+class TrafficControl:
+    @staticmethod
+    def setup_tc(server):
+        cmds = [
+            # 清空现有配置
+            'tc qdisc del dev server-eth0 root 2>/dev/null',
+            # 创建HTB队列
+            'tc qdisc add dev server-eth0 root handle 1: htb',
+            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 200mbit',
+            # 创建子类（保持原带宽设置）
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
+            # 创建过滤器
+            'tc filter add dev server-eth0 parent 1: protocol ip handle 10 fw flowid 1:10',
+            'tc filter add dev server-eth0 parent 1: protocol ip handle 20 fw flowid 1:20'
+        ]
+        # 设置连接标记规则
+        connmark_cmds = [
+            # 对入口请求打连接标记
+            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "high" -j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "low" -j CONNMARK --set-mark 20',
+            # 出口方向恢复数据包标记
+            'iptables -t mangle -A OUTPUT -p tcp --sport 1080 -j CONNMARK --restore-mark'
+        ]
+
+        for cmd in cmds + connmark_cmds:
+            server.cmd(cmd)
+
+    @staticmethod
+    def adjust_bandwidth(server, class_type, rate, ceil):
+        class_config = TRAFFIC_CLASSES[class_type]
+        cmd = f'tc class change dev server-eth0 parent 1:1 classid {class_config["classid"]} htb rate {rate} ceil {ceil}'
+        server.cmd(cmd)
+
+
 def setup_network():
     net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
 
@@ -48,9 +89,15 @@ def setup_network():
     # 测试网络状态
     print(server.cmd('ifconfig'))
     print(client.cmd('ifconfig'))
-
+    str="/home/mininet/gpac_on_mininet/mininet/dash"
+    client.cmd('screen -dm bash')
+    server.cmd('screen -dm bash')
+    TrafficControl.setup_tc(server)
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS collector python3 collector_server.py')
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS collector python3 monitor.py')
     # 进入 CLI
-    CLI(net)
+    #CLI(net)
 
     # 关闭网络
     net.stop()
