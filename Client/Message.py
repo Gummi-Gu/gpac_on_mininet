@@ -63,6 +63,7 @@ class ThreadedCommunication:
                     timeout=self.timeout
                 )
                 response.raise_for_status()
+                #print('[Message]已成功发送', response.status_code)
                 return  # 成功则退出
             except requests.exceptions.RequestException as e:
                 if attempt < self.retries:
@@ -90,6 +91,7 @@ class ThreadedCommunication:
         """发送数据到队列"""
         try:
             self._queue.put(data, block=block, timeout=timeout)
+            #print("[Message]请求已进入队列")
         except queue.Full:
             if self._error_callback:
                 self._error_callback(queue.Full("队列已满"), data, 0)
