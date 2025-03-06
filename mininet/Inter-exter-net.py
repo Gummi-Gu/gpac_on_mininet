@@ -5,8 +5,10 @@ from mininet.link import TCLink
 from mininet.cli import CLI
 
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
-    'low': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:20'}
+    '12600': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
+    '3160': {'mark': 20, 'rate': '80mbit', 'ceil': '80mbit', 'classid': '1:20'},
+    '785': {'mark': 10, 'rate': '25mbit', 'ceil': '25mbit', 'classid': '1:30'},
+    '200': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:40'}
 }
 
 
@@ -20,29 +22,30 @@ class TrafficControl:
             'tc qdisc add dev server-eth0 root handle 1: htb',
             'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 200mbit',
             # 创建子类（保持原带宽设置）
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["12600"]["classid"]} htb rate {TRAFFIC_CLASSES["12600"]["rate"]} ceil {TRAFFIC_CLASSES["12600"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["3160"]["classid"]} htb rate {TRAFFIC_CLASSES["3160"]["rate"]} ceil {TRAFFIC_CLASSES["3160"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["785"]["classid"]} htb rate {TRAFFIC_CLASSES["785"]["rate"]} ceil {TRAFFIC_CLASSES["785"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["200"]["classid"]} htb rate {TRAFFIC_CLASSES["200"]["rate"]} ceil {TRAFFIC_CLASSES["200"]["ceil"]}',
             # 创建过滤器
             'tc filter add dev server-eth0 parent 1: protocol ip handle 10 fw flowid 1:10',
-            'tc filter add dev server-eth0 parent 1: protocol ip handle 20 fw flowid 1:20'
+            'tc filter add dev server-eth0 parent 1: protocol ip handle 20 fw flowid 1:20',
+            'tc filter add dev server-eth0 parent 1: protocol ip handle 30 fw flowid 1:30',
+            'tc filter add dev server-eth0 parent 1: protocol ip handle 40 fw flowid 1:40'
         ]
         # 设置连接标记规则
         connmark_cmds = [
             # 对入口请求打连接标记
-            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "high" -j CONNMARK --set-mark 10',
-            'iptables -t mangle -A PREROUTING -p tcp --dport 1080 -m string --algo kmp --string "low" -j CONNMARK --set-mark 20',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "12600" -j CONNMARK --set-mark 10',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "3150" -j CONNMARK --set-mark 20',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "785" -j CONNMARK --set-mark 30',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "200" -j CONNMARK --set-mark 40',
             # 出口方向恢复数据包标记
-            'iptables -t mangle -A OUTPUT -p tcp --sport 1080 -j CONNMARK --restore-mark'
+            'iptables -t mangle -A OUTPUT -p tcp --sport 10086 -j CONNMARK --restore-mark'
         ]
 
         for cmd in cmds + connmark_cmds:
             server.cmd(cmd)
 
-    @staticmethod
-    def adjust_bandwidth(server, class_type, rate, ceil):
-        class_config = TRAFFIC_CLASSES[class_type]
-        cmd = f'tc class change dev server-eth0 parent 1:1 classid {class_config["classid"]} htb rate {rate} ceil {ceil}'
-        server.cmd(cmd)
 
 
 def setup_network():
@@ -89,15 +92,14 @@ def setup_network():
     # 测试网络状态
     print(server.cmd('ifconfig'))
     print(client.cmd('ifconfig'))
-    str="/home/mininet/gpac_on_mininet/mininet/dash"
-    client.cmd('screen -dm bash')
-    server.cmd('screen -dm bash')
+    #client.cmd('screen -dm bash_client')
+    #server.cmd('screen -dm bash_server')
     TrafficControl.setup_tc(server)
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS collector python3 collector_server.py')
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS collector python3 monitor.py')
+    #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
+    #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS collector python3 monitor.py')
+    #client.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS proxy python3 proxy.py')
     # 进入 CLI
-    #CLI(net)
+    CLI(net)
 
     # 关闭网络
     net.stop()
