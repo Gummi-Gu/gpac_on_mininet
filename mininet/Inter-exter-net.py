@@ -5,10 +5,10 @@ from mininet.link import TCLink
 from mininet.cli import CLI
 
 TRAFFIC_CLASSES = {
-    '12600': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
-    '3160': {'mark': 20, 'rate': '80mbit', 'ceil': '80mbit', 'classid': '1:20'},
-    '785': {'mark': 10, 'rate': '50mbit', 'ceil': '25mbit', 'classid': '1:30'},
-    '200': {'mark': 20, 'rate': '20mbit', 'ceil': '10mbit', 'classid': '1:40'}
+    '12600': {'mark': 10, 'rate': '55mbit', 'ceil': '55mbit', 'classid': '1:10'},
+    '3160': {'mark': 20, 'rate': '35mbit', 'ceil': '35mbit', 'classid': '1:20'},
+    '785': {'mark': 10, 'rate': '15mbit', 'ceil': '15mbit', 'classid': '1:30'},
+    '200': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:40'}
 }
 
 
