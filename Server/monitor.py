@@ -11,7 +11,7 @@ def fetch_stats():
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"请求失败，状态码：{response.status_code}")
+        print(f"failed code：{response.status_code}")
         return None
 
 
