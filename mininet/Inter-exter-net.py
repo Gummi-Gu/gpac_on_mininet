@@ -108,7 +108,6 @@ def setup_network():
                 TrafficControl.reset_rates(server)
             else:
                 print("Unknown command. Valid options: 'limit', 'reset', 'exit'")
-            time.sleep(2)
     except KeyboardInterrupt:
         pass
     finally:
