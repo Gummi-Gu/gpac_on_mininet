@@ -14,9 +14,21 @@ os.makedirs(FILE_DIRECTORY, exist_ok=True)
 
 # 统计数据存储
 categories = ["200", "785", "3150", "12600"]
-stats = defaultdict(lambda: {"total_bytes": 0, "total_time": 0, "avg_speed": 0,
-                             "total_avg_speed": 0,
-                             "count":0,"avg_latency": 0,"view":[]})  # 保存前一秒数据
+stats = defaultdict(lambda: {
+    "total_bytes": 0,
+    "total_time": 0,
+    "avg_speed": 0,
+    "total_avg_speed": 0,
+    "count": 0,
+    "avg_latency": 0,
+    "view": [],
+    "last_sec_bytes": 0,
+    "last_sec_time": 0,
+    "last_sec_speed": 0,
+    "saved_last_sec_bytes": 0,
+    "saved_last_sec_time": 0,
+    "saved_sec_speed": 0,
+})
 tracks = {i: {
     "total_bytes": 0,      # 总字节数
     "total_time": 0,       # 总时间
@@ -65,10 +77,25 @@ def stats_logger():
         time.sleep(SPEED_REPORT_INTERVAL)
         for category, data in stats.items():
             with stats_lock:
-                if category is None or category == "other":
+                if data["last_sec_bytes"] == 0 or data["last_sec_time"] == 0:
+                    data["last_sec_bytes"] = data["saved_last_sec_bytes"]
+                    data["last_sec_time"] = data["saved_last_sec_time"]
+                if category in ["other", None]:
                     continue
-                # 计算总平均速度
-                data["total_avg_speed"] = (data["total_bytes"] / data["total_time"]) / 1024 if data["total_bytes"] > 0 else 0
+                    # 保存当前秒的数据并计算速度
+                data["saved_last_sec_bytes"] = data["last_sec_bytes"]
+                data["saved_last_sec_time"] = data["last_sec_time"]
+                if data["saved_last_sec_time"] > 0:
+                    data["saved_sec_speed"] = (data["saved_last_sec_bytes"] / data[
+                        "saved_last_sec_time"]) / 1024  # KB/s
+                else:
+                    data["saved_sec_speed"] = 0
+                # 清零当前秒数据
+                data["last_sec_bytes"] = 0
+                data["last_sec_time"] = 0
+                # 更新总平均速度
+                if data["total_time"] > 0:
+                    data["total_avg_speed"] = (data["total_bytes"] / data["total_time"]) / 1024  # KB/s
         for track_id, data in tracks.items():
             with stats_lock:
                 if data["last_sec_bytes"]==0 or data["last_sec_time"] == 0:
@@ -151,7 +178,8 @@ def get_states():
                 "4.totTime": f"{data['total_time'] * 1000:.2f} ms",
                 "5.avgSpd": f"{data['total_avg_speed']/1024*8:.2f} MBits/s",
                 "6.avgLat": f"{data['avg_latency']*1000:.2f} ms",
-                "7.Viewpoint":f"{data['view']}"
+                "7.Viewpoint":f"{data['view']}",
+                "8.1sSpd": f"{data['saved_sec_speed'] / 1024*8:.2f} MBits/s"
             })
 
     return jsonify({
@@ -240,6 +268,8 @@ def download_file(filename):
                 category_stats["total_bytes"] += file_size
                 category_stats["total_time"] += total_time
                 category_stats["count"] += 1
+                category_stats["last_sec_bytes"] += file_size
+                category_stats["last_sec_time"] += total_time
 
                 if category_stats["count"] > 0:
                     category_stats["avg_latency"] = category_stats["total_time"] / category_stats["count"]
