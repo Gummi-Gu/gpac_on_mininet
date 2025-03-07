@@ -144,7 +144,7 @@ class TrafficMonitor:
             print("\n--- Class Statistics ---")
             print(tabulate(
                 class_table,
-                headers=['Class', 'Active', 'Completed', 'Avg Speed', 'Avg Latency', 'Last Speed', 'Last Time','Data Transferred'],
+                headers=['Cls', 'Act', 'Fin', 'AvgSpd', 'AvgLat', 'LastSpd', 'LastTime','Data'],
                 tablefmt='grid',
                 stralign='right'
             ))
