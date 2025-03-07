@@ -128,11 +128,11 @@ def get_states():
                 "2.1sSpd": f"{data['last_sec_speed']/1024:.2f} MB/s",
                # "3.time(1s)": f"{data['last_sec_time'] * 1000:.2f} ms",
                # "4.bytes(1s)": f"{data['last_sec_bytes'] / 1024:.2f} KB",
-                "5.cat": data["category"],
+                "5.kbps": data["category"],
                 "6.5sSpd": f"{data['five_sec_speed']/1024:.2f} MB/s",
                 #"7.time(5s)": f"{data['five_sec_time'] * 1000:.2f} ms",
                 #"8.bytes(5s)": f"{data['five_sec_bytes'] / 1024:.2f} KB",
-                "9.5sCat": data["five_category"],
+                "9.5sKbps": data["five_category"],
                 "10.cnt": f"{data['count']}",
                 "11.totKB": f"{data['total_bytes'] / 1024:.2f} KB",
                 #"12.total_time": f"{data['total_time'] * 1000:.2f} ms",
@@ -145,11 +145,11 @@ def get_states():
                 continue
 
             stats_total.append({
-                "1.cat": category,
+                "1.kbps": category,
                 "2.cnt":f"{data['count']}",
                 "3.totKB": f"{data['total_bytes'] / 1024:.2f} KB",
                 "4.totTime": f"{data['total_time'] * 1000:.2f} ms",
-                "5.avgSpd": f"{data['total_avg_speed']/1024:.2f} MB/s",
+                "5.avgSpd": f"{data['total_avg_speed']/1024*8:.2f} MBits/s",
                 "6.avgLat": f"{data['avg_latency']*1000:.2f} ms",
                 "7.Viewpoint":f"{data['view']}"
             })
