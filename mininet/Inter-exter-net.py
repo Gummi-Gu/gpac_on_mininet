@@ -91,6 +91,8 @@ def setup_network():
     client.cmd('dhclient client-eth1')
     print(server.cmd('ifconfig'))
     print(client.cmd('ifconfig'))
+    client.cmd('screen -dm bash_client')
+    server.cmd('screen -dm bash_server')
 
     server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
     server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
