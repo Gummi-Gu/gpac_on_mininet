@@ -19,4 +19,4 @@ def serve_file(filename):
     # 返回该目录下的文件
     return send_from_directory(file_path, filename)
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=1080, debug=True)
+    app.run(host='0.0.0.0', port=10086, debug=True)
