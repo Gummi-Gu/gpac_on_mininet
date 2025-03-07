@@ -1,4 +1,6 @@
 import os
+import time
+
 from mininet.net import Mininet
 from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
@@ -7,8 +9,8 @@ from mininet.cli import CLI
 TRAFFIC_CLASSES = {
     '12600': {'mark': 10, 'rate': '55mbit', 'ceil': '55mbit', 'classid': '1:10'},
     '3160': {'mark': 20, 'rate': '35mbit', 'ceil': '35mbit', 'classid': '1:20'},
-    '785': {'mark': 10, 'rate': '15mbit', 'ceil': '15mbit', 'classid': '1:30'},
-    '200': {'mark': 20, 'rate': '2mbit', 'ceil': '2mbit', 'classid': '1:40'}
+    '785': {'mark': 30, 'rate': '15mbit', 'ceil': '15mbit', 'classid': '1:30'},
+    '200': {'mark': 40, 'rate': '5mbit', 'ceil': '5mbit', 'classid': '1:40'}
 }
 
 
@@ -102,10 +104,16 @@ def setup_network():
     client.cmd('cd /home/mininet/gpac_on_mininet/mininet')
     client.cmd('screen -dmS proxy python3 proxy.py')
     # 进入 CLI
-    CLI(net)
-
-    # 关闭网络
-    net.stop()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # 关闭网络
+        net.stop()
+        os.system("sudo mn -c")
+        os.system("sudo pkill screen")
 
 if __name__ == '__main__':
     setup_network()
