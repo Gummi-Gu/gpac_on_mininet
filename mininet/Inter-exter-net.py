@@ -55,7 +55,7 @@ class TrafficControl:
 
     @staticmethod
     def reset_rates(server):
-        print("\n🔙 Restoring original rate settings")
+        print("\nRestoring original rate settings")
         cmds = [
             f'tc class change dev server-eth0 parent 1:1 classid 1:10 htb rate {TRAFFIC_CLASSES["12600"]["rate"]} ceil {TRAFFIC_CLASSES["12600"]["ceil"]}',
             f'tc class change dev server-eth0 parent 1:1 classid 1:20 htb rate {TRAFFIC_CLASSES["3150"]["rate"]} ceil {TRAFFIC_CLASSES["3150"]["ceil"]}'
