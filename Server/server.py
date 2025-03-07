@@ -186,7 +186,7 @@ def download_file(filename):
         @response.call_on_close
         def record_stats():
             end_time = time.time()
-            total_time = max(0.001, end_time - start_time)
+            total_time = 0.002 + end_time - start_time
             # 解析文件名并更新统计（同之前的逻辑）
             try:
                 # 替换特殊字符并分割
