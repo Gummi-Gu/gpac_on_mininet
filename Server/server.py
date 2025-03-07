@@ -94,8 +94,7 @@ def stats_logger():
                 data["last_sec_bytes"] = 0
                 data["last_sec_time"] = 0
                 # 更新总平均速度
-                if data["total_time"] > 0:
-                    data["total_avg_speed"] = (data["total_bytes"] / data["total_time"]) / 1024  # KB/s
+                data["total_avg_speed"] = (data["total_bytes"] / data["total_time"]) / 1024  # KB/s
         for track_id, data in tracks.items():
             with stats_lock:
                 if data["last_sec_bytes"]==0 or data["last_sec_time"] == 0:
@@ -260,9 +259,17 @@ def download_file(filename):
                 category_stats = stats.setdefault(category, {
                     "total_bytes": 0,
                     "total_time": 0,
+                    "avg_speed": 0,
+                    "total_avg_speed": 0,
                     "count": 0,
                     "avg_latency": 0,
-                    "view":[],
+                    "view": [],
+                    "last_sec_bytes": 0,
+                    "last_sec_time": 0,
+                    "last_sec_speed": 0,
+                    "saved_last_sec_bytes": 0,
+                    "saved_last_sec_time": 0,
+                    "saved_sec_speed": 0,
                 })
 
                 category_stats["total_bytes"] += file_size
