@@ -26,49 +26,58 @@ class DashInterface:
         if view_x is None or view_y is None:
             return 3
         if slice_idx != 0:
-            return self.srd_quantity[slice_idx]
+            if self.srd_quantity[slice_idx] == 0:
+                return 3
+            else:
+                return self.srd_quantity[slice_idx]
         n = len(srd_position)  # 切片总数
-        self.srd_quantity=[2 for i in range(n)]
-        rows = cols = int(math.sqrt(n))  # 行列数（取根号向下取整）
+        self.srd_quantity = [1 for _ in range(n)]
 
-        # 遍历所有切片，寻找鼠标所在的切片
+        rows = cols = int(math.sqrt(n))  # 假设是一个正方形网格
+
+        # 计算每个切片的行列信息
+        slice_grid = []
         for idx, target_slice in enumerate(srd_position):
+            row, col = divmod(idx-1, cols)
+            slice_grid.append((row, col, target_slice))
+        # 查找视点所在的切片
+        target_row, target_col = None, None
+        for row, col, target_slice in slice_grid:
             x, y, w, h = target_slice.x, target_slice.y, target_slice.w, target_slice.h
-
-            # 判断鼠标是否在当前切片内
             if x <= view_x <= x + w and y <= view_y <= y + h:
-                #print(f'x = {mouse_x} y = {mouse_y} the mouse_tile_idx is {idx}')
+                target_row, target_col = row, col
+                break
+        if target_row is None or target_col is None:
+            return 0  # 视点未命中任何切片
 
-                self.srd_quantity[idx] = 3   # 鼠标在目标切片内，返回质量3
+        target_idx = target_row * cols + target_col +1
+        self.srd_quantity[target_idx] = 3  # 视点所在切片设为最高质量
 
-                # 计算周围切片的索引范围
-                row, col = divmod(idx-1, cols)  # 当前切片的行列位置
+        # 计算周期性索引
+        def wrap_index(r, c):
+            return ((r % rows) * cols) + (c % cols) + 1
 
-                # 上下左右相邻切片的序号
-                adjacent_indexes = []
-                if row > 0:  # 上方
-                    adjacent_indexes.append(idx - cols)
-                if row < rows - 1:  # 下方
-                    adjacent_indexes.append(idx + cols)
-                if col > 0:  # 左方
-                    adjacent_indexes.append(idx - 1)
-                if col < cols - 1:  # 右方
-                    adjacent_indexes.append(idx + 1)
+        # 上下左右相邻块（质量2）
+        adjacent_positions = [
+            (target_row - 1, target_col),  # 上
+            (target_row + 1, target_col),  # 下
+            (target_row, target_col - 1),  # 左
+            (target_row, target_col + 1)  # 右
+        ]
 
-                # 对角线相邻的切片
-                if row > 0 and col > 0:  # 左上
-                    adjacent_indexes.append(idx - cols - 1)
-                if row > 0 and col < cols - 1:  # 右上
-                    adjacent_indexes.append(idx - cols + 1)
-                if row < rows - 1 and col > 0:  # 左下
-                    adjacent_indexes.append(idx + cols - 1)
-                if row < rows - 1 and col < cols - 1:  # 右下
-                    adjacent_indexes.append(idx + cols + 1)
+        # 斜向相邻块（质量1）
+        diagonal_positions = [
+            (target_row - 1, target_col - 1),  # 左上
+            (target_row - 1, target_col + 1),  # 右上
+            (target_row + 1, target_col - 1),  # 左下
+            (target_row + 1, target_col + 1)  # 右下
+        ]
 
-                # 限制切片索引的范围
-                valid_adjacent_indexes = [i for i in adjacent_indexes if 0 <= i < len(srd_position)]
+        for r, c in adjacent_positions:
+            self.srd_quantity[wrap_index(r, c)] = 2
 
-                # 判断是否为相邻切片
-                for i in valid_adjacent_indexes:
-                    self.srd_quantity[i] = 2
+        for r, c in diagonal_positions:
+            self.srd_quantity[wrap_index(r, c)] = 1
+
         return 0
+
