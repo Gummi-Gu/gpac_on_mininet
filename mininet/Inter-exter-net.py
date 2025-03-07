@@ -7,8 +7,8 @@ from mininet.cli import CLI
 TRAFFIC_CLASSES = {
     '12600': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
     '3160': {'mark': 20, 'rate': '80mbit', 'ceil': '80mbit', 'classid': '1:20'},
-    '785': {'mark': 10, 'rate': '25mbit', 'ceil': '25mbit', 'classid': '1:30'},
-    '200': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:40'}
+    '785': {'mark': 10, 'rate': '50mbit', 'ceil': '25mbit', 'classid': '1:30'},
+    '200': {'mark': 20, 'rate': '20mbit', 'ceil': '10mbit', 'classid': '1:40'}
 }
 
 
