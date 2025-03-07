@@ -24,7 +24,7 @@ class RequestGenerator:
     def _fetch(self, url_type):
         """Execute single request and update metrics"""
         url = f'http://{SERVER_IP}:{PORT}/files/{url_type}.txt'
-        curl_cmd = f'curl -s -o /dev/null "{url}" > /dev/null 2>&1'
+        curl_cmd = f'curl -s {url} -o NUL'
 
         try:
             with self.lock:
@@ -34,15 +34,15 @@ class RequestGenerator:
             # 执行curl命令并检查返回值
             exit_code = os.system(curl_cmd)
             if exit_code != 0:
-                raise RuntimeError(f"Curl failed with exit code {exit_code >> 8}")
-
+                raise RuntimeError(f"Curl failed with exit code {exit_code}")
+            time.sleep(random.uniform(0.01,0.05))
             duration = time.time() - start_time
 
             with self.lock:
                 self.active_requests[url_type] -= 1
                 self.completed_requests[url_type] += 1
                 self.total_transfer_time[url_type] += duration
-                self.total_data[url_type] += FILE_SIZES[url_type]
+                self.total_data[url_type] += FILE_SIZES
                 self.last_transfer_time[url_type] = duration
 
         except Exception as e:
@@ -94,7 +94,9 @@ class TrafficMonitor:
         return f"{speed_bps:.2f} bps"
 
     def _display(self):
-        """Real-time monitoring display"""
+        """Real-time monitoring display with tabulate tables"""
+        from tabulate import tabulate
+
         while self.running:
             os.system('clear')
 
@@ -111,31 +113,52 @@ class TrafficMonitor:
                 }
 
             total_mb = 0
-            print("\n=== Real-time Network Monitoring ===")
+            class_table = []
+            tc_table = []
 
+            # Prepare class data for tables
             for cls in self.request_gen.classes:
                 # Calculate metrics
                 avg_speed = (data[cls]['total_data'] / max(0.1, data[cls]['total_time']) * 8) if data[cls]['total_time'] > 0 else 0
-                last_speed = (FILE_SIZES[cls] / max(0.1, data[cls]['last_time']) * 8) if data[cls]['last_time'] > 0 else 0
+                last_speed = (FILE_SIZES / max(0.001, data[cls]['last_time']) * 8) if data[cls]['last_time'] > 0 else 0
                 avg_latency = (data[cls]['total_time'] / data[cls]['completed'] * 1000) if data[cls]['completed'] > 0 else 0
                 cls_mb = data[cls]['total_data'] / (1024 * 1024)
                 total_mb += cls_mb
 
-                # Display metrics
-                print(f"\n=== Class {cls} ===")
-                print(f"Active: {data[cls]['active']}\tCompleted: {data[cls]['completed']}")
-                print(f"Avg Speed: {self._format_speed(avg_speed)}")
-                print(f"Avg Latency: {avg_latency:.2f} ms")
-                print(f"Last Speed: {self._format_speed(last_speed)}")
-                print(f"Total Data: {cls_mb:.2f} MB")
-                print("TC Statistics:")
+                # Format for table display
+                class_table.append([
+                    cls,
+                    data[cls]['active'],
+                    data[cls]['completed'],
+                    f"{self._format_speed(avg_speed):>8}",
+                    f"{avg_latency:.2f} ms",
+                    f"{self._format_speed(last_speed):>8}",
+                    f"{data[cls]['last_time']*1000:.2f}ms",
+                    f"{cls_mb:.2f} MB"
+                ])
 
+            # 构建表格输出
+            print("\n=== Real-time Network Monitoring ===")
+
+            # 主监控表
+            print("\n--- Class Statistics ---")
+            print(tabulate(
+                class_table,
+                headers=['Class', 'Active', 'Completed', 'Avg Speed', 'Avg Latency', 'Last Speed', 'Last Time','Data Transferred'],
+                tablefmt='grid',
+                stralign='right'
+            ))
+
+            # 全局统计
             print("\n=== Global Statistics ===")
-            print(f"Total Transferred: {total_mb:.2f} MB")
+            print(tabulate(
+                [[f"{total_mb:.2f} MB"]],
+                headers=['Total Transferred'],
+                tablefmt='grid'
+            ))
+
             print("\nPress Ctrl+C to exit...")
-
-            input("\nEnter")
-
+            input("\nPress Enter to refresh...")
     def start(self):
         """Start monitoring"""
         self.thread = threading.Thread(target=self._display)
