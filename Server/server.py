@@ -6,7 +6,7 @@ from collections import defaultdict
 
 app = Flask(__name__)
 FILE_DIRECTORY = 'files'  # 文件存储目录
-CHUNK_SIZE = 2048  # 每次传输的块大小 (4KB)
+CHUNK_SIZE = 2048  # 每次传输的块大小 (2KB)
 SPEED_REPORT_INTERVAL = 1  # 速度报告间隔 (秒)
 STATS_5S_INTERVAL = 5
 # 确保文件目录存在
@@ -186,7 +186,7 @@ def download_file(filename):
         @response.call_on_close
         def record_stats():
             end_time = time.time()
-            total_time = 0.002 + end_time - start_time
+            total_time = end_time - start_time
             # 解析文件名并更新统计（同之前的逻辑）
             try:
                 # 替换特殊字符并分割
