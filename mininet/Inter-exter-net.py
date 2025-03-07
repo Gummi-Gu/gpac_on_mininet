@@ -8,7 +8,7 @@ from mininet.cli import CLI
 
 TRAFFIC_CLASSES = {
     '12600': {'mark': 10, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:10'},
-    '3160': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:20'},
+    '3150': {'mark': 20, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:20'},
     '785': {'mark': 30, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:30'},
     '200': {'mark': 40, 'rate': '5mbit', 'ceil': '5mbit', 'classid': '1:40'}
 }
@@ -25,7 +25,7 @@ class TrafficControl:
             'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 200mbit',
             # 创建子类（保持原带宽设置）
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["12600"]["classid"]} htb rate {TRAFFIC_CLASSES["12600"]["rate"]} ceil {TRAFFIC_CLASSES["12600"]["ceil"]}',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["3160"]["classid"]} htb rate {TRAFFIC_CLASSES["3160"]["rate"]} ceil {TRAFFIC_CLASSES["3160"]["ceil"]}',
+            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["3150"]["classid"]} htb rate {TRAFFIC_CLASSES["3150"]["rate"]} ceil {TRAFFIC_CLASSES["3150"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["785"]["classid"]} htb rate {TRAFFIC_CLASSES["785"]["rate"]} ceil {TRAFFIC_CLASSES["785"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["200"]["classid"]} htb rate {TRAFFIC_CLASSES["200"]["rate"]} ceil {TRAFFIC_CLASSES["200"]["ceil"]}',
             # 创建过滤器
