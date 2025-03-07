@@ -6,7 +6,7 @@ import os
 
 SERVER_IP="10.0.0.1"
 PORT=10086
-FILE_SIZES=10*1024*1024
+FILE_SIZES=1*1024*1024
 REQUEST_INTERVAL=1
 
 
@@ -35,7 +35,7 @@ class RequestGenerator:
             exit_code = os.system(curl_cmd)
             if exit_code != 0:
                 raise RuntimeError(f"Curl failed with exit code {exit_code}")
-            time.sleep(random.uniform(0.01,0.05))
+            #time.sleep(random.uniform(0.01,0.05))
             duration = time.time() - start_time
 
             with self.lock:
@@ -47,10 +47,6 @@ class RequestGenerator:
 
         except Exception as e:
             print(f"Request failed: {str(e)}")
-        finally:
-            with self.lock:
-                if self.active_requests[url_type] > 0:
-                    self.active_requests[url_type] -= 1
 
     def _generate_requests(self):
         """Generate random requests continuously"""
@@ -59,7 +55,8 @@ class RequestGenerator:
 
         while self.running:
             url_type = random.choice(self.classes)
-            threading.Thread(target=self._fetch, args=(url_type,)).start()
+            self._fetch(url_type)
+            #threading.Thread(target=self._fetch, args=(url_type,)).start()
             time.sleep(random.uniform(1, REQUEST_INTERVAL))
 
     def start(self):

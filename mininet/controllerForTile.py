@@ -224,17 +224,8 @@ class TrafficMonitor:
             print(f"Total Transferred: {total_mb:.2f} MB")
             print(f"Total Bandwidth: {self._format_speed(high_avg_speed + low_avg_speed)}")
             print("\nPress Ctrl+C to exit...")
-            user_input = input("\nPress Enter to update or type 'up' to increase bandwidth: ")
-            if user_input.strip().lower() == 'up':
-                # 提高带宽
-                TrafficControl.adjust_bandwidth(self.server, 'high', '100mbit', '100mbit')
-                TrafficControl.adjust_bandwidth(self.server, 'low', '20mbit', '20mbit')
-                print('bandwidth adjusted')
-            elif user_input.strip().lower() == 'down':
-                # 提高带宽
-                TrafficControl.adjust_bandwidth(self.server, 'high', '50mbit', '50mbit')
-                TrafficControl.adjust_bandwidth(self.server, 'low', '10mbit', '10mbit')
-                print('bandwidth adjusted')
+            user_input = input("\nPress Enter continue ")
+
 
     def start(self):
         """Start monitoring"""
