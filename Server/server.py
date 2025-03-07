@@ -6,7 +6,7 @@ from collections import defaultdict
 
 app = Flask(__name__)
 FILE_DIRECTORY = 'files'  # 文件存储目录
-CHUNK_SIZE = 4096  # 每次传输的块大小 (4KB)
+CHUNK_SIZE = 2048  # 每次传输的块大小 (4KB)
 SPEED_REPORT_INTERVAL = 1  # 速度报告间隔 (秒)
 STATS_5S_INTERVAL = 5
 # 确保文件目录存在
@@ -155,63 +155,88 @@ def get_states():
 def download_file(filename):
     file_path = os.path.join(FILE_DIRECTORY, filename)
 
-    # 检查文件是否存在
     if not os.path.exists(file_path):
         abort(404, description="文件不存在")
 
     file_size = os.path.getsize(file_path)
-    category = get_category(filename)
-
-    # 记录下载开始时间
     start_time = time.time()
 
-    # 使用 send_file 直接返回文件
-    try:
-        response = send_file(file_path, as_attachment=True, download_name=os.path.basename(filename))
-        if "init" in filename or "mpd" in filename:
-            # 设置文件大小
-            response.headers['Content-Length'] = file_size
+    def generate():
+        with open(file_path, 'rb') as f:
+            while chunk := f.read(CHUNK_SIZE):  # 分块读取文件
+                yield chunk
+    time.sleep(file_size/1024*0.001)
+    # 创建流式响应
+    response = Response(generate(), headers={
+        'Content-Length': file_size,
+        'Content-Disposition': f'attachment; filename={os.path.basename(filename)}'
+    })
 
-            return response
-        # 下载完成后进行统计
-        end_time = time.time()
-        total_time = max(0.001, end_time - start_time)
-        string = filename.replace('.', '_')
-        parts = string.split("_")
-        category,track_id,timestamp =(int(parts[0]),int(parts[3][5:]),int(parts[4]))
-        #print(category,track_id,timestamp)
+    # 注册传输完成后的回调
+    if "init" not in filename and "mpd" not in filename:
+        @response.call_on_close
+        def record_stats():
+            end_time = time.time()
+            total_time = max(0.001, end_time - start_time)
+            print(total_time)
+            # 解析文件名并更新统计（同之前的逻辑）
+            try:
+                # 替换特殊字符并分割
+                clean_name = filename.replace('.', '_')
+                parts = clean_name.split('_')
+                category = int(parts[0])
+                track_id = int(parts[3][5:])  # 从类似"track5"中提取5
+                timestamp = int(parts[4])
+            except Exception as e:
+                print(f"文件名解析失败: {str(e)}")
+                return
 
+                # 线程安全地更新统计信息
+            with stats_lock:
+                # 更新轨道统计
+                track = tracks.setdefault(track_id, {
+                    "total_bytes": 0,
+                    "last_sec_bytes": 0,
+                    "last_sec_time": 0,
+                    "total_time": 0,
+                    "count": 0,
+                    "category": category,
+                    "total_avg_speed": 0,
+                    "avg_latency": 0
+                })
 
-        with stats_lock:
-            tracks[track_id]["total_bytes"] += file_size
-            tracks[track_id]["last_sec_bytes"] += file_size
-            tracks[track_id]["last_sec_time"] += total_time
-            tracks[track_id]["total_time"] += total_time
-            tracks[track_id]["count"] += 1
-            tracks[track_id]["category"] = category
+                track["total_bytes"] += file_size
+                track["last_sec_bytes"] += file_size
+                track["last_sec_time"] += total_time
+                track["total_time"] += total_time
+                track["count"] += 1
+                track["category"] = category
 
-            # 计算总平均速度
-            if tracks[track_id]["total_time"] > 0:
-                tracks[track_id]["total_avg_speed"] = (tracks[track_id]["total_bytes"] / tracks[track_id][
-                    "total_time"]) / 1024
+                # 计算平均速度（MB/s）
+                if track["total_time"] > 0:
+                    track["total_avg_speed"] = (track["total_bytes"] / track["total_time"]) / 1024
 
-            # 计算平均时延
-            if tracks[track_id]["count"] > 0:
-                tracks[track_id]["avg_latency"] = tracks[track_id]["total_time"] / tracks[track_id]["count"]
-            stats[category]["total_bytes"] += file_size
-            stats[category]["total_time"] += total_time
-            stats[category]["count"] += 1
-            if stats[category]["count"] > 0:
-                stats[category]["avg_latency"] = stats[category]["total_time"] / stats[category]["count"]
+                # 计算平均延迟
+                if track["count"] > 0:
+                    track["avg_latency"] = track["total_time"] / track["count"]
 
-        # 设置文件大小
-        response.headers['Content-Length'] = file_size
+                # 更新类别统计
+                category_stats = stats.setdefault(category, {
+                    "total_bytes": 0,
+                    "total_time": 0,
+                    "count": 0,
+                    "avg_latency": 0
+                })
 
-        return response
-    except Exception as e:
-        print(f"文件读取错误: {str(e)}")
-        abort(500, description="文件读取失败")
+                category_stats["total_bytes"] += file_size
+                category_stats["total_time"] += total_time
+                category_stats["count"] += 1
+
+                if category_stats["count"] > 0:
+                    category_stats["avg_latency"] = category_stats["total_time"] / category_stats["count"]
+
+    return response
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10086, debug=True)
+    app.run(host='0.0.0.0', port=10086, debug=False)
