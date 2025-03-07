@@ -4,7 +4,7 @@ import os
 app = Flask(__name__)
 
 # 设置文件根目录，假设 DASH_DIR 是文件存放的目录
-DASH_DIR = '/home/mininet/gpac_on_mininet/mininet/dash'
+DASH_DIR = '/home/mininet/gpac_on_mininet/Server'
 
 @app.route('/<folder>/<filename>')
 def serve_file(folder, filename):
