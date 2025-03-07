@@ -7,9 +7,9 @@ from mininet.link import TCLink
 from mininet.cli import CLI
 
 TRAFFIC_CLASSES = {
-    '12600': {'mark': 10, 'rate': '20mbit', 'ceil': '20mbit', 'classid': '1:10'},
-    '3150':  {'mark': 20, 'rate': '20mbit', 'ceil': '20mbit', 'classid': '1:20'},
-    '785':   {'mark': 30, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:30'},
+    '12600': {'mark': 10, 'rate': '100mbit', 'ceil': '20mbit', 'classid': '1:10'},
+    '3150':  {'mark': 20, 'rate': '80mbit', 'ceil': '20mbit', 'classid': '1:20'},
+    '785':   {'mark': 30, 'rate': '20mbit', 'ceil': '10mbit', 'classid': '1:30'},
     '200':   {'mark': 40, 'rate': '5mbit', 'ceil': '5mbit', 'classid': '1:40'}
 }
 
