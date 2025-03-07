@@ -16,7 +16,7 @@ os.makedirs(FILE_DIRECTORY, exist_ok=True)
 categories = ["200", "785", "3150", "12600"]
 stats = defaultdict(lambda: {"total_bytes": 0, "total_time": 0, "avg_speed": 0,
                              "total_avg_speed": 0,
-                             "count":0,"avg_latency": 0})  # 保存前一秒数据
+                             "count":0,"avg_latency": 0,"view":[]})  # 保存前一秒数据
 tracks = {i: {
     "total_bytes": 0,      # 总字节数
     "total_time": 0,       # 总时间
@@ -53,11 +53,22 @@ def get_category(filename):
             return cat
     return "other"
 
+def add_viewpoint(cat,idx):
+    for i,data in stats.items():
+        if idx in data["view"]:
+            data["view"].remove(idx)
+    stats[cat]["view"].append(idx)
 
 # 统计线程
 def stats_logger():
     while True:
         time.sleep(SPEED_REPORT_INTERVAL)
+        for category, data in stats.items():
+            with stats_lock:
+                if category is None or category == "other":
+                    continue
+                # 计算总平均速度
+                data["total_avg_speed"] = (data["total_bytes"] / data["total_time"]) / 1024 if data["total_bytes"] > 0 else 0
         for track_id, data in tracks.items():
             with stats_lock:
                 if data["last_sec_bytes"]==0 or data["last_sec_time"] == 0:
@@ -81,12 +92,9 @@ def stats_logger():
                 # 清零当前秒数据，准备下一秒
                 data["last_sec_bytes"] = 0
                 data["last_sec_time"] = 0
-        for category, data in stats.items():
-            with stats_lock:
-                if category is None or category == "other":
-                    continue
-                # 计算总平均速度
-                data["total_avg_speed"] = (data["total_bytes"] / data["total_time"]) / 1024 if data["total_bytes"] > 0 else 0
+
+                add_viewpoint(data["category"],track_id-1)
+
 # 每5秒更新一次，把最近1秒的保存数据赋值给5秒数据
 def five_sec_logger():
     while True:
@@ -137,12 +145,13 @@ def get_states():
                 continue
 
             stats_total.append({
-                "1.category": category,
-                "2.count":f"{data['count']}",
-                "3.total_bytes": f"{data['total_bytes'] / 1024:.2f} KB",
-                "4.total_time": f"{data['total_time'] * 1000:.2f} ms",
-                "5.avg_speed": f"{data['total_avg_speed']/1024:.2f} MB/s",
-                "6.avg_latency": f"{data['avg_latency']*1000:.2f} ms"
+                "1.cat": category,
+                "2.cnt":f"{data['count']}",
+                "3.totKB": f"{data['total_bytes'] / 1024:.2f} KB",
+                "4.totTime": f"{data['total_time'] * 1000:.2f} ms",
+                "5.avgSpd": f"{data['total_avg_speed']/1024:.2f} MB/s",
+                "6.avgLat": f"{data['avg_latency']*1000:.2f} ms",
+                "7.Viewpoint":f"{data['view']}"
             })
 
     return jsonify({
@@ -165,7 +174,7 @@ def download_file(filename):
         with open(file_path, 'rb') as f:
             while chunk := f.read(CHUNK_SIZE):  # 分块读取文件
                 yield chunk
-    time.sleep(file_size/1024*0.001)
+    #time.sleep(file_size/1024*0.001)
     # 创建流式响应
     response = Response(generate(), headers={
         'Content-Length': file_size,
@@ -178,7 +187,6 @@ def download_file(filename):
         def record_stats():
             end_time = time.time()
             total_time = max(0.001, end_time - start_time)
-            print(total_time)
             # 解析文件名并更新统计（同之前的逻辑）
             try:
                 # 替换特殊字符并分割
@@ -225,7 +233,8 @@ def download_file(filename):
                     "total_bytes": 0,
                     "total_time": 0,
                     "count": 0,
-                    "avg_latency": 0
+                    "avg_latency": 0,
+                    "view":[],
                 })
 
                 category_stats["total_bytes"] += file_size
