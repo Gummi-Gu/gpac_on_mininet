@@ -146,3 +146,17 @@ class TrafficMonitor:
         """Stop monitoring"""
         self.running = False
         self.thread.join()
+
+
+if __name__ == '__main__':
+    try:
+        request_gen = RequestGenerator()
+        monitor = TrafficMonitor(request_gen)
+
+        request_gen.start()
+        monitor.start()
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        request_gen.stop()
+        monitor.stop()
