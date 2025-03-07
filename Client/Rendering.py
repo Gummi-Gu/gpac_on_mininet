@@ -17,7 +17,7 @@ class Viewpoint:
         self.u = None
         self.output_width = 800
         self.output_height = 600
-        self.fov = 120  # 视场角（单位：度）
+        self.fov = 150  # 视场角（单位：度）
         # 初始视角参数
         self.yaw = 0.0  # 偏航角
         self.pitch = 90  # 俯仰角
