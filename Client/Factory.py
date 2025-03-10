@@ -4,6 +4,10 @@ import Rendering
 import Interfaces
 import Message
 
+
+width=4096#3840
+height=2048#1920
+press_start=True
 dash=None
 viewpoint=None
 fs=None
@@ -16,7 +20,7 @@ ThreadedCommunication=Message.ThreadedCommunication
 def init():
     global dash,viewpoint,fs,bufferFilter,dash_interface,render
     dash= DASH.MyCustomDASHAlgo()
-    viewpoint= Rendering.Viewpoint()
+    viewpoint= Rendering.Viewpoint(press_start)
     fs = BufferFilter.MyFilterSession()
     bufferFilter= BufferFilter.MyFilter(fs)
     render= Rendering.Render()
