@@ -39,7 +39,7 @@ def print_stats(stats):
         # 生成表格
         return f"\n{title}\n" + tabulate(rows, **tabulate_args)
     # 生成所有表格
-    print(generate_table(stats['1/5s_stats'], "1/5 Second Statistics",max_col_width=15))
+    print(generate_table(stats['data_for_tracks'], "Tracks Statistics",max_col_width=15))
     print(generate_table(stats['total_stats'], "Total Statistics per Category",max_col_width=15))
 # 主函数
 def main():
