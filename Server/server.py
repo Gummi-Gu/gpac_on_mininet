@@ -141,11 +141,11 @@ def get_states():
                     "0.No": track_id - 1,
                     "0.cnt": f"{data_1['count'] + data_2['count']}",
                     "1.F_Spd": f"{Spd1 / 1024/1024:.1f} MB/s",
-                    "1.F_kbps": data_1["category"],
-                    "1.F_time": f"{data_1['saved_last_sec_time'] * 1000:.1f} ms",
-                    "2.S_Spd": f"{Spd2 / 1024/1024:.1f} MB/s",
-                    "2.S_Kbps": data_2["category"],
-                    "2.S_time": f"{data_2['saved_last_sec_time'] * 1000:.1f} ms"
+                    "2.F_kbps": data_1["category"],
+                    "3.F_time": f"{data_1['saved_last_sec_time'] * 1000:.1f} ms",
+                    "4.S_Spd": f"{Spd2 / 1024/1024:.1f} MB/s",
+                    "5.S_Kbps": data_2["category"],
+                    "6.S_time": f"{data_2['saved_last_sec_time'] * 1000:.1f} ms"
                     # "8.bytes(5s)": f"{data['five_sec_bytes'] / 1024:.1f} KB",
                     #"11.totMB": f"{data_1['total_bytes'] / 1024 / 1204:.1f} MB",
                     # "12.total_time": f"{data['total_time'] * 1000:.1f} ms",
