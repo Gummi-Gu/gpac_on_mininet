@@ -1,5 +1,6 @@
 # 计算焦距
 import atexit
+import os
 import threading
 import time
 import Factory
@@ -11,7 +12,7 @@ import numpy as np
 
 
 class Viewpoint:
-    def __init__(self):
+    def __init__(self,choice=0):
         # 设置输出参数
         self.v = None
         self.u = None
@@ -26,11 +27,11 @@ class Viewpoint:
         self.angle_thread.daemon = True  # 设置为守护线程，确保程序退出时线程也会退出
         self.angle_thread.start()
 
-        timestamp = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
-        self.filename = f"{timestamp}.txt"
-        self.running = True
+        self.choice = choice
 
-    def focal_cal(self, equi_width=4096, equi_height=2048):
+
+
+    def focal_cal(self, equi_width=Factory, equi_height=2048):
         start_time=time.time()
         focal = self.output_width / (2 * np.tan(np.radians(self.fov / 2)))
 
@@ -94,49 +95,94 @@ class Viewpoint:
         theta = np.arctan2(y_world, x_world)  # 经度
         theta = theta if theta >= 0 else theta + 2 * np.pi  # [0, 2π)
         phi = np.arcsin(z_world)
-        self.u = theta / (2 * np.pi) * equi_width
-        self.v = (phi + np.pi / 2) / np.pi * equi_height
+        u = theta / (2 * np.pi) * equi_width
+        v = (phi + np.pi / 2) / np.pi * equi_height
         #print("[Rendering]",time.time()-start_time)
 
+        filename = f"yaw_{int(self.yaw)}_pitch_{int(self.pitch)}_fov_{self.fov}.npz"
+        path = os.path.join("Client\precomputed_maps", filename)
+        np.savez_compressed(
+            path,
+            map_x=map_x,
+            map_y=map_y,
+            u=u,
+            v=v
+        )
+        print(f"Generated {filename}")
 
 
 
-        return map_x, map_y
+        return map_x, map_y,u,v
+    def load_maps(self):
+        """Load precomputed maps from file"""
+        filename = f"yaw_{int(self.yaw)}_pitch_{int(self.pitch)}_fov_{self.fov}.npz"
+        path = os.path.join("Client\precomputed_maps", filename)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"No precomputed map for {self.yaw}/{self.pitch}")
+
+        data = np.load(path)
+        return data["map_x"], data["map_y"],data["u"], data["v"]
 
     def get_view_position(self):
         return self.u, self.v
 
-    def on_press(self, key):
-        try:
-            if key.char == 'q':
-                print("Exiting...")
-                return False  # 停止监听
-            elif key.char == 'a':  # 左转
-                self.yaw -= 15
-            elif key.char == 'd':  # 右转
-                self.yaw += 15
-            elif key.char == 'w':  # 上仰
-                self.pitch += 15
-            elif key.char == 's':  # 下俯
-                self.pitch -= 15
-            #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
-            self.yaw= self.yaw% 360
-            self.pitch= self.pitch % 360
-        except AttributeError:
-            # 处理其他特殊键（例如 shift、alt 等）
-            pass
+    def set_view_position(self, x, y):
+        self.u, self.v = x,y
 
+    def on_press(self, key):
+        print(self.choice)
+        if self.choice == 0:
+            try:
+                if key.char == 'q':
+                    print("Exiting...")
+                    return False  # 停止监听
+                elif key.char == 'a':  # 左转
+                    self.yaw -= 15
+                elif key.char == 'd':  # 右转
+                    self.yaw += 15
+                elif key.char == 'w':  # 上仰
+                    self.pitch += 15
+                elif key.char == 's':  # 下俯
+                    self.pitch -= 15
+                #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
+                self.yaw= self.yaw% 360
+                self.pitch= self.pitch % 360
+            except AttributeError:
+                # 处理其他特殊键（例如 shift、alt 等）
+                pass
+        elif self.choice == 1:
+            try:
+                if key.char == 'q':
+                    print("Exiting...")
+                    return False  # 停止监听
+                elif key.char == 'j':  # 左转
+                    self.yaw -= 15
+                elif key.char == 'l':  # 右转
+                    self.yaw += 15
+                elif key.char == 'i':  # 上仰
+                    self.pitch += 15
+                elif key.char == 'k':  # 下俯
+                    self.pitch -= 15
+                #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
+                self.yaw= self.yaw% 360
+                self.pitch= self.pitch % 360
+            except AttributeError:
+                # 处理其他特殊键（例如 shift、alt 等）
+                pass
     def listen_for_keys(self):
         # 启动监听器
         with keyboard.Listener(on_press=self.on_press) as listener:
             listener.join()
 
 class Render:
+
     def render(self,rgb,title):
-        equi_height, equi_width = rgb.shape[:2]
-
-        map_x,map_y= Factory.viewpoint.focal_cal(equi_width, equi_height)
-
+        #equi_height, equi_width = rgb.shape[:2]
+        try:
+            map_x,map_y,u,v= Factory.viewpoint.load_maps()
+        except FileNotFoundError:
+            map_x,map_y,u,v= Factory.viewpoint.focal_cal()
+        Factory.viewpoint.set_view_position(u,v)
         # 重映射图像
         output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
         #resize_factor = 0.625
