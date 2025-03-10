@@ -18,7 +18,7 @@ class Viewpoint:
         self.u = None
         self.output_width = 800
         self.output_height = 600
-        self.fov = 150  # 视场角（单位：度）
+        self.fov = 120  # 视场角（单位：度）
         # 初始视角参数
         self.yaw = 0.0  # 偏航角
         self.pitch = 90  # 俯仰角
@@ -31,7 +31,11 @@ class Viewpoint:
 
 
 
-    def focal_cal(self, equi_width=Factory, equi_height=2048):
+    def focal_cal(self, equi_width=None, equi_height=None):
+        if equi_width is None:
+            equi_width=Factory.width
+        if equi_height is None:
+            equi_height = Factory.height
         start_time=time.time()
         focal = self.output_width / (2 * np.tan(np.radians(self.fov / 2)))
 
@@ -130,7 +134,7 @@ class Viewpoint:
         self.u, self.v = x,y
 
     def on_press(self, key):
-        print(self.choice)
+
         if self.choice == 0:
             try:
                 if key.char == 'q':
