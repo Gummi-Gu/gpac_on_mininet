@@ -78,24 +78,24 @@ class MyFilter(gpac.FilterCustom):
                     #playout buffer not yet filled
                     if buffer < self.play_buffer:
                         pc = 100 * buffer / self.play_buffer
-                        title += " - buffering " + str(int(pc)) + ' %'
+                        #$title += " - buffering " + str(int(pc)) + ' %'
                         break
 
                     #playout buffer refilled
-                    title += " - resuming"
+                    #title += " - resuming"
                     self.buffering = False
 
                 if self.re_buffer:
                     #playout buffer underflow
                     if buffer < self.re_buffer:
-                        title += " - low buffer, pausing"
+                        #title += " - low buffer, pausing"
                         self.buffering = True
                         break
 
                 #show max buffer level
                 if self.max_buffer > self.play_buffer:
                         pc = buffer / self.max_buffer * 100
-                        title += " - buffer " + str(int(buffer/1000000)) + 's ' + str(int(pc)) + ' %'
+                        #title += " - buffer " + str(int(buffer/1000000)) + 's ' + str(int(pc)) + ' %'
 
             pck = pid.get_packet()
             if pck is None:
