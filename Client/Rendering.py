@@ -191,5 +191,4 @@ class Render:
         output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
         #resize_factor = 0.625
         #small_rgb = cv2.resize(rgb, (int(equi_width * resize_factor), int(equi_height * resize_factor)))
-        cv2.imshow('360 View', cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
-        cv2.setWindowTitle('360 View', title)
+        cv2.imshow(Factory.Winname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
