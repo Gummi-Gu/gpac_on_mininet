@@ -7,6 +7,7 @@ import Message
 
 width=4096#3840
 height=2048#1920
+Winname=None
 press_start=True
 dash=None
 viewpoint=None
