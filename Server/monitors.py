@@ -126,7 +126,7 @@ def show_dashboard():
         for client_id, stats in clients.items():
             if track_id == 'default':
                 continue
-            utilization = (stats['latest_rate'] / 25.0) * 100  # 计算利用率百分比
+            utilization = (stats['latest_rate'] / 50.0) * 100  # 计算利用率百分比
             total_delay += stats['latest_delay']
             total_latest_rate += stats['latest_rate']
             total_utilization += utilization
