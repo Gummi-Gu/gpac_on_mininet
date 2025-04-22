@@ -50,6 +50,7 @@ class TrafficControl:
     def adjust(server, ip: str,string_dict: dict):
         """
         生成针对特定 IP 地址的 connmark 规则。
+        :param server:
         :param ip: 源 IP 地址
         :param port: 目标端口
         :param string_dict: 一个字典，包含匹配的字符串和对应的标记（只会包含12600，3150，785）
@@ -217,7 +218,7 @@ def setup_network():
                     '3150': int(parts[2]),  # 标记 3150
                     '785': int(parts[3])  # 标记 785
                 }
-                TrafficControl.adjust(ip,string_dict)
+                TrafficControl.adjust(server,ip,string_dict)
             elif user_input == 'delay':
                 ip=input('ip address')
                 TrafficControl.adjust_loss_and_delay(server,ip)
@@ -232,7 +233,7 @@ def setup_network():
 
                     # 使用 UDP 测试 (-u)，并输出每秒的统计信息（-i 1）
                     # 设定带宽为 10Mbps（-b 10M），可以根据需要调整带宽
-                    result = client.cmd(f"iperf -c {server_ip} -u -b 10M -t 10 -i 1")  # 进行10秒的UDP带宽测试
+                    result = client.cmd(f"iperf3 -c {server_ip} -u -b 10M -t 10 -i 1")  # 进行10秒的UDP带宽测试
                     print(result)
                 # 测试10.0.0.1到10.0.0.2 和10.0.0.3的带宽
                 test_iperf_connection(net.get('client1'), '10.0.0.1')
