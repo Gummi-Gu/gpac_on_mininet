@@ -131,7 +131,7 @@ def show_dashboard():
     link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', 'Mark', 'Last Update']
     link_data = []
     for client_id, stats in link_metrics.items():
-        link_data.append((client_id, stats['1.delay'], stats['2.loss_rate'], stats['3.marks'], stats['4.last_update']))
+        link_data.append((client_id, stats['delay'], stats['loss_rate'], stats['marks'], stats['last_update']))
     link_table = tabulate(link_data, headers=link_headers, tablefmt="html", floatfmt=".2f")
 
     return f"""
@@ -160,4 +160,4 @@ def show_dashboard():
     """
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)

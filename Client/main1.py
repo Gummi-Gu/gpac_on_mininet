@@ -25,8 +25,8 @@ def main():
         src = fs.load_src(sys.argv[1])
     # otherwise load one of our DASH sequences
     else:
-        src = fs.load_src("http://127.0.0.1:10081/01/files/dash_tiled.mpd")
-        #src = fs.load_src("http://192.168.16.174:10081/01/files/dash_tiled.mpd")
+        #src = fs.load_src("http://127.0.0.1:10081/01/files/dash_tiled.mpd")
+        src = fs.load_src("http://192.168.16.174:10081/01/files/dash_tiled.mpd")
 
     # load our custom filter and assign its source
     my_filter = Factory.bufferFilter
