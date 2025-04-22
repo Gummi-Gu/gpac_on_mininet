@@ -1,10 +1,7 @@
 import sys
-
-
 import cv2
-
-import Factory
-
+import Client.Factory as Factory
+import Client.model.pre as re
 sys.path.append("C:/Users/GummiGu/毕业设计/代码/gpac/share/python")
 import libgpac as gpac
 
@@ -13,7 +10,8 @@ gpac.init()
 #indicate we want to start with min bw by using global parameters
 gpac.set_args(["Ignored", "--start_with=max_bw"])
 Factory.press_start = 0
-Factory.init()
+
+
 
 
 if __name__ == '__main__':
@@ -23,7 +21,7 @@ if __name__ == '__main__':
 
     #create a custom filter session
     fs = Factory.fs
-
+    re.start()
     # load a source filter
     #if a parameter is passed to the script, use this as source
     if len(sys.argv) > 1:
