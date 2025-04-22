@@ -1,11 +1,14 @@
 import os
 import random
 import time
+import util
 
 from mininet.net import Mininet
 from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
+
+streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '100mbit', 'ceil': '100mbit', 'classid': '1:10'},
@@ -20,6 +23,7 @@ TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
     '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0}
 }
+
 
 
 class TrafficControl:
@@ -155,6 +159,7 @@ class TrafficControl:
             print(f"  Delay: {config['delay']} ms")
             print(f"  Loss: {config['loss']} %")
             print("")  # 空行分隔
+            streamingMonitorClient.submit_link_metrics(config['client'],config['delay'],config['loss'],TRAFFIC_CLASSES_MARK[config['client']])
 
 
 def setup_network():
@@ -193,10 +198,10 @@ def setup_network():
     client2.cmd('screen -dm bash_client2')
     server.cmd('screen -dm bash_server')
 
-    #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
     #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
-    #client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy python3 proxy.py')
-    #client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy python3 proxy.py')
+    client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy python3 proxy1.py')
+    client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy python3 proxy1.py')
 
     TrafficControl.setup_tc(server)
 
