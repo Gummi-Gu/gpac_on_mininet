@@ -114,9 +114,9 @@ class TrafficControl:
         print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
 
         # 设置丢包率
-        server.cmd(f'tc qdisc add dev {target}-eth0 root netem loss {loss_prob}%')
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem loss {loss_prob}%'))
         # 设置时延
-        server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms')
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms'))
 
         # 输出已应用的延迟和丢包率
         print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
