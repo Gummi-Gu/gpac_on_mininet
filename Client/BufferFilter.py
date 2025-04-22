@@ -2,8 +2,9 @@ import sys
 import time
 
 import cv2
+from pyarrow import timestamp
 
-import Factory
+import Client.Factory  as Factory
 
 sys.path.append("C:/Users/GummiGu/毕业设计/代码/gpac/share/python")
 import libgpac as gpac
@@ -27,9 +28,12 @@ class MyFilter(gpac.FilterCustom):
 
         self.max_buffer = 10000000
         self.play_buffer = 1000000
-        self.re_buffer = 100000
+        #self.re_buffer = 100000
+        self.re_buffer = 200000
         self.buffering = True
-
+        self.rebuff_time=None
+        self.rebuff_count=0
+        self.rebuff_sum_time=0
 
     # configure input PIDs
     def configure_pid(self, pid, is_remove):
@@ -71,31 +75,38 @@ class MyFilter(gpac.FilterCustom):
 
             if pid.eos:
                 pass
-            #not done, check buffer levels
+                # not done, check buffer levels
             else:
                 buffer = pid.buffer
                 if self.buffering:
-                    #playout buffer not yet filled
+                    # playout buffer not yet filled
                     if buffer < self.play_buffer:
                         pc = 100 * buffer / self.play_buffer
-                        #$title += " - buffering " + str(int(pc)) + ' %'
+                        title += " - buffering " + str(int(pc)) + ' %'
+                        if self.rebuff_time is None:
+                            #print('pause')
+                            self.rebuff_time = time.time()
                         break
-
-                    #playout buffer refilled
-                    #title += " - resuming"
+                    if self.rebuff_time is not None:
+                        self.rebuff_sum_time+=time.time()-self.rebuff_time
+                        self.rebuff_count+=1
+                        self.rebuff_time=None
+                    # playout buffer refilled
+                    title += " - resuming"
                     self.buffering = False
 
                 if self.re_buffer:
-                    #playout buffer underflow
-                    if buffer < self.re_buffer:
-                        #title += " - low buffer, pausing"
+                    # playout buffer underflow
+                    if buffer < self.re_buffer*2:
+                        title += " - low buffer"
+                        #print('low buffer')
                         self.buffering = True
                         break
 
-                #show max buffer level
+                # show max buffer level
                 if self.max_buffer > self.play_buffer:
-                        pc = buffer / self.max_buffer * 100
-                        #title += " - buffer " + str(int(buffer/1000000)) + 's ' + str(int(pc)) + ' %'
+                    pc = buffer / self.max_buffer * 100
+                    title += f" - buffer {buffer / 1000000:.2f}" + 's ' + str(int(pc)) + ' %'
 
             pck = pid.get_packet()
             if pck is None:
@@ -118,6 +129,7 @@ class MyFilter(gpac.FilterCustom):
                 rgb = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB_NV12)
 
             Factory.render.render(rgb,title)
+            Factory.videoSegmentStatus.set_rgb(rgb)
 
             #get packet duration for later sleep
             dur = pck.dur
@@ -130,4 +142,7 @@ class MyFilter(gpac.FilterCustom):
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
             time.sleep(max(0,dur-(time.time() - start_time)))
             #print("[BufferFilter]",time.time() - start_time)
+            Factory.videoSegmentStatus.set_rebuff_time(self.rebuff_sum_time)
+            Factory.videoSegmentStatus.set_rebuff_count(self.rebuff_count)
+
         return 0
