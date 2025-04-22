@@ -17,8 +17,8 @@ TRAFFIC_CLASSES_MARK = {
     '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30}
 }
 TRAFFIC_CLASSES_DELAY = {
-    '10.0.0.2' : {'client': 'client1','delay': 10, 'loss':10},
-    '10.0.0.3' : {'client': 'client2','delay': 10, 'loss':10}
+    '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
+    '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0}
 }
 
 
