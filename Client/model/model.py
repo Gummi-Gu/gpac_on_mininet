@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-from TASED.TASED.model import TASED_v2  # 假设TASED_v2来自原项目
+from Client.model.TASEDmodel import TASED_v2  # 假设TASED_v2来自原项目
 from scipy.ndimage.filters import gaussian_filter
 import torch.nn.functional as F
 
@@ -14,6 +14,8 @@ class TASEDFeatureExtractor(nn.Module):
     def __init__(self, original_model):
         super().__init__()
         self.model=original_model
+        self.image_dir="data/output"
+        self.image_counter=0
 
     def forward(self, x):
         # 输入形状: (T,C,H, W)
@@ -37,7 +39,14 @@ class TASEDFeatureExtractor(nn.Module):
             smap = self.model(clip.cuda()).cpu().data[0]
         smap = (smap.numpy() * 255.).astype(np.int32) / 255.
         smap = gaussian_filter(smap, sigma=7)
-        return (smap / np.max(smap) * 255.).astype(np.uint8) #(H,W)
+        img= (smap / np.max(smap) * 255.).astype(np.uint8) #(H,W)
+
+        image_filename = os.path.join(self.image_dir, f"frame_{self.image_counter:04d}.jpg")
+        self.image_counter += 1
+
+        # 保存当前帧为 JPG 图像
+        cv2.imwrite(image_filename, img)
+        return img
 
     def transform(self,snippet):
         ''' stack & noralization '''
@@ -58,7 +67,7 @@ class HeadMotionPredictor(nn.Module):
             nn.Linear(128, 24)
         )
         self.lstm = nn.LSTM(
-            input_size=24 + 7,  # 视频特征+运动数据
+            input_size=24 + 4,  # 视频特征+运动数据
             hidden_size=lstm_hidden,
             batch_first=True
         )
@@ -66,8 +75,8 @@ class HeadMotionPredictor(nn.Module):
         self.fc2 = nn.Linear(lstm_hidden2, 4)
 
     def forward(self, video, motion):
-        # 视频输入: (B, 3, T, H, W)(16,32,3,224,384)
-        # 运动数据: (B, T, 7)
+        # 视频输入: (B, T, 3, H, W)(16,32,3,224,384)
+        # 运动数据: (B, T, 4)
         batch_size, _, _ = video.shape[:3]
         T=32
 
@@ -94,15 +103,14 @@ class HeadMotionPredictor(nn.Module):
         output = self.fc(lstm_out[:, -1, :])
         output = self.fc2(output)# (B, 4)
 
-        return output
+        return output,vid_feat
 
 
 # 初始化流程
-def build_model(pretrained=True):
+def build_model(pretrained=True , weight_dict='Client/model/TASED_updated.pt'):
     # 加载原始TASED模型
     base_model = TASED_v2().to('cuda')
     if pretrained:
-        weight_dict = './TASED_updated.pt'
         if os.path.isfile(weight_dict):
             print('loading weight file')
             weight_dict = torch.load(weight_dict)
