@@ -1,4 +1,6 @@
-import Factory
+from select import select
+
+import Client.Factory as Factory
 
 class MyCustomDASHAlgo:
     #get notifications when a DASH period starts or ends
@@ -34,6 +36,8 @@ class MyCustomDASHAlgo:
         # In this example we simply cycle through qualities
         # Send the newq value via GET request to 127.0.0.1:12567/dash
         select_num=Factory.dash_interface.set_quality(group.idx,self.srd_position)
+        #Factory.videoSegmentStatus.set_quality_tiled(group.idx,select_num)
+        #select_num=1
         #sample_slices = [
         #    {"idx": group.idx, "bitrate": group.qualities[select_num].bandwidth,
         #     "download_speed": group.qualities[select_num].bandwidth, "fps": str(group.qualities[select_num].fps),
