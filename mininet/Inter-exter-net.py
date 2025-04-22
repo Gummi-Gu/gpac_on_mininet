@@ -207,10 +207,10 @@ def setup_network():
             user_input = input(
                 "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
             if user_input == 'adjust':
-                input_str=input('ip port mark1 mark2 mark3')
+                input_str=input('ip mark1 mark2 mark3')
                 parts = input_str.split()
                 # 确保输入格式正确
-                if len(parts) != 5:
+                if len(parts) != 4:
                     raise ValueError("shoule be 'ip mark1 mark2 mark3'")
                 ip = parts[0]  # IP 地址
                 string_dict = {
