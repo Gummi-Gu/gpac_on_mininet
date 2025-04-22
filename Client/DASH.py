@@ -7,13 +7,6 @@ class MyCustomDASHAlgo:
     def __init__(self):
         self.srd_position=[]
         self.srd_quantity=[]
-        self.comm = Factory.ThreadedCommunication(
-            url=Factory.Monitor_URL,
-            timeout=5,
-            retries=2,
-            retry_delay=1,
-            max_queue_size=100
-        )
         #self.comm.start()
 
     def on_period_reset(self, type):
