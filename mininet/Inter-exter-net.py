@@ -159,7 +159,7 @@ class TrafficControl:
             print(f"  Delay: {config['delay']} ms")
             print(f"  Loss: {config['loss']} %")
             print("")  # 空行分隔
-            streamingMonitorClient.submit_link_metrics(config['client'],config['delay'],config['loss'],TRAFFIC_CLASSES_MARK[config['client']])
+            streamingMonitorClient.submit_link_metrics(config['client'],config['delay'],config['loss'],TRAFFIC_CLASSES_MARK[ip])
 
 
 def setup_network():
