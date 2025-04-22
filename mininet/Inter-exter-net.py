@@ -103,20 +103,27 @@ class TrafficControl:
         # 获取指定 IP 地址的配置
         config = TRAFFIC_CLASSES_DELAY[ip]
         target = config['client']
-        loss_prob = config['loss']
-        delay = config['delay']
 
         # 更新字典中的丢包率和延迟（可选，模拟动态调整）
         TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.randint(10, 20)  # 动态修改丢包率
         TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.randint(20, 100)  # 动态修改延迟
+        loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
+        delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
 
         # 输出当前配置
         print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
 
-        # 设置丢包率
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem loss {loss_prob}%'))
-        # 设置时延
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms'))
+        # 删除现有的 qdisc 配置（避免冲突）
+        print(server.cmd(f'tc qdisc del dev {target}-eth0 root 2>/dev/null'))
+
+        # 创建一个新的根 qdisc 使用 htb 或其他合适的调度器
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 root handle 1: htb'))
+
+        # 设置丢包率为独立的 qdisc
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:1 handle 10: netem loss {loss_prob}%'))
+
+        # 设置延迟为独立的 qdisc
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:1 handle 20: netem delay {delay}ms'))
 
         # 输出已应用的延迟和丢包率
         print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
