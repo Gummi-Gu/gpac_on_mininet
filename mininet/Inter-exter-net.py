@@ -198,7 +198,7 @@ def setup_network():
     client2.cmd('screen -dm bash_client2')
     server.cmd('screen -dm bash_server')
 
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server.py')
+    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
     #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
     client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy python3 proxy1.py')
     client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy python3 proxy1.py')
