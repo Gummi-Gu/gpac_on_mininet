@@ -107,17 +107,16 @@ class TrafficControl:
         delay = config['delay']
 
         # 更新字典中的丢包率和延迟（可选，模拟动态调整）
-        TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.uniform(0, 10)  # 动态修改丢包率
+        TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.randint(0, 10)  # 动态修改丢包率
         TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.randint(20, 100)  # 动态修改延迟
 
         # 输出当前配置
         print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
 
         # 设置丢包率
-        server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:10 handle 10: netem loss {loss_prob}%')
-
+        server.cmd(f'tc qdisc add dev {target}-eth0 root netem loss {loss_prob}%')
         # 设置时延
-        server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:10 handle 10: netem delay {delay}ms')
+        server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms')
 
         # 输出已应用的延迟和丢包率
         print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
@@ -223,21 +222,19 @@ def setup_network():
                 ip=input('ip address')
                 TrafficControl.adjust_loss_and_delay(server,ip)
             elif user_input == 'test':
-                # 启动iperf服务器
                 server = net.get('server')
-                server.cmd("iperf -s -D")
 
-                def test_iperf_connection(client, server_ip):
-                    # 测试带宽、丢包率和时延
-                    print(f"\nTesting iperf from {client.IP()} to {server_ip}...")
+                def test_ping_connection(client, server_ip):
+                    # 测试延迟和丢包情况
+                    print(f"\nTesting ping from {client.IP()} to {server_ip}...")
 
-                    # 使用 UDP 测试 (-u)，并输出每秒的统计信息（-i 1）
-                    # 设定带宽为 10Mbps（-b 10M），可以根据需要调整带宽
-                    result = client.cmd(f"iperf3 -c {server_ip} -u -b 10M -t 10 -i 1")  # 进行10秒的UDP带宽测试
+                    # 使用 ping 测试并设置发送的包数为 10（-c 10）
+                    result = client.cmd(f"ping -c 10 {server_ip}")  # 进行10次ping测试
                     print(result)
-                # 测试10.0.0.1到10.0.0.2 和10.0.0.3的带宽
-                test_iperf_connection(net.get('client1'), '10.0.0.1')
-                test_iperf_connection(net.get('client2'), '10.0.0.1')
+
+                # 测试 10.0.0.1 到 10.0.0.2 和 10.0.0.3 的延迟和丢包
+                test_ping_connection(net.get('client1'), '10.0.0.1')
+                test_ping_connection(net.get('client2'), '10.0.0.1')
             else:
                 print("Invalid input!")
             TrafficControl.report_traffic_classes()
