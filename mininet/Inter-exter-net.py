@@ -112,23 +112,12 @@ class TrafficControl:
 
         # 输出当前配置
         print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
-
         # 删除现有的 qdisc 配置（避免冲突）
-        print(server.cmd(f'tc qdisc del dev {target}-eth0 root 2>/dev/null'))
-
-        # 创建根调度器
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 root handle 1: htb'))
-
-        # 创建父类（1:1）并设置速率（可根据需要调整）
-        print(server.cmd(f'tc class add dev {target}-eth0 parent 1: classid 1:1 htb rate 200mbit'))
-
+        print(server.cmd(f'tc qdisc del dev {target}-eth0 root 2>/dev/null'))#tc qdisc del dev client1-eth0 root 2>/dev/null
         # 设置丢包率为独立的 qdisc
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:1 handle 10: netem loss {loss_prob}%'))
-
-        # 设置延迟为独立的 qdisc
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:1 handle 20: netem delay {delay}ms'))
-
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms loss {loss_prob}% '))#tc qdisc add dev client1-eth0 root netem delay 20ms loss 20%
         # 输出已应用的延迟和丢包率
+        print(server.cmd(f"tc qdisc show dev {target}-eth0"))
         print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
 
     @staticmethod
