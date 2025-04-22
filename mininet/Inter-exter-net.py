@@ -204,7 +204,7 @@ def setup_network():
     try:
         while True:
             user_input = input(
-                "\nEnter 'adjust' to throttle rates;'delay'").strip().lower()
+                "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
             if user_input == 'adjust':
                 input_str=input('ip port mark1 mark2 mark3')
                 parts = input_str.split()
