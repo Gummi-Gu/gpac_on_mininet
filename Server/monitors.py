@@ -10,18 +10,19 @@ lock = threading.Lock()
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
 track_stats = defaultdict(lambda: defaultdict(lambda: {
-    'avg_delay': 0.0,
-    'avg_rate': 0.0,
-    'latest_delay': 0.0,
-    'latest_rate': 0.0,
-    'resolution': '',
-    'last_update': None
+    '1.avg_delay': 0.0,
+    '2.avg_rate': 0.0,
+    '3.latest_delay': 0.0,
+    '4.latest_rate': 0.0,
+    '5.resolution': '',
+    '6.last_update': None
 }))
 
 link_metrics = defaultdict(lambda: {
-    'delay': 0.0,
-    'loss_rate': 0.0,
-    'last_update': None
+    '1.delay': 0.0,
+    '2.loss_rate': 0.0,
+    '3.mark':{},
+    '4.last_update': None
 })
 
 
@@ -45,11 +46,15 @@ def update_track_stats():
 def update_link_metrics():
     data = request.get_json()
     with lock:
-        link_id = data['link_id']
-        link_metrics[link_id].update({
-            'delay': data['delay'],
-            'loss_rate': data['loss_rate'],
-            'last_update': datetime.now()
+        client_id = data['client_id']  # 修改为 client_id
+        marks = data.get('marks', {})  # 获取 marks 数据，默认为空字典
+
+        # 更新 link_metrics 中的数据
+        link_metrics[client_id].update({
+            '1.delay': data['delay'],
+            '2.loss_rate': data['loss_rate'],
+            '3.marks': marks,  # 保存 marks 数据
+            '4.last_update': datetime.now()
         })
     return jsonify({'status': 'success'})
 
@@ -93,9 +98,11 @@ def show_dashboard():
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="html", floatfmt=".2f")
 
     # Link Metrics 表格
-    link_headers = ['Link ID', 'Delay(ms)', 'Loss Rate(%)', 'Last Update']
-    link_data = {k: {**v, 'loss_rate': v['loss_rate'] * 100} for k, v in link_metrics.items()}
-    link_table = format_table(link_data, link_headers)
+    link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', 'Mark', 'Last Update']
+    link_data = []
+    for client_id, stats in link_metrics.items():
+        link_data.append((client_id, stats['1.delay'], stats['2.loss_rate'], stats['3.marks'], stats['4.last_update']))
+    link_table = tabulate(link_data, headers=link_headers,tablefmt="html", floatfmt=".2f")
 
     return f"""
     <html>

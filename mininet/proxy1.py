@@ -88,7 +88,8 @@ def proxy(path):
             method=request.method,
             url=f"http://{app.config['TARGET_SERVER']}:{app.config['TARGET_PORT']}/{path}",
             headers={k: v for k, v in request.headers if k.lower() not in ['host', 'accept-encoding']},
-            stream=True
+            stream=True,
+            proxies={'http': None, 'https': None}  # 显式禁用代理
         )
 
         # 获取声明大小
