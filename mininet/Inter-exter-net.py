@@ -219,7 +219,8 @@ def setup_network():
                 }
                 TrafficControl.adjust(ip,string_dict)
             elif user_input == 'delay':
-                TrafficControl.adjust_loss_and_delay()
+                ip=input('ip address')
+                TrafficControl.adjust_loss_and_delay(server,ip)
             elif user_input == 'test':
                 # 启动iperf服务器
                 server = net.get('server')
