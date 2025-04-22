@@ -1,9 +1,13 @@
 # 计算焦距
 import atexit
+import math
 import os
 import threading
 import time
-import Factory
+
+import pandas as pd
+
+import Client.Factory as Factory
 
 from pynput import keyboard
 
@@ -14,15 +18,8 @@ import numpy as np
 class Viewpoint:
     def __init__(self,choice=0):
         # 设置输出参数
-        self.v = None
-        self.u = None
         self.output_width = 800
         self.output_height = 600
-        self.fov = 120  # 视场角（单位：度）
-        # 初始视角参数
-        self.yaw = 0.0  # 偏航角
-        self.pitch = 90  # 俯仰角
-
         self.angle_thread = threading.Thread(target=self.listen_for_keys)
         self.angle_thread.daemon = True  # 设置为守护线程，确保程序退出时线程也会退出
         self.angle_thread.start()
@@ -31,13 +28,13 @@ class Viewpoint:
 
 
 
-    def focal_cal(self, equi_width=None, equi_height=None):
+    def focal_cal(self, yaw,pitch,fov,equi_width=None, equi_height=None,):
         if equi_width is None:
             equi_width=Factory.width
         if equi_height is None:
             equi_height = Factory.height
         start_time=time.time()
-        focal = self.output_width / (2 * np.tan(np.radians(self.fov / 2)))
+        focal = self.output_width / (2 * np.tan(np.radians(fov / 2)))
 
         # 生成像素网格
         x, y = np.meshgrid(np.arange(self.output_width), np.arange(self.output_height))
@@ -52,8 +49,8 @@ class Viewpoint:
         z_cam = z_cam / norm
 
         # 转换为弧度
-        yaw_rad = np.radians(self.yaw)
-        pitch_rad = np.radians(self.pitch)
+        yaw_rad = np.radians(yaw)
+        pitch_rad = np.radians(pitch)
 
         # 构造旋转矩阵（先偏航后俯仰）
         R_y = np.array([
@@ -103,7 +100,7 @@ class Viewpoint:
         v = (phi + np.pi / 2) / np.pi * equi_height
         #print("[Rendering]",time.time()-start_time)
 
-        filename = f"yaw_{int(self.yaw)}_pitch_{int(self.pitch)}_fov_{self.fov}.npz"
+        filename = f"yaw_{int(yaw)}_pitch_{int(pitch)}_fov_{fov}.npz"
         path = os.path.join("Client\precomputed_maps", filename)
         np.savez_compressed(
             path,
@@ -112,83 +109,77 @@ class Viewpoint:
             u=u,
             v=v
         )
-        print(f"Generated {filename}")
+        print(f"[Rendering]Generated {filename}")
 
 
 
         return map_x, map_y,u,v
-    def load_maps(self):
+    def load_maps(self,yaw,pitch,fov):
         """Load precomputed maps from file"""
-        filename = f"yaw_{int(self.yaw)}_pitch_{int(self.pitch)}_fov_{self.fov}.npz"
+        filename = f"yaw_{int(yaw)}_pitch_{int(pitch)}_fov_{fov}.npz"
         path = os.path.join("Client\precomputed_maps", filename)
         if not os.path.exists(path):
-            raise FileNotFoundError(f"No precomputed map for {self.yaw}/{self.pitch}")
+            raise FileNotFoundError(f"No precomputed map for {yaw}/{pitch}")
 
         data = np.load(path)
         return data["map_x"], data["map_y"],data["u"], data["v"]
 
-    def get_view_position(self):
-        return self.u, self.v
-
-    def set_view_position(self, x, y):
-        self.u, self.v = x,y
-
-    def on_press(self, key):
-
-        if self.choice == 0:
-            try:
-                if key.char == 'q':
-                    print("Exiting...")
-                    return False  # 停止监听
-                elif key.char == 'a':  # 左转
-                    self.yaw -= 15
-                elif key.char == 'd':  # 右转
-                    self.yaw += 15
-                elif key.char == 'w':  # 上仰
-                    self.pitch += 15
-                elif key.char == 's':  # 下俯
-                    self.pitch -= 15
-                #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
-                self.yaw= self.yaw% 360
-                self.pitch= self.pitch % 360
-            except AttributeError:
-                # 处理其他特殊键（例如 shift、alt 等）
-                pass
-        elif self.choice == 1:
-            try:
-                if key.char == 'q':
-                    print("Exiting...")
-                    return False  # 停止监听
-                elif key.char == 'j':  # 左转
-                    self.yaw -= 15
-                elif key.char == 'l':  # 右转
-                    self.yaw += 15
-                elif key.char == 'i':  # 上仰
-                    self.pitch += 15
-                elif key.char == 'k':  # 下俯
-                    self.pitch -= 15
-                #print(f"[Viewpoint]Yaw: {self.yaw}, Pitch: {self.pitch}")
-                self.yaw= self.yaw% 360
-                self.pitch= self.pitch % 360
-            except AttributeError:
-                # 处理其他特殊键（例如 shift、alt 等）
-                pass
     def listen_for_keys(self):
         # 启动监听器
-        with keyboard.Listener(on_press=self.on_press) as listener:
-            listener.join()
+        #with keyboard.Listener(on_press=self.on_press) as listener:
+        #    listener.join()
+        #data = pd.read_csv('./Client/video_0_droped.csv')  # 替换为你的实际路径
+        df = pd.read_csv('Client/model/data/train/csv/4/video_4.csv')
+
+        # 保留1位小数并去重
+        df['PlaybackTimeRounded'] = df['PlaybackTime'].round(1)
+        df_unique = df.drop_duplicates(subset='PlaybackTimeRounded')
+
+        # 删除辅助列并输出
+        df_unique = df_unique.drop(columns=['PlaybackTimeRounded'])
+        data=df_unique
+        # 转换函数
+        # 计算 yaw 和 pitch
+        for i, row in data.iterrows():
+            yaw, pitch,x,y,z,w = self.quaternion_to_yaw_pitch(row['UnitQuaternion.x'],
+                                                 row['UnitQuaternion.y'],
+                                                 row['UnitQuaternion.z'],
+                                                 row['UnitQuaternion.w'])
+            Factory.yaw=yaw
+            Factory.pitch=pitch
+            Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
+            time.sleep(0.1)
+            #print(f"[Rendering] {time.time()}")
+            #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
+
+    def quaternion_to_yaw_pitch(self,x, y, z, w):
+        norm = math.sqrt(w * w + x * x + y * y + z * z)
+        # 防止除以零
+        if norm == 0:
+            raise ValueError("The quaternion has zero magnitude, cannot normalize.")
+        # 归一化四元数
+        w /= norm
+        x /= norm
+        y /= norm
+        z /= norm
+        # pitch（绕 x 轴）
+        pitch = math.asin(2.0 * (w * y - z * x))
+        # yaw（绕 y 轴）
+        yaw = math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+        return math.degrees(yaw) + 90, math.degrees(pitch) + 180, x, y, z, w
+
+
 
 class Render:
 
     def render(self,rgb,title):
-        #equi_height, equi_width = rgb.shape[:2]
         try:
-            map_x,map_y,u,v= Factory.viewpoint.load_maps()
+            map_x,map_y,u,v= Factory.viewpoint.load_maps(Factory.yaw,Factory.pitch,Factory.fov)
         except FileNotFoundError:
-            map_x,map_y,u,v= Factory.viewpoint.focal_cal()
-        Factory.viewpoint.set_view_position(u,v)
+            map_x,map_y,u,v= Factory.viewpoint.focal_cal(Factory.yaw,Factory.pitch,Factory.fov)
+        Factory.u=u
+        Factory.v=v
         # 重映射图像
         output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
-        #resize_factor = 0.625
-        #small_rgb = cv2.resize(rgb, (int(equi_width * resize_factor), int(equi_height * resize_factor)))
         cv2.imshow(Factory.Winname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
+        cv2.setWindowTitle(Factory.Winname, title)
