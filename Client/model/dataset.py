@@ -111,7 +111,7 @@ class VRDataset(Dataset):
     def __getitem__(self, idx: int) -> dict:
         """返回一个样本字典，包含：
         - video: uint8 tensor [T, C, H, W] (BGR顺序)
-        - motion: float32 tensor [T, 7]
+        - motion: float32 tensor [T, 4]
         - target: float32 tensor [T, 4] (标准化后的四元数)
         """
         #aligned_video, aligned_motion = self.samples
@@ -152,8 +152,7 @@ class VRDataset(Dataset):
         """加载并标准化运动数据"""
         df = pd.read_csv(path)
         # 保留需要的列
-        required_cols = ['PlaybackTime', 'UnitQuaternion.x', 'UnitQuaternion.y', 'UnitQuaternion.z', 'UnitQuaternion.w',
-                         'HmdPosition.x', 'HmdPosition.y', 'HmdPosition.z']
+        required_cols = ['PlaybackTime', 'UnitQuaternion.x', 'UnitQuaternion.y', 'UnitQuaternion.z', 'UnitQuaternion.w']
         df = df[required_cols]
 
         # 按 PlaybackTime 升序排序
@@ -176,7 +175,7 @@ class VRDataset(Dataset):
 
         # 取视频和运动数据
         sampled_video = video[idx:end]  # [temporal_length, C, H, W]
-        sampled_motion = motion[idx:end]  # [temporal_length, 7]
+        sampled_motion = motion[idx:end]  # [temporal_length, 4]
         sampled_video =torch.stack(sampled_video, dim=0)
         sampled_motion = torch.stack(sampled_motion, dim=0)
         # 计算目标四元数，取后32位的前4位
@@ -187,7 +186,7 @@ class VRDataset(Dataset):
 
         return {
             'video': sampled_video.permute(0,3,1,2),  # 形状: [temporal_length, C, H, W]
-            'motion': sampled_motion,  # 形状: [temporal_length, 7]
+            'motion': sampled_motion,  # 形状: [temporal_length, 4]
             'target': target  # 形状: [4]，四元数
         }
 
