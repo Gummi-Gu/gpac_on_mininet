@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 import Client.Factory as Factory
 import matplotlib.pyplot as plt
+import Client.util
+
 
 
 def draw_gradient_circle(center, radius, shape):
@@ -95,16 +97,16 @@ def compute_opacity_heatmap(str,rgb,level_num):
         levels = np.around(norm * (level_num-1),0).astype(np.uint8)
     #levels[levels == 0] = 1  # 确保最小等级为1
     levels=levels.reshape(heatmap.shape)
-    '''
-    plt.figure(figsize=(6, 6))
+
+    plt.figure(figsize=(Factory.tile_size, Factory.tile_size))
     plt.imshow(heatmap, cmap='hot', interpolation='nearest')
     plt.colorbar(label='Opacity Score')
     plt.title("8x8 Opacity Heatmap "+str)
-    plt.xticks(range(8))
-    plt.yticks(range(8))
+    plt.xticks(range(Factory.tile_size))
+    plt.yticks(range(Factory.tile_size))
     plt.gca().invert_yaxis()
     plt.show()
-    '''
+
 
     return levels
 

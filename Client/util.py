@@ -43,6 +43,13 @@ class StreamingMonitorClient:
         }
         return self._send_data("track_stats", payload)
 
+    def submit_headmap(self,data) -> bool:
+        payload = {
+            "data": data
+        }
+        return self._send_data("update_heatmap", payload)
+
+
     def submit_link_metrics(
         self,
         link_id: str,
