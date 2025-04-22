@@ -127,7 +127,7 @@ def run_server(target, port, proxy_port):
 
     # 启动服务
     from werkzeug.serving import ThreadedWSGIServer
-    server = ThreadedWSGIServer('127.0.0.1', proxy_port, app)
+    server = ThreadedWSGIServer('0.0.0.0', proxy_port, app)
     logger.info(f"Proxy server started on :{proxy_port}")
     server.serve_forever()
 
