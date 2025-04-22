@@ -218,8 +218,22 @@ def setup_network():
                     '785': int(parts[3])  # 标记 785
                 }
                 TrafficControl.adjust(ip,string_dict)
-            if user_input == 'delay':
+            elif user_input == 'delay':
                 TrafficControl.adjust_loss_and_delay()
+            elif user_input == 'test':
+                # 启动iperf服务器
+                server = net.get('server')
+                server.cmd("iperf -s -D")
+                def test_iperf_connection(client, server_ip):
+                    # 测试带宽和丢包率
+                    print(f"\nTesting iperf from {client.IP()} to {server_ip}...")
+                    result = client.cmd(f"iperf -c {server_ip} -t 10 -i 1")  # 进行10秒的带宽测试
+                    print(result)
+                # 测试10.0.0.1到10.0.0.2 和10.0.0.3的带宽
+                test_iperf_connection(net.get('client1'), '10.0.0.1')
+                test_iperf_connection(net.get('client2'), '10.0.0.1')
+            else:
+                print("Invalid input!")
             TrafficControl.report_traffic_classes()
 
     except KeyboardInterrupt:
