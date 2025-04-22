@@ -1,4 +1,5 @@
 import os
+import random
 import time
 
 from mininet.net import Mininet
@@ -12,8 +13,12 @@ TRAFFIC_CLASSES = {
     'low': {'mark': 30, 'rate': '20mbit', 'ceil': '20mbit', 'classid': '1:30'},
 }
 TRAFFIC_CLASSES_MARK = {
-    '10.0.0.1' : {'port': 10086, '12600': 10, '3150':10, '785':30},
-    '10.0.0.2' : {'port': 10086, '12600': 10, '3150':10, '785':30}
+    '10.0.0.2' : {'port': 10086, '12600': 10, '3150':10, '785':30},
+    '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30}
+}
+TRAFFIC_CLASSES_DELAY = {
+    '10.0.0.2' : {'client': 'client1','delay': 10, 'loss':10},
+    '10.0.0.3' : {'client': 'client2','delay': 10, 'loss':10}
 }
 
 
@@ -42,7 +47,7 @@ class TrafficControl:
             server.cmd(cmd)
 
     @staticmethod
-    def adjust(server, ip: str,tring_dict: dict):
+    def adjust(server, ip: str,string_dict: dict):
         """
         生成针对特定 IP 地址的 connmark 规则。
         :param ip: 源 IP 地址
@@ -82,6 +87,75 @@ class TrafficControl:
         for cmd in connmark_cmds:
             server.cmd(cmd)
 
+    @staticmethod
+    def adjust_loss_and_delay(server, ip: str):
+        """
+        调整特定 IP 地址与目标主机之间的丢包率和时延。
+        :param server: 服务器对象
+        :param ip: 源 IP 地址（如 '10.0.0.2' 或 '10.0.0.3'）
+        """
+        # 确保字典中有指定的 IP 地址
+        if ip not in TRAFFIC_CLASSES_DELAY:
+            print(f"IP {ip} not found in TRAFFIC_CLASSES_DELAY.")
+            return
+
+        # 获取指定 IP 地址的配置
+        config = TRAFFIC_CLASSES_DELAY[ip]
+        target = config['client']
+        loss_prob = config['loss']
+        delay = config['delay']
+
+        # 更新字典中的丢包率和延迟（可选，模拟动态调整）
+        TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.uniform(0, 10)  # 动态修改丢包率
+        TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.randint(20, 100)  # 动态修改延迟
+
+        # 输出当前配置
+        print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
+
+        # 设置丢包率
+        server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:10 handle 10: netem loss {loss_prob}%')
+
+        # 设置时延
+        server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:10 handle 10: netem delay {delay}ms')
+
+        # 输出已应用的延迟和丢包率
+        print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
+
+    @staticmethod
+    def report_traffic_classes():
+        # 合并后输出
+        print("Merged Traffic Classes Configuration:")
+        merged_traffic = {}
+
+        # 合并 TRAFFIC_CLASSES_MARK 和 TRAFFIC_CLASSES_DELAY
+        for ip, config in TRAFFIC_CLASSES_MARK.items():
+            if ip not in merged_traffic:
+                merged_traffic[ip] = {'client': '', 'port': config['port'], 'marks': {}, 'delay': 0, 'loss': 0}
+
+            # 合并标记
+            for string, mark in config.items():
+                if string != 'port':
+                    merged_traffic[ip]['marks'][string] = mark
+
+        for ip, config in TRAFFIC_CLASSES_DELAY.items():
+            if ip not in merged_traffic:
+                merged_traffic[ip] = {'client': config['client'], 'port': '', 'marks': {}, 'delay': config['delay'],
+                                      'loss': config['loss']}
+            else:
+                # 合并延迟和丢包率
+                merged_traffic[ip]['client'] = config['client']
+                merged_traffic[ip]['delay'] = config['delay']
+                merged_traffic[ip]['loss'] = config['loss']
+
+        # 输出合并后的配置
+        for ip, config in merged_traffic.items():
+            print(f"IP: {ip}")
+            print(f"  Client: {config['client']}")
+            print(f"  Port: {config['port']}")
+            print(f"  Marks: {config['marks']}")
+            print(f"  Delay: {config['delay']} ms")
+            print(f"  Loss: {config['loss']} %")
+            print("")  # 空行分隔
 
 
 def setup_network():
@@ -130,7 +204,7 @@ def setup_network():
     try:
         while True:
             user_input = input(
-                "\nEnter 'adjust' to throttle rates").strip().lower()
+                "\nEnter 'adjust' to throttle rates;'delay'").strip().lower()
             if user_input == 'adjust':
                 input_str=input('ip port mark1 mark2 mark3')
                 parts = input_str.split()
@@ -144,6 +218,9 @@ def setup_network():
                     '785': int(parts[3])  # 标记 785
                 }
                 TrafficControl.adjust(ip,string_dict)
+            if user_input == 'delay':
+                TrafficControl.adjust_loss_and_delay()
+            TrafficControl.report_traffic_classes()
 
     except KeyboardInterrupt:
         pass
