@@ -120,10 +120,10 @@ class TrafficControl:
         print(server.cmd(f'tc qdisc add dev {target}-eth0 root handle 1: htb'))
 
         # 设置丢包率为独立的 qdisc
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:1 handle 10: netem loss {loss_prob}%'))
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1: handle 10: netem loss {loss_prob}%'))
 
         # 设置延迟为独立的 qdisc
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1:1 handle 20: netem delay {delay}ms'))
+        print(server.cmd(f'tc qdisc add dev {target}-eth0 parent 1: handle 20: netem delay {delay}ms'))
 
         # 输出已应用的延迟和丢包率
         print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
