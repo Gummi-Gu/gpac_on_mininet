@@ -66,6 +66,7 @@ def start():
     thread.start()
 
 def pre():
+    time.sleep(1)
     while True:
         time.sleep(1)  # 模拟一秒一个输入数据，可以去掉或改为接收信号的时间间隔
         # 模拟接收一帧实时数据（10维向量）
@@ -111,17 +112,19 @@ def QoEpre(level):
     B=0
     for j,i in enumerate(qua):
         if i==0:
-            B+=0.14*level[j]
+            B+=1*level[j]
         if i==1:
-            B+=0.57*level[j]
+            B+=2*level[j]
         if i==2:
-            B+=2.28*level[j]
-    B/=Factory.level_num
+            B+=3*level[j]
+        if i == 3:
+            B += 4 * level[j]
+    B=B/Factory.tile_num*10
 
     matrix1,matrix2=qua,last_Qoa
     if last_Qoa is None:
         matrix2=matrix1
-    bitrate_map = {0: 785, 1: 3150, 2: 12600}
+    bitrate_map = Factory.bitrate_map
 
     # 将矩阵元素转换为实际比特率
     matrix1_bitrate = np.vectorize(bitrate_map.get)(matrix1)
@@ -160,7 +163,7 @@ def QoEpre(level):
     diff_matrix_normalized = (diff_matrix - np.min(diff_matrix)) / max(0.1,(np.max(diff_matrix) - np.min(diff_matrix)))
     U=np.sum(diff_matrix_normalized/4)
 
-    Qoe = 1 * D1 + 1 * D2 + 1 * B + 1 * S + 1 * U
+    Qoe = -1 * D1 - 1 * D2 + 1 * B - 2 * S - 1 * U
 
     last_Qoa=qua
     last_rebuff_time=Factory.videoSegmentStatus.get_rebuff_time()
