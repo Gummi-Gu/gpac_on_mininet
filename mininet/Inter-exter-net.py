@@ -220,7 +220,9 @@ def setup_network():
                 TrafficControl.adjust(server,ip,string_dict)
             elif user_input == 'delay':
                 ip=input('ip address')
-                TrafficControl.adjust_loss_and_delay(server,ip)
+                config = TRAFFIC_CLASSES_DELAY[ip]
+                target = config['client']
+                TrafficControl.adjust_loss_and_delay(net.get(target),ip)
             elif user_input == 'test':
                 server = net.get('server')
 
