@@ -224,10 +224,14 @@ def setup_network():
                 # 启动iperf服务器
                 server = net.get('server')
                 server.cmd("iperf -s -D")
+
                 def test_iperf_connection(client, server_ip):
-                    # 测试带宽和丢包率
+                    # 测试带宽、丢包率和时延
                     print(f"\nTesting iperf from {client.IP()} to {server_ip}...")
-                    result = client.cmd(f"iperf -c {server_ip} -t 10 -i 1")  # 进行10秒的带宽测试
+
+                    # 使用 UDP 测试 (-u)，并输出每秒的统计信息（-i 1）
+                    # 设定带宽为 10Mbps（-b 10M），可以根据需要调整带宽
+                    result = client.cmd(f"iperf -c {server_ip} -u -b 10M -t 10 -i 1")  # 进行10秒的UDP带宽测试
                     print(result)
                 # 测试10.0.0.1到10.0.0.2 和10.0.0.3的带宽
                 test_iperf_connection(net.get('client1'), '10.0.0.1')
