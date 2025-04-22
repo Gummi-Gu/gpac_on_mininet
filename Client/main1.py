@@ -1,4 +1,6 @@
 import sys
+import threading
+
 import cv2
 import Client.Factory as Factory
 import Client.model.pre as re
@@ -12,33 +14,32 @@ gpac.set_args(["Ignored", "--start_with=max_bw"])
 Factory.press_start = 0
 
 
-def main():
-    # cv2.namedWindow('360 View')
-    # cv2.setMouseCallback('360 View', mouse_callback)
-
-    # create a custom filter session
+def run_pipeline():
+    # 创建一个自定义的 filter session
     fs = Factory.fs
     re.start()
-    # load a source filter
-    # if a parameter is passed to the script, use this as source
+
+    # 加载视频源
     if len(sys.argv) > 1:
         src = fs.load_src(sys.argv[1])
-    # otherwise load one of our DASH sequences
     else:
-        src = fs.load_src("http://127.0.0.1:10081/01/files/dash_tiled.mpd")
-        #src = fs.load_src("http://192.168.16.178:10081/01/files/dash_tiled.mpd")
+        src = fs.load_src("http://192.168.16.191:10081/01/files/dash_tiled.mpd")
 
-    # load our custom filter and assign its source
+    # 加载自定义 filter 并设置其源
     my_filter = Factory.bufferFilter
     my_filter.set_source(src)
 
-    # and run
+    # 运行 pipeline
     fs.run()
 
-    # fs.print_graph()
-
+    # 清理
     fs.delete()
     gpac.close()
+
+def main():
+    t = threading.Thread(target=run_pipeline)
+    t.start()
+    print("视频处理线程已启动。")
 
 if __name__ == '__main__':
     main()

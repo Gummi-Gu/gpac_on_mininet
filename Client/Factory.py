@@ -9,11 +9,11 @@ import time
 import cv2
 import numpy as np
 
-import BufferFilter
-import DASH
-import Rendering
-import Interfaces
-import util
+import Client.BufferFilter as BufferFilter
+import Client.DASH as DASH
+import Client.Rendering as Rendering
+import Client.Interfaces as Interfaces
+import Client.util as util
 
 
 width=4096#2560#3840

@@ -11,13 +11,13 @@ from mininet.cli import CLI
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '100mbit', 'ceil': '100mbit', 'classid': '1:10'},
-    'middle': {'mark': 20, 'rate': '80mbit', 'ceil': '80mbit', 'classid': '1:20'},
+    'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
+    'middle': {'mark': 20, 'rate': '30mbit', 'ceil': '30mbit', 'classid': '1:20'},
     'low': {'mark': 30, 'rate': '20mbit', 'ceil': '20mbit', 'classid': '1:30'},
 }
 TRAFFIC_CLASSES_MARK = {
-    '10.0.0.2' : {'port': 10086, '12600': 10, '3150':10, '785':30},
-    '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30}
+    '10.0.0.2' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
+    '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
 }
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
@@ -32,7 +32,7 @@ class TrafficControl:
         cmds = [
             'tc qdisc del dev server-eth0 root 2>/dev/null',
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 200mbit',
+            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 400mbit',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["middle"]["classid"]} htb rate {TRAFFIC_CLASSES["middle"]["rate"]} ceil {TRAFFIC_CLASSES["middle"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
@@ -44,6 +44,7 @@ class TrafficControl:
             'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "12600" -j CONNMARK --set-mark 10',
             'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "3150" -j CONNMARK --set-mark 20',
             'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "785" -j CONNMARK --set-mark 30',
+            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "200" -j CONNMARK --set-mark 30',
             'iptables -t mangle -A OUTPUT -p tcp --sport 10086 -j CONNMARK --restore-mark'
         ]
 
@@ -63,8 +64,7 @@ class TrafficControl:
         connmark_cmds = []
 
         # 确保字典只包含预期的键
-        expected_strings = ["12600", "3150", "785"]
-
+        expected_strings = ["12600", "3150", "785", "200"]
         # 更新 TRAFFIC_CLASSES_MARK 字典
         if ip in TRAFFIC_CLASSES_MARK:
             TRAFFIC_CLASSES_MARK[ip].update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
@@ -207,19 +207,21 @@ def setup_network():
 
     try:
         while True:
+            TrafficControl.report_traffic_classes()
             user_input = input(
                 "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
             if user_input == 'adjust':
-                input_str=input('ip mark1 mark2 mark3')
+                input_str=input('ip mark1 mark2 mark3 mark4')
                 parts = input_str.split()
                 # 确保输入格式正确
-                if len(parts) != 4:
-                    raise ValueError("shoule be 'ip mark1 mark2 mark3'")
+                if len(parts) != 5:
+                    raise ValueError("shoule be 'ip mark1 mark2 mark3 mark4'")
                 ip = parts[0]  # IP 地址
                 string_dict = {
                     '12600': int(parts[1]),  # 标记 12600
                     '3150': int(parts[2]),  # 标记 3150
-                    '785': int(parts[3])  # 标记 785
+                    '785': int(parts[3]),
+                    '200': int(parts[4])# 标记 785
                 }
                 TrafficControl.adjust(server,ip,string_dict)
             elif user_input == 'delay':
@@ -243,7 +245,7 @@ def setup_network():
                 test_ping_connection(net.get('client2'), '10.0.0.1')
             else:
                 print("Invalid input!")
-            TrafficControl.report_traffic_classes()
+
 
     except KeyboardInterrupt:
         pass

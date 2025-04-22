@@ -101,7 +101,7 @@ def compute_opacity_heatmap(str,rgb,level_num):
     plt.figure(figsize=(Factory.tile_size, Factory.tile_size))
     plt.imshow(heatmap, cmap='hot', interpolation='nearest')
     plt.colorbar(label='Opacity Score')
-    plt.title("8x8 Opacity Heatmap "+str)
+    plt.title("Opacity Heatmap "+str)
     plt.xticks(range(Factory.tile_size))
     plt.yticks(range(Factory.tile_size))
     plt.gca().invert_yaxis()

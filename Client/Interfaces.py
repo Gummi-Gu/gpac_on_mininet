@@ -1,7 +1,7 @@
 import math
 import time
 
-import util
+import Client.util as util
 import Client.Factory  as Factory
 
 class DashInterface:
