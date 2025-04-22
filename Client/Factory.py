@@ -13,14 +13,15 @@ import BufferFilter
 import DASH
 import Rendering
 import Interfaces
-import Message
+import util
 
 
 width=4096#2560#3840
 height=2048#1440#1920
-tile_num=26
-tile_size=5
-level_num=3
+tile_num=10
+tile_size=3
+level_num=4
+bitrate_map = {0:200, 1: 785, 2: 3150, 3: 12600}
 Winname=None
 press_start=True
 dash=None
@@ -29,13 +30,11 @@ fs=None
 bufferFilter=None
 dash_interface=None
 render=None
-Monitor_URL= "http://127.0.0.1:10087/update"
-ThreadedCommunication=Message.ThreadedCommunication
 videoSegmentStatus=None
 fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
 Qoe=0
 pre_qua=[]
-
+streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 class VideoSegmentStatus:
     def __init__(self, tile_num, log_dir="logs"):
         self.x=0
@@ -108,6 +107,8 @@ class VideoSegmentStatus:
         if len(quality_list) != self.tile_num:
             raise ValueError("Length mismatch")
         self.quality_tiled = quality_list
+        streamingMonitorClient.submit_chunk_qualities(self.quality_tiled)
+
 
     def set_rgb(self, rgb_image):
         """
