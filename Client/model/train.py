@@ -10,8 +10,8 @@ from datetime import datetime
 from tqdm import tqdm
 
 # 假设模型和数据集类已导入
-from model import build_model
-from dataset import VRDataset
+from Client.model.model import build_model
+from Client.model.dataset import VRDataset
 
 
 
@@ -26,7 +26,8 @@ def save(quaternions=None, csv_file=None):
         writer.writerow(['UnitQuaternion.x', 'UnitQuaternion.y', 'UnitQuaternion.z', 'UnitQuaternion.w'])
 
         # 写入四元数数据
-        writer.writerows(quaternions)
+        for i in quaternions:
+            writer.writerows(i)
 
     print(f"数据已保存到 {csv_file}")
 
@@ -34,28 +35,28 @@ def train():
     # 训练参数
     config = {
         'batch_size': 16,
-        'num_epochs': 2,
+        'num_epochs': 1,
         'lr': 1e-5,
         'lr_step_size': 10,
         'lr_gamma': 0.1,
         'weight_decay': 1e-5,
-        'save_dir': './checkpoints',
+        'save_dir': 'Client/model/checkpoints',
         'log_interval': 10,
         'device': 'cuda' if torch.cuda.is_available() else 'cpu',
-        'val': False
+        'val': True
     }
 
     # 初始化数据集和数据加载器
 
     train_dataset = VRDataset(
-        video_root='./data/train/video',
-        motion_csv_root='./data/train/csv',
+        video_root='Client/model/data/train/video',
+        motion_csv_root='Client/model/data/train/csv',
         temporal_length=32
     )
     if config['val']:
         val_dataset = VRDataset(
-            video_root='./data/val/video',
-            motion_csv_root='./data/val/csv',
+            video_root='Client/model/data/val/video',
+            motion_csv_root='Client/model/data/val/csv',
             temporal_length=32
         )
     train_loader = DataLoader(
@@ -125,7 +126,7 @@ def train():
             optimizer.zero_grad()
 
             # 前向传播
-            outputs = model(video, motion)
+            outputs = model(video, motion)[0]
 
             # 计算损失（仅取最后一个时间步的预测与目标）
             loss = criterion(outputs, target)  # 假设目标取最后一个时间步的平均
@@ -153,7 +154,7 @@ def train():
                     motion = batch['motion'].to(config['device'], dtype=torch.float32)
                     target = batch['target'].to(config['device'], dtype=torch.float32)
 
-                    outputs = model(video, motion)
+                    outputs = model(video, motion)[0]
                     loss = criterion(outputs, target)
                     val_loss += loss.item()
 
@@ -176,4 +177,4 @@ def train():
 
 if __name__ == '__main__':
     train()
-    save(save_target,"target.csv")
+    save(save_target,"Client/model/data/target.csv")
