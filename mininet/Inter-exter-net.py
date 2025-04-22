@@ -42,7 +42,7 @@ class TrafficControl:
             server.cmd(cmd)
 
     @staticmethod
-    def adjust(server, ip: str, port: int, string_dict: dict):
+    def adjust(server, ip: str,tring_dict: dict):
         """
         生成针对特定 IP 地址的 connmark 规则。
         :param ip: 源 IP 地址
@@ -136,15 +136,14 @@ def setup_network():
                 parts = input_str.split()
                 # 确保输入格式正确
                 if len(parts) != 5:
-                    raise ValueError("shoule be 'ip port mark1 mark2 mark3'")
+                    raise ValueError("shoule be 'ip mark1 mark2 mark3'")
                 ip = parts[0]  # IP 地址
-                port = int(parts[1])  # 目标端口
                 string_dict = {
-                    '12600': int(parts[2]),  # 标记 12600
-                    '3150': int(parts[3]),  # 标记 3150
-                    '785': int(parts[4])  # 标记 785
+                    '12600': int(parts[1]),  # 标记 12600
+                    '3150': int(parts[2]),  # 标记 3150
+                    '785': int(parts[3])  # 标记 785
                 }
-                TrafficControl.adjust(ip, port, string_dict)
+                TrafficControl.adjust(ip,string_dict)
 
     except KeyboardInterrupt:
         pass
