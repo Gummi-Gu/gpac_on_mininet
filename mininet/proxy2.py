@@ -22,7 +22,7 @@ stats_lock = threading.Lock()
 app = Flask(__name__)
 CORS(app, origins="*")
 
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
 
 
 def parse_track_id(filename):

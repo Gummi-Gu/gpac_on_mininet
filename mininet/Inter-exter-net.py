@@ -8,7 +8,7 @@ from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
 
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
 
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},

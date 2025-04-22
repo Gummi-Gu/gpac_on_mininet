@@ -34,7 +34,7 @@ videoSegmentStatus=None
 fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
 Qoe=0
 pre_qua=[]
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
 class VideoSegmentStatus:
     def __init__(self, tile_num, log_dir="logs"):
         self.x=0
