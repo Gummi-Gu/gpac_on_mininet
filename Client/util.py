@@ -49,6 +49,21 @@ class StreamingMonitorClient:
         }
         return self._send_data("update_heatmap", payload)
 
+    def submit_client_stats(
+        self,
+        client_id: str,
+        rebuffer_time: float,
+        rebuffer_count: int,
+        qoe: float
+    ) -> bool:
+        """提交网络链路指标"""
+        payload = {
+            'client_id': client_id,
+            'rebuffer_time': rebuffer_time,
+            'rebuffer_count': rebuffer_count,
+            'qoe': qoe
+        }
+        return self._send_data("client_stats", payload)
 
     def submit_link_metrics(
         self,

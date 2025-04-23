@@ -22,7 +22,7 @@ tile_num=10
 tile_size=3
 level_num=4
 bitrate_map = {0:200, 1: 785, 2: 3150, 3: 12600}
-Winname=None
+clientname=''
 press_start=True
 dash=None
 viewpoint=None
@@ -35,6 +35,11 @@ fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
 Qoe=0
 pre_qua=[]
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
+quality_map = {0: 0, 1: 1, 2: 3, 3: 3}
+
+play_buffer = 1000000
+re_buffer = 200000
+
 class VideoSegmentStatus:
     def __init__(self, tile_num, log_dir="logs"):
         self.x=0
@@ -46,6 +51,7 @@ class VideoSegmentStatus:
         self.rebuff_time = 0
         self.rebuff_count = 0
         self.quality_tiled = [0 for _ in range(tile_num)]
+        self.qoe=0
         self.tile_num = tile_num
         self.videos = []
         self.motions = []
@@ -94,8 +100,10 @@ class VideoSegmentStatus:
 
 
 
-    def set_rebuff_time(self, value): self.rebuff_time = value
-    def set_rebuff_count(self, value): self.rebuff_count = value
+    def set_rebuff_time_count(self, value1,value2):
+        self.rebuff_time = value1
+        self.rebuff_count = value2
+        streamingMonitorClient.submit_client_stats(clientname, self.rebuff_time, self.rebuff_count,Qoe)
 
     def set_quality_tiled(self, index, quality):
         if 0 <= index < self.tile_num:
@@ -106,7 +114,7 @@ class VideoSegmentStatus:
     def set_all_quality_tiled(self, quality_list):
         if len(quality_list) != self.tile_num:
             raise ValueError("Length mismatch")
-        self.quality_tiled = quality_list
+        self.quality_tiled = [quality_map[q] for q in quality_list]
         streamingMonitorClient.submit_chunk_qualities(self.quality_tiled)
 
 
@@ -177,7 +185,6 @@ class VideoSegmentStatus:
                 self.log_rebuff_quality()
                 last_log_time = time.time()
             time.sleep(0.1)  # 稍微等待，避免占用过多 CPU
-
 
 
 videoSegmentStatus=VideoSegmentStatus(tile_num,'./Client/logs')

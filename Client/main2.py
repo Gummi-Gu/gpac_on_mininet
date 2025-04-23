@@ -12,7 +12,7 @@ gpac.init()
 #indicate we want to start with min bw by using global parameters
 gpac.set_args(["Ignored", "--start_with=max_bw"])
 Factory.press_start = 0
-
+Factory.clientname='client2'
 
 def run_pipeline():
     # 创建一个自定义的 filter session

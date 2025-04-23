@@ -86,7 +86,7 @@ class TrafficControl:
 
             # 恢复连接标记规则
             connmark_cmds.append(
-                f'iptables -t mangle -A OUTPUT -p tcp --sport {port} -s {ip} -j CONNMARK --restore-mark')
+                f'iptables -t mangle -A OUTPUT -p tcp --sport {port} -j CONNMARK --restore-mark')
 
         # 执行命令
         for cmd in connmark_cmds:

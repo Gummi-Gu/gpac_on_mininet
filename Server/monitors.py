@@ -26,6 +26,27 @@ link_metrics = defaultdict(lambda: {
     'last_update': None
 })
 
+client_stats = defaultdict(lambda: {
+    'rebuffer_time': 0.0,
+    'rebuffer_count': 0.0,
+    'qoe':0.0,
+    'last_update': None
+})
+
+@app.route('/get_track_stats', methods=['GET'])
+def get_track_stats():
+    with lock:
+        return jsonify(track_stats)
+
+@app.route('/get_link_metrics', methods=['GET'])
+def get_link_metrics():
+    with lock:
+        return jsonify(link_metrics)
+
+@app.route('/get_client_stats', methods=['GET'])
+def get_client_stats():
+    with lock:
+        return jsonify(client_stats)
 
 @app.route('/track_stats', methods=['POST'])
 def update_track_stats():
@@ -42,6 +63,19 @@ def update_track_stats():
         })
     return jsonify({'status': 'success'})
 
+@app.route('/client_stats', methods=['POST'])
+def update_link_metrics():
+    data = request.get_json()
+    with lock:
+        client_id = data['client_id']  # 修改为 client_id
+        # 更新 client_stats 中的数据
+        client_stats[client_id].update({
+            'rebuffer_time': data['rebuffer_time'],
+            'rebuffer_count': data['rebuffer_count'],
+            'qoe': data['qoe'],
+            'last_update': datetime.now()
+        })
+    return jsonify({'status': 'success'})
 
 @app.route('/link_metrics', methods=['POST'])
 def update_link_metrics():
@@ -179,30 +213,45 @@ def show_dashboard():
         link_data.append((client_id, stats['delay'], stats['loss_rate'],bw_12600,bw_3150,bw_785,bw_200,stats['last_update']))
     link_table = tabulate(link_data, headers=link_headers, tablefmt="html", floatfmt=".2f")
 
+    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE', 'Last Update']
+    client_table_data = []
+    for client_id, stats in client_stats.items():
+        client_table_data.append((
+            client_id,
+            stats['rebuffer_time'],
+            stats['rebuffer_count'],
+            stats['qoe'],
+            stats['last_update']
+        ))
+    client_table = tabulate(client_table_data, headers=client_headers, tablefmt="html", floatfmt=".2f")
+
     return f"""
-    <html>
-        <head>
-            <title>Streaming Monitor Dashboard</title>
-            <meta http-equiv="refresh" content="1">
-            <style>
-                table {{ border-collapse: collapse; margin: 20px; width: 90%; }}
-                th, td {{ padding: 8px; border: 1px solid #ddd; }}
-                th {{ background-color: #f2f2f2; }}
-                tr:nth-child(even) {{ background-color: #f9f9f9; }}
-                tr:nth-child(odd) {{ background-color: #ffffff; }}
-                tr:hover {{ background-color: #e6f7ff; }}
-            </style>
-        </head>
-        <body>
-            <h2>Track Statistics</h2>
-            {track_table}
+       <html>
+           <head>
+               <title>Streaming Monitor Dashboard</title>
+               <meta http-equiv="refresh" content="1">
+               <style>
+                   table {{ border-collapse: collapse; margin: 20px; width: 90%; }}
+                   th, td {{ padding: 8px; border: 1px solid #ddd; }}
+                   th {{ background-color: #f2f2f2; }}
+                   tr:nth-child(even) {{ background-color: #f9f9f9; }}
+                   tr:nth-child(odd) {{ background-color: #ffffff; }}
+                   tr:hover {{ background-color: #e6f7ff; }}
+               </style>
+           </head>
+           <body>
+               <h2>Track Statistics</h2>
+               {track_table}
 
-            <h2>Link Metrics</h2>
-            {link_table}
+               <h2>Link Metrics</h2>
+               {link_table}
 
-        </body>
-    </html>
-    """
+               <h2>Client Statistics</h2>
+               {client_table}
+
+           </body>
+       </html>
+       """
 
 
 if __name__ == '__main__':

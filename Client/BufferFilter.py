@@ -28,12 +28,15 @@ class MyFilter(gpac.FilterCustom):
 
         self.max_buffer = 10000000
         self.play_buffer = 1000000
-        #self.re_buffer = 100000
         self.re_buffer = 200000
         self.buffering = True
         self.rebuff_time=None
         self.rebuff_count=0
         self.rebuff_sum_time=0
+
+    def set_rebuffer_playbuffer(self,v1,v2):
+        self.re_buffer=v1
+        self.play_buffer=v2
 
     # configure input PIDs
     def configure_pid(self, pid, is_remove):
@@ -142,7 +145,6 @@ class MyFilter(gpac.FilterCustom):
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
             time.sleep(max(0,dur-(time.time() - start_time)))
             #print("[BufferFilter]",time.time() - start_time)
-            Factory.videoSegmentStatus.set_rebuff_time(self.rebuff_sum_time)
-            Factory.videoSegmentStatus.set_rebuff_count(self.rebuff_count)
+            Factory.videoSegmentStatus.set_rebuff_time_count(self.rebuff_sum_time,self.rebuff_count)
 
         return 0
