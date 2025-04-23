@@ -64,7 +64,7 @@ def update_track_stats():
     return jsonify({'status': 'success'})
 
 @app.route('/client_stats', methods=['POST'])
-def update_link_metrics():
+def update_client_stats():
     data = request.get_json()
     with lock:
         client_id = data['client_id']  # 修改为 client_id
