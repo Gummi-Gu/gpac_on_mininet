@@ -109,8 +109,8 @@ class TrafficControl:
         target = config['client']
 
         # 更新字典中的丢包率和延迟（可选，模拟动态调整）
-        TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.randint(10, 20)  # 动态修改丢包率
-        TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.randint(20, 100)  # 动态修改延迟
+        TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.randint(1, 10)  # 动态修改丢包率
+        TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.randint(1, 5)  # 动态修改延迟
         loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
         delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
 

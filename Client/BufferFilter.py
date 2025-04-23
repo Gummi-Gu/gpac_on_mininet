@@ -28,7 +28,7 @@ class MyFilter(gpac.FilterCustom):
 
         self.max_buffer = 10000000
         self.play_buffer = 1000000
-        self.re_buffer = 200000
+        self.re_buffer = 1000000
         self.buffering = True
         self.rebuff_time=0
         self.rebuff_count=0
@@ -76,21 +76,29 @@ class MyFilter(gpac.FilterCustom):
         if self.rebuff_time!=0:
             dur_time=start_time-self.rebuff_time
             if  dur_time > self.dur:
-                self.rebuff_sum_time+=max(0,dur_time-self.dur-0.002)
+                self.rebuff_sum_time+=(dur_time-self.dur)/10
                 if dur_time - self.dur > 0.2:
                     self.rebuff_count+=1
         self.rebuff_time=start_time
 
-        #print(dur_time,self.dur,self.rebuff_sum_time,self.rebuff_count)
+        #print(self.dur,self.rebuff_sum_time,self.rebuff_count)
         #only one PID in this example
         for pid in self.ipids:
-            title = 'GPAC cv2'
+            title = ""
 
             if pid.eos:
                 pass
                 # not done, check buffer levels
             else:
                 buffer = pid.buffer
+                if self.re_buffer:
+                    # playout buffer underflow
+                    if buffer < self.re_buffer*2:
+                        title += " - low buffer"
+                        #print('low buffer')
+                        self.buffering = True
+                    else:
+                        self.buffering = False
                 if self.buffering:
                     # playout buffer not yet filled
                     if buffer < self.play_buffer:
@@ -99,32 +107,15 @@ class MyFilter(gpac.FilterCustom):
                         if self.rebuff_time is None:
                             print('pause')
                             #self.rebuff_time = time.time()
+                        print(1)
                         break
-                    if self.rebuff_time is not None:
-                        #self.rebuff_sum_time+=time.time()-self.rebuff_time
-                        #self.rebuff_count+=1
-                        #self.rebuff_time=None
-                        # playout buffer refilled
-                        title += " - resuming"
-                        self.buffering = False
-
-                if self.re_buffer:
-                    # playout buffer underflow
-                    if buffer < self.re_buffer*2:
-                        title += " - low buffer"
-                        #print('low buffer')
-                        self.buffering = True
-                        break
-
                 # show max buffer level
                 if self.max_buffer > self.play_buffer:
                     pc = buffer / self.max_buffer * 100
                     title += f" - buffer {buffer / 1000000:.2f}" + 's ' + str(int(pc)) + ' %'
-
-
-
             pck = pid.get_packet()
             if pck is None:
+                print(3)
                 break
             #frame interface, data is in GPU memory or internal to decoder, try to grab it
             #we do so by creating a clone of the packet, reusing the same clone at each call to reduce memory allocations
