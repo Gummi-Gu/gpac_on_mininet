@@ -11,8 +11,8 @@ from mininet.cli import CLI
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
 
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
-    'middle': {'mark': 20, 'rate': '30mbit', 'ceil': '30mbit', 'classid': '1:20'},
+    'high': {'mark': 10, 'rate': '100mbit', 'ceil': '100mbit', 'classid': '1:10'},
+    'middle': {'mark': 20, 'rate': '60mbit', 'ceil': '60mbit', 'classid': '1:20'},
     'low': {'mark': 30, 'rate': '20mbit', 'ceil': '20mbit', 'classid': '1:30'},
 }
 TRAFFIC_CLASSES_MARK = {

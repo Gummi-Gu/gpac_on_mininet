@@ -30,9 +30,10 @@ class MyFilter(gpac.FilterCustom):
         self.play_buffer = 1000000
         self.re_buffer = 200000
         self.buffering = True
-        self.rebuff_time=None
+        self.rebuff_time=0
         self.rebuff_count=0
         self.rebuff_sum_time=0
+        self.dur=0.0
 
     def set_rebuffer_playbuffer(self,v1,v2):
         self.re_buffer=v1
@@ -71,7 +72,16 @@ class MyFilter(gpac.FilterCustom):
 
     # process
     def process(self):
-        start_time=time.time()
+        start_time = time.time()
+        if self.rebuff_time!=0:
+            dur_time=start_time-self.rebuff_time
+            if  dur_time > self.dur:
+                self.rebuff_sum_time+=max(0,dur_time-self.dur-0.002)
+                if dur_time - self.dur > 0.2:
+                    self.rebuff_count+=1
+        self.rebuff_time=start_time
+
+        #print(dur_time,self.dur,self.rebuff_sum_time,self.rebuff_count)
         #only one PID in this example
         for pid in self.ipids:
             title = 'GPAC cv2'
@@ -87,16 +97,16 @@ class MyFilter(gpac.FilterCustom):
                         pc = 100 * buffer / self.play_buffer
                         title += " - buffering " + str(int(pc)) + ' %'
                         if self.rebuff_time is None:
-                            #print('pause')
-                            self.rebuff_time = time.time()
+                            print('pause')
+                            #self.rebuff_time = time.time()
                         break
                     if self.rebuff_time is not None:
-                        self.rebuff_sum_time+=time.time()-self.rebuff_time
-                        self.rebuff_count+=1
-                        self.rebuff_time=None
-                    # playout buffer refilled
-                    title += " - resuming"
-                    self.buffering = False
+                        #self.rebuff_sum_time+=time.time()-self.rebuff_time
+                        #self.rebuff_count+=1
+                        #self.rebuff_time=None
+                        # playout buffer refilled
+                        title += " - resuming"
+                        self.buffering = False
 
                 if self.re_buffer:
                     # playout buffer underflow
@@ -110,6 +120,8 @@ class MyFilter(gpac.FilterCustom):
                 if self.max_buffer > self.play_buffer:
                     pc = buffer / self.max_buffer * 100
                     title += f" - buffer {buffer / 1000000:.2f}" + 's ' + str(int(pc)) + ' %'
+
+
 
             pck = pid.get_packet()
             if pck is None:
@@ -131,6 +143,8 @@ class MyFilter(gpac.FilterCustom):
                 yuv = data.reshape((self.height * 3 // 2, self.width))
                 rgb = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB_NV12)
 
+
+
             Factory.render.render(rgb,title)
             Factory.videoSegmentStatus.set_rgb(rgb)
 
@@ -144,6 +158,8 @@ class MyFilter(gpac.FilterCustom):
 
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
             time.sleep(max(0,dur-(time.time() - start_time)))
+            #print(dur-(time.time() - start_time))
+            self.dur=dur
             #print("[BufferFilter]",time.time() - start_time)
             Factory.videoSegmentStatus.set_rebuff_time_count(self.rebuff_sum_time,self.rebuff_count)
 

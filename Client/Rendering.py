@@ -18,8 +18,8 @@ import numpy as np
 class Viewpoint:
     def __init__(self,choice=0):
         # 设置输出参数
-        self.output_width = 800
-        self.output_height = 600
+        self.output_width = 400
+        self.output_height = 300
         self.angle_thread = threading.Thread(target=self.listen_for_keys)
         self.angle_thread.daemon = True  # 设置为守护线程，确保程序退出时线程也会退出
         self.angle_thread.start()
@@ -181,5 +181,5 @@ class Render:
         Factory.v=v
         # 重映射图像
         output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
-        cv2.imshow(Factory.Winname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
-        cv2.setWindowTitle(Factory.Winname, title)
+        cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
+        cv2.setWindowTitle(Factory.clientname, title)

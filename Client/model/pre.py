@@ -71,13 +71,19 @@ def pre():
         time.sleep(1)  # 模拟一秒一个输入数据，可以去掉或改为接收信号的时间间隔
         # 模拟接收一帧实时数据（10维向量）
         video_data=Factory.videoSegmentStatus.get_video()
-        video_data = evenly_expand_list(video_data, 32)
+        try:
+            video_data = evenly_expand_list(video_data, 32)
+        except Exception as e:
+            continue
         tensor_list = [torch.tensor(ndarray) for ndarray in video_data]
         tensor_stack = torch.stack(tensor_list)
         video_data = tensor_stack.unsqueeze(0).permute(0,1,4,2,3)
 
         motion_data=Factory.videoSegmentStatus.get_motion()
-        motion_data=evenly_expand_list(motion_data, 32)
+        try:
+            motion_data=evenly_expand_list(motion_data, 32)
+        except Exception as e:
+            continue
         tensor_list = [torch.tensor(ndarray) for ndarray in motion_data]
         tensor_stack = torch.stack(tensor_list)
         motion_data = tensor_stack.unsqueeze(0)
