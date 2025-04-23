@@ -226,8 +226,9 @@ def setup_network():
                 }
                 TrafficControl.adjust(server,ip,string_dict)
             elif user_input == 'delay':
-                ip=input('ip address')
+                input_str=input('ip address')
                 parts = input_str.split()
+                ip=parts[0]
                 config = TRAFFIC_CLASSES_DELAY[ip]
                 target = config['client']
                 float_dict={
