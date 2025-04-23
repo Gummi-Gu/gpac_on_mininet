@@ -81,7 +81,8 @@ class TrafficControl:
             for string in expected_strings:
                 if string in TRAFFIC_CLASSES_MARK[ip]:
                     mark = TRAFFIC_CLASSES_MARK[ip][string]
-                    rule = f'iptables -t mangle -A PREROUTING -p tcp --dport {port}  -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
+                    #rule = f'iptables -t mangle -A PREROUTING -p tcp --dport {port}  -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
+                    rule = f'iptables -t mangle -A PREROUTING -p tcp -d {ip} --dport {port} -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
                     connmark_cmds.append(rule)
 
             # 恢复连接标记规则

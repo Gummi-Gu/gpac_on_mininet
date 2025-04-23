@@ -206,11 +206,11 @@ def show_dashboard():
     link_data = []
     def mark2bw(x):
         if x == 10:
-            return 100
+            return 200
         if x == 20:
             return 60
         if x == 30:
-            return 40
+            return 20
     for client_id, stats in link_metrics.items():
         bw_12600=stats['marks']['12600']
         bw_12600=mark2bw(bw_12600)
