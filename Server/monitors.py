@@ -156,15 +156,29 @@ def show_dashboard():
     total_latest_rate = 0
     total_utilization = 0
     total_clients = 0
+    client_summary = {}
+
     for track_id, clients in track_stats.items():
         for client_id, stats in clients.items():
             if track_id == 'default':
                 continue
-            utilization = (stats['latest_rate'] / 50.0) * 100  # 计算利用率百分比
-            total_delay += stats['latest_delay']
-            total_latest_rate += stats['latest_rate']
-            total_utilization += utilization
-            total_clients += 1
+
+            utilization = (stats['latest_rate'] / 100.0) * 100  # 假设最大带宽是100
+            if client_id not in client_summary:
+                client_summary[client_id] = {
+                    'total_delay': 0.0,
+                    'total_latest_rate': 0.0,
+                    'total_utilization': 0.0,
+                    'track_count': 0,
+                }
+
+            summary = client_summary[client_id]
+            summary['total_delay'] += stats['latest_delay']
+            summary['total_latest_rate'] += stats['latest_rate']
+            summary['total_utilization'] += utilization
+            summary['track_count'] += 1
+
+            # 添加原始track的详细信息
             track_table_data.append((
                 track_id, client_id,
                 stats['avg_delay'], stats['avg_rate'],
@@ -173,21 +187,17 @@ def show_dashboard():
                 f"{utilization:.2f}%"
             ))
 
-        # 计算总带宽利用率
-    if total_clients > 0:
-        average_utilization = (total_utilization / total_clients)
-    else:
-        average_utilization = 0.0
-
-        # 添加 `default` 行，记录总时延、总最新带宽和总利用率
-    track_table_data.append((
-        'default', '0',
-        0, 0,  # 平均延迟和平均速率为0
-        total_delay, total_latest_rate,
-        0,  # Bit rate设为0
-        'N/A',  # Last Update设为N/A
-        f"{total_utilization:.2f}%"  # 总带宽利用率
-    ))
+    # 添加每个客户端的汇总行
+    for client_id, summary in client_summary.items():
+        avg_utilization = summary['total_utilization'] / summary['track_count']
+        track_table_data.append((
+            'client_total', client_id,
+            0, 0,  # 平均延迟和速率不统计
+            summary['total_delay'], summary['total_latest_rate'],
+            0,  # 分辨率为0
+            'N/A',
+            f"{summary['total_utilization']:.2f}%"
+        ))
 
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="html", floatfmt=".2f")
 
@@ -196,11 +206,11 @@ def show_dashboard():
     link_data = []
     def mark2bw(x):
         if x == 10:
-            return 50
+            return 100
         if x == 20:
-            return 30
+            return 60
         if x == 30:
-            return 20
+            return 40
     for client_id, stats in link_metrics.items():
         bw_12600=stats['marks']['12600']
         bw_12600=mark2bw(bw_12600)

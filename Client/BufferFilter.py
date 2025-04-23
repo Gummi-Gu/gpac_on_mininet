@@ -76,8 +76,8 @@ class MyFilter(gpac.FilterCustom):
         if self.rebuff_time!=0:
             dur_time=start_time-self.rebuff_time
             if  dur_time > self.dur:
-                self.rebuff_sum_time+=(dur_time-self.dur)/10
-                if dur_time - self.dur > 0.2:
+                self.rebuff_sum_time+=(dur_time-self.dur)
+                if dur_time - self.dur > 0.1:
                     self.rebuff_count+=1
         self.rebuff_time=start_time
 
@@ -107,7 +107,6 @@ class MyFilter(gpac.FilterCustom):
                         if self.rebuff_time is None:
                             print('pause')
                             #self.rebuff_time = time.time()
-                        print(1)
                         break
                 # show max buffer level
                 if self.max_buffer > self.play_buffer:
