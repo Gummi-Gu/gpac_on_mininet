@@ -182,7 +182,7 @@ class SimpleRL:
 
     def calculate_reward(self, state):
         """ 假设奖励计算方法：延迟越低，奖励越高 """
-        return 1
+        return pass
 
 
 # 初始化 track_stats 和 link_metrics（从监控系统中获取的初始数据）

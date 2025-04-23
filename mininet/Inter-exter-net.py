@@ -94,7 +94,7 @@ class TrafficControl:
             server.cmd(cmd)
 
     @staticmethod
-    def adjust_loss_and_delay(server, ip: str):
+    def adjust_loss_and_delay(server, ip: str,float_dict):
         """
         调整特定 IP 地址与目标主机之间的丢包率和时延。
         :param server: 服务器对象
@@ -110,8 +110,8 @@ class TrafficControl:
         target = config['client']
 
         # 更新字典中的丢包率和延迟（可选，模拟动态调整）
-        TRAFFIC_CLASSES_DELAY[ip]['loss'] = random.randint(1, 10)  # 动态修改丢包率
-        TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.randint(1, 5)  # 动态修改延迟
+        TRAFFIC_CLASSES_DELAY[ip]['loss'] = float_dict['loss']  # 动态修改丢包率
+        TRAFFIC_CLASSES_DELAY[ip]['delay'] = float_dict['delay']  # 动态修改延迟
         loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
         delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
 
@@ -227,9 +227,14 @@ def setup_network():
                 TrafficControl.adjust(server,ip,string_dict)
             elif user_input == 'delay':
                 ip=input('ip address')
+                parts = input_str.split()
                 config = TRAFFIC_CLASSES_DELAY[ip]
                 target = config['client']
-                TrafficControl.adjust_loss_and_delay(net.get(target),ip)
+                float_dict={
+                    'delay' : float(parts[1]),
+                    'loss' : float(parts[2])
+                }
+                TrafficControl.adjust_loss_and_delay(net.get(target),ip,float_dict)
             elif user_input == 'test':
                 server = net.get('server')
 

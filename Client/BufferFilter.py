@@ -28,7 +28,7 @@ class MyFilter(gpac.FilterCustom):
 
         self.max_buffer = 10000000
         self.play_buffer = 1000000
-        self.re_buffer = 1000000
+        self.re_buffer = 4000000
         self.buffering = True
         self.rebuff_time=0
         self.rebuff_count=0
@@ -97,7 +97,7 @@ class MyFilter(gpac.FilterCustom):
                         title += " - low buffer"
                         #print('low buffer')
                         self.buffering = True
-                    else:
+                    elif buffer > self.re_buffer*2.5:
                         self.buffering = False
                 if self.buffering:
                     # playout buffer not yet filled
