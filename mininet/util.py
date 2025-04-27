@@ -70,28 +70,11 @@ class StreamingMonitorClient:
         }
         return self._send_data("link_metrics", payload)
 
-    def submit_chunk_quality(
-        self,
-        chunk_id: str,
-        bitrate: int,
-        resolution: str,
-        buffer_time: float,
-        quality_score: int
-    ) -> bool:
-        """提交视频分块质量数据"""
-        payload = {
-            "chunk_id": chunk_id,
-            "bitrate": bitrate,
-            "resolution": resolution,
-            "buffer_time": buffer_time,
-            "quality_score": quality_score
-        }
-        return self._send_data("chunk_quality", payload)
 
     def fetch_traffic_classes_mark(self) -> Optional[Dict[str, Any]]:
         """获取 TRAFFIC_CLASSES_MARK 数据"""
-        return self._get_data("traffic_classes_mark")
+        return self._get_data("get/traffic_classes_mark")
 
     def fetch_traffic_classes_delay(self) -> Optional[Dict[str, Any]]:
         """获取 TRAFFIC_CLASSES_DELAY 数据"""
-        return self._get_data("traffic_classes_delay")
+        return self._get_data("get/traffic_classes_delay")
