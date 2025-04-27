@@ -9,7 +9,6 @@ from sympy.polys.polyconfig import query
 
 import Client.model.draw_pre_image as pred
 import Client.Factory as Factory
-from Client.Factory import pitch
 
 from Client.model.model import build_model
 

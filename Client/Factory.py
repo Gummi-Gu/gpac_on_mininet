@@ -34,7 +34,7 @@ videoSegmentStatus=None
 fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
 Qoe=0
 pre_qua=[]
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
+streamingMonitorClient=util.StreamingMonitorClient()
 quality_map = {0: 0, 1: 1, 2: 3, 3: 3}
 
 play_buffer = 1000000

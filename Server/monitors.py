@@ -7,7 +7,19 @@ from io import BytesIO
 
 app = Flask(__name__)
 lock = threading.Lock()
-
+string_dict = {
+            '12600': 0,
+            '3150': 0,
+            '785': 0,
+            '200': 0
+        }
+buffer = {'re_buffer':0.0,'play_buffer':0.0}
+quality_map = {
+            0: 0,
+            1: 1,
+            2: 3,
+            3: 3
+}
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
 track_stats = defaultdict(lambda: defaultdict(lambda: {
@@ -32,6 +44,90 @@ client_stats = defaultdict(lambda: {
     'qoe':0.0,
     'last_update': None
 })
+
+# 新增的数据结构
+TRAFFIC_CLASSES_MARK = {
+    '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
+    '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
+}
+TRAFFIC_CLASSES_DELAY = {
+    '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
+    '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0}
+}
+
+# 接口：获取 TRAFFIC_CLASSES_MARK
+@app.route('/get/traffic_classes_mark', methods=['GET'])
+def get_traffic_classes_mark():
+    with lock:
+        return jsonify(TRAFFIC_CLASSES_MARK)
+
+# 接口：更新 TRAFFIC_CLASSES_MARK
+@app.route('/update/traffic_classes_mark', methods=['POST'])
+def update_traffic_classes_mark():
+    data = request.get_json()
+    if data:
+        with lock:
+            TRAFFIC_CLASSES_MARK.update(data)
+        return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_MARK updated"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
+
+# 接口：获取 TRAFFIC_CLASSES_DELAY
+@app.route('/get/traffic_classes_delay', methods=['GET'])
+def get_traffic_classes_delay():
+    with lock:
+        return jsonify(TRAFFIC_CLASSES_DELAY)
+
+# 接口：更新 TRAFFIC_CLASSES_DELAY
+@app.route('/update/traffic_classes_delay', methods=['POST'])
+def update_traffic_classes_delay():
+    data = request.get_json()
+    if data:
+        with lock:
+            TRAFFIC_CLASSES_DELAY.update(data)
+        return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_DELAY updated"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
+
+
+
+@app.route('/update/string_dict', methods=['POST'])
+def update_string_dict():
+    new_dict = request.json
+    if new_dict:
+        string_dict.update(new_dict)
+    return jsonify({"status": "success", "message": "string_dict updated"})
+
+@app.route('/update/buffer', methods=['POST'])
+def update_re_buffer():
+    value1 = request.json.get('re_buffer')
+    value2 = request.json.get('play_buffer')
+    if value1 is not None and value2 is not None:
+        buffer['re_buffer'] = value1
+        buffer['play_buffer'] = value2
+    return jsonify({"status": "success", "message": "buffer updated"})
+
+
+
+@app.route('/update/quality_map', methods=['POST'])
+def update_quality_map():
+    new_map = request.json
+    if new_map:
+        quality_map.update(new_map)
+    return jsonify({"status": "success", "message": "quality_map updated"})
+
+@app.route('/get/string_dict', methods=['GET'])
+def get_string_dict():
+    return jsonify({"string_dict": string_dict})
+
+@app.route('/get/buffer', methods=['GET'])
+def get_re_buffer():
+    return jsonify({"re_buffer": buffer['re_buffer'], 'play_buffer': buffer['play_buffer']})
+
+@app.route('/get/quality_map', methods=['GET'])
+def get_quality_map():
+    return jsonify({"quality_map": quality_map})
+
 
 @app.route('/get_track_stats', methods=['GET'])
 def get_track_stats():

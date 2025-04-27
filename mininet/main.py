@@ -8,7 +8,7 @@ from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
 
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.81.250:5000')
+streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '200mbit', 'ceil': '200mbit', 'classid': '1:10'},
@@ -62,12 +62,12 @@ class TrafficControl:
         :return: 包含生成的 iptables 规则的列表
         """
         connmark_cmds = []
-
+        string_dict=streamingMonitorClient.fetch_traffic_classes_mark()
         # 确保字典只包含预期的键
         expected_strings = ["12600", "3150", "785", "200"]
         # 更新 TRAFFIC_CLASSES_MARK 字典
         if ip in TRAFFIC_CLASSES_MARK:
-            TRAFFIC_CLASSES_MARK[ip].update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
+            TRAFFIC_CLASSES_MARK.update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
 
         # 清空之前的规则
         connmark_cmds.append('iptables -t mangle -F')  # 清空 mangle 表中的所有规则
@@ -100,6 +100,7 @@ class TrafficControl:
         :param server: 服务器对象
         :param ip: 源 IP 地址（如 '10.0.0.2' 或 '10.0.0.3'）
         """
+        float_dict=streamingMonitorClient.fetch_traffic_classes_delay()
         # 确保字典中有指定的 IP 地址
         if ip not in TRAFFIC_CLASSES_DELAY:
             print(f"IP {ip} not found in TRAFFIC_CLASSES_DELAY.")
@@ -110,8 +111,8 @@ class TrafficControl:
         target = config['client']
 
         # 更新字典中的丢包率和延迟（可选，模拟动态调整）
-        TRAFFIC_CLASSES_DELAY[ip]['loss'] = float_dict['loss']  # 动态修改丢包率
-        TRAFFIC_CLASSES_DELAY[ip]['delay'] = float_dict['delay']  # 动态修改延迟
+        TRAFFIC_CLASSES_DELAY[ip]['loss'] = float_dict[ip]['loss']  # 动态修改丢包率
+        TRAFFIC_CLASSES_DELAY[ip]['delay'] = float_dict[ip]['delay']  # 动态修改延迟
         loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
         delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
 
