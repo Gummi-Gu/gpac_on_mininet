@@ -45,6 +45,11 @@ client_stats = defaultdict(lambda: {
     'last_update': None
 })
 
+rebuffer_config = defaultdict(lambda: {
+    'rebuffer': 0.0,
+    'playbuffer': 0.0,
+})
+
 # 新增的数据结构
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
@@ -100,8 +105,7 @@ def update_string_dict():
 
 @app.route('/get/string_dict', methods=['GET'])
 def get_string_dict():
-    return jsonify({"string_dict": string_dict})
-
+    return jsonify(string_dict)
 
 @app.route('/update/buffer', methods=['POST'])
 def update_re_buffer():
@@ -125,20 +129,20 @@ def update_quality_map():
 
 @app.route('/get/quality_map', methods=['GET'])
 def get_quality_map():
-    return jsonify({"quality_map": quality_map})
+    return jsonify(quality_map)
 
 
-@app.route('/get_track_stats', methods=['GET'])
+@app.route('/get/track_stats', methods=['GET'])
 def get_track_stats():
     with lock:
         return jsonify(track_stats)
 
-@app.route('/get_link_metrics', methods=['GET'])
+@app.route('/get/link_metrics', methods=['GET'])
 def get_link_metrics():
     with lock:
         return jsonify(link_metrics)
 
-@app.route('/get_client_stats', methods=['GET'])
+@app.route('/get/client_stats', methods=['GET'])
 def get_client_stats():
     with lock:
         return jsonify(client_stats)

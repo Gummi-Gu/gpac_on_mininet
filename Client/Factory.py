@@ -14,14 +14,14 @@ import Client.DASH as DASH
 import Client.Rendering as Rendering
 import Client.Interfaces as Interfaces
 import Client.util as util
-
+from Server.monitors import client_stats
 
 width=4096#2560#3840
 height=2048#1440#1920
 tile_num=10
 tile_size=3
 level_num=4
-bitrate_map = {0:200, 1: 785, 2: 3150, 3: 12600}
+
 clientname=''
 press_start=True
 dash=None
@@ -32,13 +32,9 @@ dash_interface=None
 render=None
 videoSegmentStatus=None
 fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
-Qoe=0
 pre_qua=[]
 streamingMonitorClient=util.StreamingMonitorClient()
-quality_map = {0: 0, 1: 1, 2: 3, 3: 3}
 
-play_buffer = 1000000
-re_buffer = 200000
 
 class VideoSegmentStatus:
     def __init__(self, tile_num, log_dir="logs"):
@@ -55,6 +51,9 @@ class VideoSegmentStatus:
         self.tile_num = tile_num
         self.videos = []
         self.motions = []
+        self.bitrate_map = {0:200, 1: 785, 2: 3150, 3: 12600}
+        self.Qoe=0
+        self.quality_map  = {0: 0, 1: 1, 2: 3, 3: 3}
 
 
         os.makedirs(log_dir, exist_ok=True)
@@ -65,24 +64,10 @@ class VideoSegmentStatus:
         self.image_dir = os.path.join(log_dir, f"images_{timestamp}")
         os.makedirs(self.image_dir, exist_ok=True)
         self.image_counter = 0
-        '''
-        with open(self.quer_filename, mode="w", newline='') as f:
-            writer = csv.writer(f)
-            headers = ["timestamp", "x", "y", "z", "w"]
-            writer.writerow(headers)
+        self.thread = threading.Thread(target=self.fetch_updata_data)
+        self.thread.daemon = True
+        self.thread.start()
 
-        with open(self.rebuff_filename, mode="w", newline='') as f:
-            writer = csv.writer(f)
-            headers = ["timestamp", "rebuff_time", "rebuff_count"] + [f"tile_{i}" for i in range(tile_num)]
-            writer.writerow(headers)
-        # 启动线程
-        self.quer_thread = threading.Thread(target=self.log_yaw_pitch_periodically)
-        self.rebuff_thread = threading.Thread(target=self.log_rebuff_quality_periodically)
-        self.quer_thread.daemon = True
-        self.rebuff_thread.daemon = True
-        self.quer_thread.start()
-        self.rebuff_thread.start()
-        '''
 
     # -------------------- 状态设置函数 --------------------
 
@@ -103,7 +88,6 @@ class VideoSegmentStatus:
     def set_rebuff_time_count(self, value1,value2):
         self.rebuff_time = value1
         self.rebuff_count = value2
-        streamingMonitorClient.submit_client_stats(clientname, self.rebuff_time, self.rebuff_count,Qoe)
 
     def set_quality_tiled(self, index, quality):
         if 0 <= index < self.tile_num:
@@ -114,8 +98,7 @@ class VideoSegmentStatus:
     def set_all_quality_tiled(self, quality_list):
         if len(quality_list) != self.tile_num:
             raise ValueError("Length mismatch")
-        self.quality_tiled = [quality_map[q] for q in quality_list]
-        streamingMonitorClient.submit_chunk_qualities(self.quality_tiled)
+        self.quality_tiled = [self.quality_map[q] for q in quality_list]
 
 
     def set_rgb(self, rgb_image):
@@ -167,24 +150,17 @@ class VideoSegmentStatus:
 
 
     # -------------------- 定时记录 --------------------
-
-    def log_yaw_pitch_periodically(self):
-        last_log_time = time.time()
-        while True:
-            # 每 0.1 秒记录一次 yaw 和 pitch
-            if time.time() - last_log_time >= 0.1:
-                self.log_yaw_pitch()
-                last_log_time = time.time()
-            time.sleep(0.01)  # 稍微等待，避免占用过多 CPU
-
-    def log_rebuff_quality_periodically(self):
+    def fetch_updata_data(self):
         last_log_time = time.time()
         while True:
             # 每 1 秒记录一次 rebuff_time, rebuff_count 和 quality_tiled
-            if time.time() - last_log_time >= 0.5:
-                self.log_rebuff_quality()
-                last_log_time = time.time()
-            time.sleep(0.1)  # 稍微等待，避免占用过多 CPU
+            if time.time() - last_log_time >= 1:
+                buffer=streamingMonitorClient.fetch_buffer()
+                bufferFilter.set_rebuffer_playbuffer(buffer['re_buffer'],buffer['play_buffer'])
+                streamingMonitorClient.submit_client_stats(clientname, self.rebuff_time, self.rebuff_count, self.Qoe)
+                streamingMonitorClient.submit_chunk_qualities(self.quality_tiled)
+                self.quality_map=streamingMonitorClient.fetch_quality()
+            time.sleep(1)  # 稍微等待，避免占用过多 CPU
 
 
 videoSegmentStatus=VideoSegmentStatus(tile_num,'./Client/logs')

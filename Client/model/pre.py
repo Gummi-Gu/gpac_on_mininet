@@ -101,7 +101,7 @@ def pre():
             Factory.preu = u
             Factory.prev = v
             merged_level,level1,level2,level3=pred.get_qualitys(rgb,Factory.u,Factory.v,Factory.preu,Factory.prev)
-            Factory.Qoe=QoEpre(level2)
+            Factory.videoSegmentStatus.Qoe=QoEpre(level2)
             #print(merged_level)
             merged_level=np.insert(merged_level.flatten(), 0, 0).tolist()
             #print(merged_level)
@@ -129,7 +129,7 @@ def QoEpre(level):
     matrix1,matrix2=qua,last_Qoa
     if last_Qoa is None:
         matrix2=matrix1
-    bitrate_map = Factory.bitrate_map
+    bitrate_map = Factory.videoSegmentStatus.bitrate_map
 
     # 将矩阵元素转换为实际比特率
     matrix1_bitrate = np.vectorize(bitrate_map.get)(matrix1)
