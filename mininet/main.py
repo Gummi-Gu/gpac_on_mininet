@@ -52,7 +52,7 @@ class TrafficControl:
             server.cmd(cmd)
 
     @staticmethod
-    def adjust(server, ip: str,string_dict: dict):
+    def adjust(server):
         """
         生成针对特定 IP 地址的 connmark 规则。
         :param server:
@@ -63,38 +63,35 @@ class TrafficControl:
         """
         connmark_cmds = []
         string_dict=streamingMonitorClient.fetch_traffic_classes_mark()
-        # 确保字典只包含预期的键
-        expected_strings = ["12600", "3150", "785", "200"]
-        # 更新 TRAFFIC_CLASSES_MARK 字典
-        if ip in TRAFFIC_CLASSES_MARK:
-            TRAFFIC_CLASSES_MARK.update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
+        TRAFFIC_CLASSES_MARK.update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
+        expected_strings=['12600', '3150', '785', '200']
+        for ip in string_dict:
+            # 清空之前的规则
+            connmark_cmds.append('iptables -t mangle -F')  # 清空 mangle 表中的所有规则
+            connmark_cmds.append('iptables -t mangle -X')  # 删除所有用户自定义链
+            connmark_cmds.append('iptables -t mangle -Z')
 
-        # 清空之前的规则
-        connmark_cmds.append('iptables -t mangle -F')  # 清空 mangle 表中的所有规则
-        connmark_cmds.append('iptables -t mangle -X')  # 删除所有用户自定义链
-        connmark_cmds.append('iptables -t mangle -Z')
+            # 生成新的规则
+            if ip in TRAFFIC_CLASSES_MARK:
+                # 获取该 IP 对应的端口和标记
+                port = TRAFFIC_CLASSES_MARK[ip]['port']
+                for string in expected_strings:
+                    if string in TRAFFIC_CLASSES_MARK[ip]:
+                        mark = TRAFFIC_CLASSES_MARK[ip][string]
+                        #rule = f'iptables -t mangle -A PREROUTING -p tcp --dport {port}  -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
+                        rule = f'iptables -t mangle -A PREROUTING -p tcp -s {ip} --dport {port} -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
+                        connmark_cmds.append(rule)
 
-        # 生成新的规则
-        if ip in TRAFFIC_CLASSES_MARK:
-            # 获取该 IP 对应的端口和标记
-            port = TRAFFIC_CLASSES_MARK[ip]['port']
-            for string in expected_strings:
-                if string in TRAFFIC_CLASSES_MARK[ip]:
-                    mark = TRAFFIC_CLASSES_MARK[ip][string]
-                    #rule = f'iptables -t mangle -A PREROUTING -p tcp --dport {port}  -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
-                    rule = f'iptables -t mangle -A PREROUTING -p tcp -s {ip} --dport {port} -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
-                    connmark_cmds.append(rule)
+                # 恢复连接标记规则
+                connmark_cmds.append(
+                    f'iptables -t mangle -A OUTPUT -p tcp --sport {port} -j CONNMARK --restore-mark')
 
-            # 恢复连接标记规则
-            connmark_cmds.append(
-                f'iptables -t mangle -A OUTPUT -p tcp --sport {port} -j CONNMARK --restore-mark')
-
-        # 执行命令
-        for cmd in connmark_cmds:
-            server.cmd(cmd)
+            # 执行命令
+            for cmd in connmark_cmds:
+                server.cmd(cmd)
 
     @staticmethod
-    def adjust_loss_and_delay(server, ip: str,float_dict):
+    def adjust_loss_and_delay(net):
         """
         调整特定 IP 地址与目标主机之间的丢包率和时延。
         :param server: 服务器对象
@@ -102,29 +99,26 @@ class TrafficControl:
         """
         float_dict=streamingMonitorClient.fetch_traffic_classes_delay()
         # 确保字典中有指定的 IP 地址
-        if ip not in TRAFFIC_CLASSES_DELAY:
-            print(f"IP {ip} not found in TRAFFIC_CLASSES_DELAY.")
-            return
+        for ip in float_dict:
+            # 获取指定 IP 地址的配置
+            config = TRAFFIC_CLASSES_DELAY[ip]
+            target = config['client']
+            server=net.get(target)
+            # 更新字典中的丢包率和延迟（可选，模拟动态调整）
+            TRAFFIC_CLASSES_DELAY[ip]['loss'] = float_dict[ip]['loss']  # 动态修改丢包率
+            TRAFFIC_CLASSES_DELAY[ip]['delay'] = float_dict[ip]['delay']  # 动态修改延迟
+            loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
+            delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
 
-        # 获取指定 IP 地址的配置
-        config = TRAFFIC_CLASSES_DELAY[ip]
-        target = config['client']
-
-        # 更新字典中的丢包率和延迟（可选，模拟动态调整）
-        TRAFFIC_CLASSES_DELAY[ip]['loss'] = float_dict[ip]['loss']  # 动态修改丢包率
-        TRAFFIC_CLASSES_DELAY[ip]['delay'] = float_dict[ip]['delay']  # 动态修改延迟
-        loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
-        delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
-
-        # 输出当前配置
-        print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
-        # 删除现有的 qdisc 配置（避免冲突）
-        print(server.cmd(f'tc qdisc del dev {target}-eth0 root 2>/dev/null'))#tc qdisc del dev client1-eth0 root 2>/dev/null
-        # 设置丢包率为独立的 qdisc
-        print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms loss {loss_prob}% '))#tc qdisc add dev client1-eth0 root netem delay 20ms loss 20%
-        # 输出已应用的延迟和丢包率
-        print(server.cmd(f"tc qdisc show dev {target}-eth0"))
-        print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
+            # 输出当前配置
+            print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
+            # 删除现有的 qdisc 配置（避免冲突）
+            print(server.cmd(f'tc qdisc del dev {target}-eth0 root 2>/dev/null'))#tc qdisc del dev client1-eth0 root 2>/dev/null
+            # 设置丢包率为独立的 qdisc
+            print(server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms loss {loss_prob}% '))#tc qdisc add dev client1-eth0 root netem delay 20ms loss 20%
+            # 输出已应用的延迟和丢包率
+            print(server.cmd(f"tc qdisc show dev {target}-eth0"))
+            print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
 
     @staticmethod
     def report_traffic_classes():
@@ -213,30 +207,9 @@ def setup_network():
             user_input = input(
                 "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
             if user_input == 'adjust':
-                input_str=input('ip mark1 mark2 mark3 mark4')
-                parts = input_str.split()
-                # 确保输入格式正确
-                if len(parts) != 5:
-                    raise ValueError("shoule be 'ip mark1 mark2 mark3 mark4'")
-                ip = parts[0]  # IP 地址
-                string_dict = {
-                    '12600': int(parts[1]),  # 标记 12600
-                    '3150': int(parts[2]),  # 标记 3150
-                    '785': int(parts[3]),
-                    '200': int(parts[4])# 标记 785
-                }
-                TrafficControl.adjust(server,ip,string_dict)
+                TrafficControl.adjust(server)
             elif user_input == 'delay':
-                input_str=input('ip address')
-                parts = input_str.split()
-                ip=parts[0]
-                config = TRAFFIC_CLASSES_DELAY[ip]
-                target = config['client']
-                float_dict={
-                    'delay' : float(parts[1]),
-                    'loss' : float(parts[2])
-                }
-                TrafficControl.adjust_loss_and_delay(net.get(target),ip,float_dict)
+                TrafficControl.adjust_loss_and_delay(net)
             elif user_input == 'test':
                 server = net.get('server')
 

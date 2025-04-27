@@ -98,6 +98,11 @@ def update_string_dict():
         string_dict.update(new_dict)
     return jsonify({"status": "success", "message": "string_dict updated"})
 
+@app.route('/get/string_dict', methods=['GET'])
+def get_string_dict():
+    return jsonify({"string_dict": string_dict})
+
+
 @app.route('/update/buffer', methods=['POST'])
 def update_re_buffer():
     value1 = request.json.get('re_buffer')
@@ -107,7 +112,9 @@ def update_re_buffer():
         buffer['play_buffer'] = value2
     return jsonify({"status": "success", "message": "buffer updated"})
 
-
+@app.route('/get/buffer', methods=['GET'])
+def get_re_buffer():
+    return jsonify({"re_buffer": buffer['re_buffer'], 'play_buffer': buffer['play_buffer']})
 
 @app.route('/update/quality_map', methods=['POST'])
 def update_quality_map():
@@ -115,14 +122,6 @@ def update_quality_map():
     if new_map:
         quality_map.update(new_map)
     return jsonify({"status": "success", "message": "quality_map updated"})
-
-@app.route('/get/string_dict', methods=['GET'])
-def get_string_dict():
-    return jsonify({"string_dict": string_dict})
-
-@app.route('/get/buffer', methods=['GET'])
-def get_re_buffer():
-    return jsonify({"re_buffer": buffer['re_buffer'], 'play_buffer': buffer['play_buffer']})
 
 @app.route('/get/quality_map', methods=['GET'])
 def get_quality_map():
