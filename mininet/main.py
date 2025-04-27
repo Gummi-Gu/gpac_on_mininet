@@ -229,7 +229,7 @@ def setup_network():
         ip_addr = get_eth1_ip(client_host)
         ip_maps[client_name] = ip_addr
 
-
+    streamingMonitorClient.submit_ip_maps(ip_maps)
     try:
         while True:
             TrafficControl.report_traffic_classes()

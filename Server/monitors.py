@@ -76,6 +76,7 @@ def update_ip_maps():
     if data:
         with lock:
             ip_maps.update(data)
+        print(ip_maps)
         return jsonify({"status": "success", "message": "ip_maps updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -94,6 +95,7 @@ def update_traffic_classes_mark():
     if data:
         with lock:
             TRAFFIC_CLASSES_MARK.update(data)
+        print(TRAFFIC_CLASSES_MARK)
         return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_MARK updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -111,6 +113,7 @@ def update_traffic_classes_delay():
     if data:
         with lock:
             TRAFFIC_CLASSES_DELAY.update(data)
+        print(TRAFFIC_CLASSES_DELAY)
         return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_DELAY updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -181,6 +184,7 @@ def update_track_stats():
             'latest_rate': data['latest_rate'],
             'last_update': datetime.now()
         })
+        print(track_stats)
     return jsonify({'status': 'success'})
 
 @app.route('/client_stats', methods=['POST'])
@@ -195,6 +199,7 @@ def update_client_stats():
             'qoe': data['qoe'],
             'last_update': datetime.now()
         })
+        print(client_stats)
     return jsonify({'status': 'success'})
 
 @app.route('/link_metrics', methods=['POST'])
@@ -211,6 +216,7 @@ def update_link_metrics():
             'marks': marks,  # 保存 marks 数据
             'last_update': datetime.now()
         })
+        print(link_metrics)
     return jsonify({'status': 'success'})
 
 latest_heatmap=None
