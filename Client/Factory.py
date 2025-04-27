@@ -150,16 +150,17 @@ class VideoSegmentStatus:
 
 
     # -------------------- 定时记录 --------------------
+
     def fetch_updata_data(self):
         last_log_time = time.time()
         while True:
             # 每 1 秒记录一次 rebuff_time, rebuff_count 和 quality_tiled
             if time.time() - last_log_time >= 1:
                 buffer=streamingMonitorClient.fetch_buffer()
-                bufferFilter.set_rebuffer_playbuffer(buffer['re_buffer'],buffer['play_buffer'])
+                bufferFilter.set_rebuffer_playbuffer(int(buffer['re_buffer']),int(buffer['play_buffer']))
                 streamingMonitorClient.submit_client_stats(clientname, self.rebuff_time, self.rebuff_count, self.Qoe)
                 streamingMonitorClient.submit_chunk_qualities(self.quality_tiled)
-                self.quality_map=streamingMonitorClient.fetch_quality()
+                self.quality_map={int(k):v for k,v in streamingMonitorClient.fetch_quality().items()}
             time.sleep(1)  # 稍微等待，避免占用过多 CPU
 
 
@@ -168,5 +169,7 @@ dash= DASH.MyCustomDASHAlgo()
 viewpoint= Rendering.Viewpoint(press_start)
 fs = BufferFilter.MyFilterSession()
 bufferFilter= BufferFilter.MyFilter(fs)
-render= Rendering.Render()
+render= Rendering.Renderer()
 dash_interface=Interfaces.DashInterface()
+
+ip_maps=streamingMonitorClient.fetch_ip_maps()

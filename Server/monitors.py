@@ -13,13 +13,8 @@ string_dict = {
             '785': 0,
             '200': 0
         }
-buffer = {'re_buffer':0.0,'play_buffer':0.0}
-quality_map = {
-            0: 0,
-            1: 1,
-            2: 3,
-            3: 3
-}
+buffer = {'re_buffer':4000000,'play_buffer':1000000}
+quality_map = { 0: 0,1: 1,2: 3,3: 3}
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
 track_stats = defaultdict(lambda: defaultdict(lambda: {
@@ -54,11 +49,37 @@ rebuffer_config = defaultdict(lambda: {
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
     '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
+    '10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
 }
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
-    '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0}
+    '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
+    '10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
 }
+
+ip_maps={
+    'client1':'0.0.0.0',
+    'client2':'0.0.0.0',
+    'client3':'0.0.0.0'
+}
+# 接口：获取 ip_maps
+
+@app.route('/get/ip_maps', methods=['GET'])
+def get_ip_maps():
+    with lock:
+        return jsonify(ip_maps)
+
+# 接口：更新 ip_maps
+@app.route('/update/ip_maps', methods=['POST'])
+def update_ip_maps():
+    data = request.get_json()
+    if data:
+        with lock:
+            ip_maps.update(data)
+        return jsonify({"status": "success", "message": "ip_maps updated"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
+
 
 # 接口：获取 TRAFFIC_CLASSES_MARK
 @app.route('/get/traffic_classes_mark', methods=['GET'])
@@ -251,10 +272,6 @@ def show_dashboard():
 
     # 格式化track_stats为适合的表格显示
     track_table_data = []
-    total_delay = 0
-    total_latest_rate = 0
-    total_utilization = 0
-    total_clients = 0
     client_summary = {}
 
     for track_id, clients in track_stats.items():

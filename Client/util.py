@@ -107,5 +107,9 @@ class StreamingMonitorClient:
     def fetch_buffer(self) -> Optional[Dict[str, Any]]:
         return self._get_data("get/buffer")
 
-    def fetch_quality(self) -> Optional[Dict[int, Any]]:
+    def fetch_quality(self) -> Optional[Dict[int, int]]:
         return self._get_data("get/quality_map")
+
+    def fetch_ip_maps(self) -> Optional[Dict[str, str]]:
+        """从服务器拉取 IP 映射表"""
+        return self._get_data("get/ip_maps")

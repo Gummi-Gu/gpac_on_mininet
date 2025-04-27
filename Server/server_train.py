@@ -7,7 +7,6 @@ from collections import defaultdict
 app = Flask(__name__)
 FILE_DIRECTORY = 'files'  # 文件存储目录
 CHUNK_SIZE = 2048  # 每次传输的块大小 (2KB)
-STATS_5S_INTERVAL = 5
 # 确保文件目录存在
 os.makedirs(FILE_DIRECTORY, exist_ok=True)
 @app.route('/<client_id>/files/<path:filename>')
@@ -35,4 +34,4 @@ def download_file(client_id,filename):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10086, debug=True)
+    app.run(host='0.0.0.0', port=10086, debug=True,threaded=True)

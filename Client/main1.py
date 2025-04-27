@@ -1,7 +1,5 @@
 import sys
 import threading
-
-import cv2
 import Client.Factory as Factory
 import Client.model.pre as re
 sys.path.append("C:/Users/GummiGu/毕业设计/代码/gpac/share/python")
@@ -19,12 +17,12 @@ def run_pipeline():
     # 创建一个自定义的 filter session
     fs = Factory.fs
     re.start()
-
+    ip=Factory.ip_maps[Factory.clientname]
     # 加载视频源
     if len(sys.argv) > 1:
         src = fs.load_src(sys.argv[1])
     else:
-        src = fs.load_src("http://192.168.16.220:10081/01/files/dash_tiled.mpd")
+        src = fs.load_src(f"http://{ip}:10086/01/files/dash_tiled.mpd")
 
     # 加载自定义 filter 并设置其源
     my_filter = Factory.bufferFilter

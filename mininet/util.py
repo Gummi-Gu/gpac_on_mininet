@@ -70,6 +70,10 @@ class StreamingMonitorClient:
         }
         return self._send_data("link_metrics", payload)
 
+    def submit_ip_maps(self, ip_maps: Dict[str, str]) -> bool:
+        """提交 IP 映射表到服务器"""
+        payload = ip_maps
+        return self._send_data("update/ip_maps", payload)
 
     def fetch_traffic_classes_mark(self) -> Optional[Dict[str, Any]]:
         """获取 TRAFFIC_CLASSES_MARK 数据"""

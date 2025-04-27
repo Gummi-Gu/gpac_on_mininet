@@ -28,7 +28,8 @@ class MyCustomDASHAlgo:
         #
         # In this example we simply cycle through qualities
         # Send the newq value via GET request to 127.0.0.1:12567/dash
-        select_num=Factory.dash_interface.set_quality(group.idx,self.srd_position)
+        #select_num=Factory.dash_interface.set_quality(group.idx,self.srd_position)
+        select_num=0
         #Factory.videoSegmentStatus.set_quality_tiled(group.idx,select_num)
         #select_num=1
         #sample_slices = [
@@ -45,23 +46,3 @@ class MyCustomDASHAlgo:
     #   -1 to continue download
     #   or -2 to abort download but without retrying to download a segment at lower quality for the same media time
     #   or the index of the new quality to download for the same media time
-    def on_download_monitor(self, group, stats):
-        print('download monitor group ' + str(group.idx) + ' stats ' + str(stats) );
-        return -1
-
-
-    def packet_video_data(self,buffer_length, max_buffer_length, download_speed,slices):
-        """
-        发送视频传输数据到 Flask 服务器。
-
-        :param buffer_length: 当前 buffer 长度（秒）
-        :param max_buffer_length: 最大 buffer 长度（秒）
-        :param slices: 一个包含视频切片信息的列表，每个切片是一个字典
-        """
-        data = {
-            "buffer_length": buffer_length,
-            "max_buffer_length": max_buffer_length,
-            "download_speed": download_speed,
-            "slices": slices
-        }
-        return data

@@ -2,6 +2,7 @@
 import atexit
 import math
 import os
+import queue
 import threading
 import time
 
@@ -148,7 +149,7 @@ class Viewpoint:
             Factory.yaw=yaw
             Factory.pitch=pitch
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
-            time.sleep(0.1)
+            time.sleep(0.15)
             #print(f"[Rendering] {time.time()}")
             #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
 
@@ -170,16 +171,43 @@ class Viewpoint:
 
 
 
-class Render:
+class Renderer:
+    def __init__(self):
+        self.frame_queue = queue.Queue(maxsize=10)  # 可以限制最大缓存帧数
+        self.running = False
+        if Factory.clientname == 'client1':
+            self.start()
 
-    def render(self,rgb,title):
+    def start(self):
+        self.running = True
+        self.thread = threading.Thread(target=self._render_loop)
+        self.thread.start()
+
+    def stop(self):
+        self.running = False
+        self.thread.join()
+
+    def push_frame(self, rgb, title, dur):
+        if not self.frame_queue.full():
+            self.frame_queue.put((rgb, title, dur))  # 将帧和标题一起放进去
+
+    def _render_loop(self):
+        while self.running:
+            try:
+                rgb, title, dur = self.frame_queue.get(timeout=0.5)
+                self.render(rgb, title, dur)
+            except queue.Empty:
+                continue  # 队列空了就继续循环，不会卡死
+
+    def render(self, rgb, title,dur):
         try:
-            map_x,map_y,u,v= Factory.viewpoint.load_maps(Factory.yaw,Factory.pitch,Factory.fov)
+            map_x, map_y, u, v = Factory.viewpoint.load_maps(Factory.yaw, Factory.pitch, Factory.fov)
         except FileNotFoundError:
-            map_x,map_y,u,v= Factory.viewpoint.focal_cal(Factory.yaw,Factory.pitch,Factory.fov)
-        Factory.u=u
-        Factory.v=v
-        # 重映射图像
+            map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
+        Factory.u = u
+        Factory.v = v
         output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
         cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
         cv2.setWindowTitle(Factory.clientname, title)
+        cv2.waitKey(1)  # 必须有waitKey，不然窗口不刷新
+        time.sleep(dur)

@@ -28,7 +28,7 @@ class MyFilter(gpac.FilterCustom):
 
         self.max_buffer = 10000000
         self.play_buffer = 1000000
-        self.re_buffer = 4000000
+        self.re_buffer = 400000
         self.buffering = True
         self.rebuff_time=0
         self.rebuff_count=0
@@ -73,6 +73,7 @@ class MyFilter(gpac.FilterCustom):
     # process
     def process(self):
         start_time = time.time()
+        '''
         if self.rebuff_time!=0:
             dur_time=start_time-self.rebuff_time
             if  dur_time > self.dur:
@@ -80,7 +81,7 @@ class MyFilter(gpac.FilterCustom):
                 if dur_time - self.dur > 0.1:
                     self.rebuff_count+=1
         self.rebuff_time=start_time
-
+        '''
         #print(self.dur,self.rebuff_sum_time,self.rebuff_count)
         #only one PID in this example
         for pid in self.ipids:
@@ -106,7 +107,6 @@ class MyFilter(gpac.FilterCustom):
                         title += " - buffering " + str(int(pc)) + ' %'
                         if self.rebuff_time is None:
                             print('pause')
-                            #self.rebuff_time = time.time()
                         break
                 # show max buffer level
                 if self.max_buffer > self.play_buffer:
@@ -114,7 +114,6 @@ class MyFilter(gpac.FilterCustom):
                     title += f" - buffer {buffer / 1000000:.2f}" + 's ' + str(int(pc)) + ' %'
             pck = pid.get_packet()
             if pck is None:
-                print(3)
                 break
             #frame interface, data is in GPU memory or internal to decoder, try to grab it
             #we do so by creating a clone of the packet, reusing the same clone at each call to reduce memory allocations
@@ -134,20 +133,22 @@ class MyFilter(gpac.FilterCustom):
                 rgb = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB_NV12)
 
 
-
-            Factory.render.render(rgb,title)
+            dur = pck.dur
+            dur /= self.timescale
+            #Factory.render.render(rgb,title)
+            if Factory.clientname=='client1':
+                Factory.render.push_frame(rgb,title,dur)
             Factory.videoSegmentStatus.set_rgb(rgb)
 
             #get packet duration for later sleep
-            dur = pck.dur
-            dur /= self.timescale
+
 
             pid.drop_packet()
 
             cv2.waitKey(1)
 
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
-            time.sleep(max(0,dur-(time.time() - start_time)))
+            #time.sleep(max(0,dur-(time.time() - start_time)))
             #print(dur-(time.time() - start_time))
             self.dur=dur
             #print("[BufferFilter]",time.time() - start_time)
