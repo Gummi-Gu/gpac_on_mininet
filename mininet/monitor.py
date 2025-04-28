@@ -28,11 +28,23 @@ while True:
     track_table_data = []
     client_summary = {}
 
+    latest_rate_history = {}
+    latest_delay_history = {}
+
     for track_id, clients in track_stats.items():
         for client_id, stats in clients.items():
             if track_id == 'default':
                 continue
             utilization = (stats['latest_rate'] / 12.5) * 100  # 假设最大带宽是100
+
+            prev_key = (track_id, client_id)
+            prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
+            prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
+
+            # 更新历史数据
+            latest_rate_history[prev_key] = stats['latest_rate']
+            latest_delay_history[prev_key] = stats['latest_delay']
+
             if client_id not in client_summary:
                 client_summary[client_id] = {
                     'total_delay': 0.0,
@@ -45,20 +57,28 @@ while True:
             summary['total_latest_rate'] += stats['latest_rate']
             summary['total_utilization'] += utilization
             summary['track_count'] += 1
+
+            # 加入 prev_latest_delay 和 prev_latest_rate
             track_table_data.append((
-                track_id, client_id, f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
-                f"{stats['latest_delay']:.1f}ms", f"{stats['latest_rate']:.1f}MB/s",
+                track_id, client_id,
+                f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
+                f"{stats['latest_delay']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # 当前和上一秒的时延
+                f"{stats['latest_rate']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # 当前和上一秒的速率
                 stats['resolution'], f"{utilization:.2f}%"
             ))
 
     for client_id, stats in client_summary.items():
         utilization = (summary_rate_stats[client_id]['size'] / 12.5) * 100
         track_table_data.append((
-            'sum', client_id, 0.0, 0.0,
-            f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{summary_rate_stats[client_id]['size']:.1f}MB/s",
+            'sum', client_id,
+            0.0, 0.0,
+            f"{summary_rate_stats[client_id]['time']:.1f}ms", "0.0ms",  # sum行上一秒delay为0.0
+            f"{summary_rate_stats[client_id]['size']:.1f}MB/s", "0.0MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"
         ))
 
+    # headers也同步增加
+    track_headers = ['TrackID', 'CltID', 'AvgDly', 'AvgRat', 'LatDly', 'PrvDly', 'LatRat', 'PrvRat', 'Resol', 'Utiliz']
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="grid")
 
     # Bitrate Stats 表格
