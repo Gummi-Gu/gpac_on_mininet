@@ -93,7 +93,7 @@ while True:
 
     for bitrate, clients in bitrate_stats.items():
         for client_id, stats in clients.items():
-            if track_id == 'default' or client_id != 'client1':
+            if track_id == 'default':
                 continue
             utilization = (stats['latest_rate'] / 100.0) * 100  # 假设最大带宽是100
             if client_id not in bitrate_summary:
