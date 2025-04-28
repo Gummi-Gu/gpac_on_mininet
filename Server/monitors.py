@@ -44,9 +44,9 @@ track_stats = defaultdict(lambda: defaultdict(lambda: {
 }))
 
 summary_rate_stats = {
-    'client1':0.0,
-    'client2':0.0,
-    'client3':0.0
+    'client1': {'size':0.0,'time':0.0},
+    'client2':{'size':0.0,'time':0.0},
+    'client3':{'size':0.0,'time':0.0}
 }
 
 link_metrics = defaultdict(lambda: {
@@ -377,7 +377,7 @@ def show_dashboard():
         track_table_data.append((
             'summary', client_id,
             0.0, 0.0,
-            0.0, summary_rate_stats[client_id],
+            summary_rate_stats[client_id]['time'], summary_rate_stats[client_id]['size'],
             0.0, 0.0,
             f"{utilization:.2f}%"
         ))
