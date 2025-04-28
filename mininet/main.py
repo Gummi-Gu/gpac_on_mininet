@@ -215,9 +215,10 @@ def setup_network():
         client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
         client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
         client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
+        print('server start')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
-        print('server start')
+        print('monitor start')
         TrafficControl.setup_tc(server)
 
         def get_eth1_ip(host):
