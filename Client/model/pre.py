@@ -88,7 +88,6 @@ def pre():
         motion_data = tensor_stack.unsqueeze(0)
         # 模型推理
         with torch.no_grad():
-            print(1111)
             output = model(video_data.to('cuda',dtype=torch.float32),motion_data.to('cuda',dtype=torch.float32))
             rgb=output[1][0].permute(1,2,0).cpu().numpy()
             prediction = output[0][0].tolist()
@@ -102,7 +101,7 @@ def pre():
             merged_level,level1,level2,level3=pred.get_qualitys(rgb,Factory.u,Factory.v,Factory.preu,Factory.prev)
             Factory.videoSegmentStatus.Qoe=QoEpre(level2)
             merged_level=np.insert(merged_level.flatten(), 0, 0).tolist()
-            print(merged_level)
+            print(f"[PRE] {merged_level}")
             Factory.videoSegmentStatus.set_all_quality_tiled(merged_level)
 
 

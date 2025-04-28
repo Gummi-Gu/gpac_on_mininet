@@ -175,8 +175,7 @@ class Renderer:
     def __init__(self):
         self.frame_queue = queue.Queue(maxsize=10)  # 可以限制最大缓存帧数
         self.running = False
-        if Factory.clientname == 'client1':
-            self.start()
+        self.start()
 
     def start(self):
         self.running = True
@@ -206,8 +205,9 @@ class Renderer:
             map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
         Factory.u = u
         Factory.v = v
-        output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
-        cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
-        cv2.setWindowTitle(Factory.clientname, title)
-        cv2.waitKey(1)  # 必须有waitKey，不然窗口不刷新
+        if Factory.clientname == 'client0':
+            output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
+            cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
+            cv2.setWindowTitle(Factory.clientname, title)
+            cv2.waitKey(1)  # 必须有waitKey，不然窗口不刷新
         time.sleep(dur)

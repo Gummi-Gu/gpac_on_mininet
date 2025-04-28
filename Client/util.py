@@ -92,20 +92,21 @@ class StreamingMonitorClient:
         payload = {
             "link_id": link_id,
             "delay": delay,
-            "loss_rate": loss_rate  # 小数形式，如0.05表示5%
+            "loss_rate": loss_rate,  # 小数形式，如0.05表示5%
         }
         return self._send_data("link_metrics", payload)
 
-    def submit_chunk_qualities(self, resolutions) -> bool:
+    def submit_chunk_qualities(self, resolutions,client) -> bool:
         """批量提交视频分块的分辨率数据"""
-        payload = {i+1: res for i,res in enumerate(resolutions)}
+        payload = {str(i+1): res for i,res in enumerate(resolutions)}
+        payload['client']=client
         return self._send_data("chunk_quality", payload)
 
     def fetch_client_stats(self) -> Optional[Dict[str, Any]]:
         return self._get_data("get/client_stats")
 
     def fetch_buffer(self) -> Optional[Dict[str, Any]]:
-        return self._get_data("get/buffer")
+        return self._get_data("get/rebuffer_config")
 
     def fetch_quality(self) -> Optional[Dict[int, int]]:
         return self._get_data("get/quality_map")

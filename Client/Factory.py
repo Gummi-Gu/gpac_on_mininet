@@ -31,6 +31,7 @@ bufferFilter=None
 dash_interface=None
 render=None
 videoSegmentStatus=None
+ip_maps=None
 fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
 pre_qua=[]
 streamingMonitorClient=util.StreamingMonitorClient()
@@ -135,6 +136,7 @@ class VideoSegmentStatus:
         with open(self.rebuff_filename, mode="a", newline='') as f:
             writer = csv.writer(f)
             writer.writerow(row)
+
     def get_video(self):
         return self.videos
     def get_motion(self):
@@ -156,20 +158,20 @@ class VideoSegmentStatus:
         while True:
             # 每 1 秒记录一次 rebuff_time, rebuff_count 和 quality_tiled
             if time.time() - last_log_time >= 1:
-                buffer=streamingMonitorClient.fetch_buffer()
+                buffer=streamingMonitorClient.fetch_buffer()[clientname]
                 bufferFilter.set_rebuffer_playbuffer(int(buffer['re_buffer']),int(buffer['play_buffer']))
                 streamingMonitorClient.submit_client_stats(clientname, self.rebuff_time, self.rebuff_count, self.Qoe)
-                streamingMonitorClient.submit_chunk_qualities(self.quality_tiled)
-                self.quality_map={int(k):v for k,v in streamingMonitorClient.fetch_quality().items()}
+                streamingMonitorClient.submit_chunk_qualities(self.quality_tiled,clientname)
+                self.quality_map={int(k):v for k,v in streamingMonitorClient.fetch_quality()[clientname].items()}
             time.sleep(1)  # 稍微等待，避免占用过多 CPU
 
-
-videoSegmentStatus=VideoSegmentStatus(tile_num,'./Client/logs')
-dash= DASH.MyCustomDASHAlgo()
-viewpoint= Rendering.Viewpoint(press_start)
-fs = BufferFilter.MyFilterSession()
-bufferFilter= BufferFilter.MyFilter(fs)
-render= Rendering.Renderer()
-dash_interface=Interfaces.DashInterface()
-
-ip_maps=streamingMonitorClient.fetch_ip_maps()
+def Factory_init():
+    global videoSegmentStatus,dash,viewpoint,fs,bufferFilter,render,dash_interface,ip_maps
+    videoSegmentStatus=VideoSegmentStatus(tile_num,'./Client/logs')
+    dash= DASH.MyCustomDASHAlgo()
+    viewpoint= Rendering.Viewpoint(press_start)
+    fs = BufferFilter.MyFilterSession()
+    bufferFilter= BufferFilter.MyFilter(fs)
+    render= Rendering.Renderer()
+    dash_interface=Interfaces.DashInterface()
+    ip_maps=streamingMonitorClient.fetch_ip_maps()

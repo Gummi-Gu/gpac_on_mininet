@@ -60,6 +60,26 @@ class StreamingMonitorClient:
         }
         return self._send_data("track_stats", payload)
 
+    def submit_bitrate_stats(
+        self,
+        bitrate_id: str,
+        client_id: str,
+        avg_delay: float,
+        avg_rate: float,
+        latest_delay: float,
+        latest_rate: float
+    ) -> bool:
+        """提交流轨道统计信息"""
+        payload = {
+            "bitrate_id": bitrate_id,
+            "client_id": client_id,
+            "avg_delay": avg_delay,
+            "avg_rate": avg_rate,
+            "latest_delay": latest_delay,
+            "latest_rate": latest_rate
+        }
+        return self._send_data("bitrate_stats", payload)
+
     def submit_link_metrics(self, client_id: str, delay: float, loss_rate: float, marks: dict) -> bool:
         """提交网络链路指标"""
         payload = {

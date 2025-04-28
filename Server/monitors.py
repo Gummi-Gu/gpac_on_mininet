@@ -13,8 +13,16 @@ string_dict = {
             '785': 0,
             '200': 0
         }
-buffer = {'re_buffer':4000000,'play_buffer':1000000}
-quality_map = { 0: 0,1: 1,2: 3,3: 3}
+quality_map = {
+    'client1':{0:0,1:1,2:3,3:3},
+    'client2':{0:0,1:1,2:3,3:3},
+    'client3':{0:0,1:1,2:3,3:3}
+}
+rebuffer_config = {
+    'client1':{'re_buffer': 1000000,'play_buffer': 1000000},
+    'client2':{'re_buffer': 1000000,'play_buffer': 1000000},
+    'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
+}
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
 track_stats = defaultdict(lambda: defaultdict(lambda: {
@@ -38,11 +46,6 @@ client_stats = defaultdict(lambda: {
     'rebuffer_count': 0.0,
     'qoe':0.0,
     'last_update': None
-})
-
-rebuffer_config = defaultdict(lambda: {
-    'rebuffer': 0.0,
-    'playbuffer': 0.0,
 })
 
 # 新增的数据结构
@@ -100,21 +103,37 @@ def update_traffic_classes_mark():
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
 
-# 接口：获取 TRAFFIC_CLASSES_DELAY
-@app.route('/get/traffic_classes_delay', methods=['GET'])
-def get_traffic_classes_delay():
+@app.route('/get/quality_map', methods=['GET'])
+def get_quality_map():
     with lock:
-        return jsonify(TRAFFIC_CLASSES_DELAY)
+        return jsonify(quality_map)
 
-# 接口：更新 TRAFFIC_CLASSES_DELAY
-@app.route('/update/traffic_classes_delay', methods=['POST'])
-def update_traffic_classes_delay():
+# 接口：更新 TRAFFIC_CLASSES_MARK
+@app.route('/update/quality_map', methods=['POST'])
+def update_quality_map():
     data = request.get_json()
     if data:
         with lock:
-            TRAFFIC_CLASSES_DELAY.update(data)
-        print(TRAFFIC_CLASSES_DELAY)
-        return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_DELAY updated"})
+            quality_map.update(data)
+        print(quality_map)
+        return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_MARK updated"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
+
+@app.route('/get/rebuffer_config', methods=['GET'])
+def get_rebuffer_config():
+    with lock:
+        return jsonify(rebuffer_config)
+
+# 接口：更新 TRAFFIC_CLASSES_DELAY
+@app.route('/update/rebuffer_config', methods=['POST'])
+def update_rebuffer_config():
+    data = request.get_json()
+    if data:
+        with lock:
+            rebuffer_config.update(data)
+        print(rebuffer_config)
+        return jsonify({"status": "success", "message": "rebuffer_config updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
 
@@ -130,30 +149,6 @@ def update_string_dict():
 @app.route('/get/string_dict', methods=['GET'])
 def get_string_dict():
     return jsonify(string_dict)
-
-@app.route('/update/buffer', methods=['POST'])
-def update_re_buffer():
-    value1 = request.json.get('re_buffer')
-    value2 = request.json.get('play_buffer')
-    if value1 is not None and value2 is not None:
-        buffer['re_buffer'] = value1
-        buffer['play_buffer'] = value2
-    return jsonify({"status": "success", "message": "buffer updated"})
-
-@app.route('/get/buffer', methods=['GET'])
-def get_re_buffer():
-    return jsonify({"re_buffer": buffer['re_buffer'], 'play_buffer': buffer['play_buffer']})
-
-@app.route('/update/quality_map', methods=['POST'])
-def update_quality_map():
-    new_map = request.json
-    if new_map:
-        quality_map.update(new_map)
-    return jsonify({"status": "success", "message": "quality_map updated"})
-
-@app.route('/get/quality_map', methods=['GET'])
-def get_quality_map():
-    return jsonify(quality_map)
 
 
 @app.route('/get/track_stats', methods=['GET'])
@@ -176,6 +171,22 @@ def update_track_stats():
     data = request.get_json()
     with lock:
         track_id = data['track_id']
+        client_id = data['client_id']  # 客户端ID
+        track_stats[track_id][client_id].update({
+            'avg_delay': data['avg_delay'],
+            'avg_rate': data['avg_rate'],
+            'latest_delay': data['latest_delay'],
+            'latest_rate': data['latest_rate'],
+            'last_update': datetime.now()
+        })
+        print(track_stats)
+    return jsonify({'status': 'success'})
+
+@app.route('/bitrate_stats', methods=['POST'])
+def update_bitrate_stats():
+    data = request.get_json()
+    with lock:
+        track_id = data['bitrate_id']
         client_id = data['client_id']  # 客户端ID
         track_stats[track_id][client_id].update({
             'avg_delay': data['avg_delay'],
@@ -241,9 +252,12 @@ def serve_heatmap():
 
 @app.route('/chunk_quality', methods=['POST'])
 def update_chunk_quality():
-    data = request.get_json()  # 接收的是一个字典，例如 {"0": "720p", "1": "1080p"}
+    data = request.get_json()
     with lock:
+        client_id = data['client']
         for chunk_id, resolution in data.items():
+            if chunk_id == 'client':
+                continue
             # 这里没有特别区分客户端，可以选择加上客户端ID来更新
             if resolution == 0:
                 resolution=200
@@ -254,10 +268,9 @@ def update_chunk_quality():
             elif resolution == 3:
                 resolution=12600
 
-            for client_id in track_stats[chunk_id]:
-                track_stats[chunk_id][client_id].update({
-                    'resolution': resolution
-                })
+            track_stats[chunk_id][client_id].update({
+                'resolution': resolution
+            })
     return jsonify({'status': 'success'})
 
 
@@ -323,6 +336,53 @@ def show_dashboard():
 
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="html", floatfmt=".2f")
 
+    # Bitrate Stats 表格
+    bitrate_headers = ['Bitrate', 'Client ID', 'Avg Delay(ms)', 'Avg Rate(MB/s)',
+                       'Latest Delay(ms)', 'Latest Rate(MB/s)', 'Last Update', 'Utilization(%)']
+
+    # 格式化bitrate_stats为适合的表格显示
+    bitrate_table_data = []
+    bitrate_summary = {}
+
+    for bitrate, clients in bitrate_stats.items():
+        for client_id, stats in clients.items():
+            utilization = (stats['latest_rate'] / 100.0) * 100  # 假设最大带宽是100
+            if client_id not in bitrate_summary:
+                bitrate_summary[client_id] = {
+                    'total_delay': 0.0,
+                    'total_latest_rate': 0.0,
+                    'total_utilization': 0.0,
+                    'bitrate_count': 0,
+                }
+
+            summary = bitrate_summary[client_id]
+            summary['total_delay'] += stats['latest_delay']
+            summary['total_latest_rate'] += stats['latest_rate']
+            summary['total_utilization'] += utilization
+            summary['bitrate_count'] += 1
+
+            # 添加原始bitrate的详细信息
+            bitrate_table_data.append((
+                bitrate, client_id,
+                stats['avg_delay'], stats['avg_rate'],
+                stats['latest_delay'], stats['latest_rate'],
+                stats['last_update'],
+                f"{utilization:.2f}%"
+            ))
+
+    # 添加每个客户端的汇总行
+    for client_id, summary in bitrate_summary.items():
+        avg_utilization = summary['total_utilization'] / summary['bitrate_count']
+        bitrate_table_data.append((
+            'client_total', client_id,
+            0, 0,  # 平均延迟和速率不统计
+            summary['total_delay'], summary['total_latest_rate'],
+            'N/A',  # 更新时间为N/A
+            f"{avg_utilization:.2f}%"
+        ))
+
+    bitrate_table = tabulate(bitrate_table_data, headers=bitrate_headers, tablefmt="html", floatfmt=".2f")
+
     # Link Metrics 表格
     link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', '12600_rate(Mbit)', '3150_rate(Mbit)', '785_rate(Mbit)', '200_rate(Mbit)', 'Last Update']
     link_data = []
@@ -374,6 +434,9 @@ def show_dashboard():
            <body>
                <h2>Track Statistics</h2>
                {track_table}
+               
+               <h2>Bitrate Statistics</h2>
+               {bitrate_table}
 
                <h2>Link Metrics</h2>
                {link_table}
