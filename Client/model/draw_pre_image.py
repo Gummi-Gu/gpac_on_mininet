@@ -1,9 +1,13 @@
+import os
+
 import numpy as np
 import cv2
 import Client.Factory as Factory
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 import Client.util
-
+counter=0
 
 
 def draw_gradient_circle(center, radius, shape):
@@ -54,6 +58,7 @@ def pre_rgb(rgb, u, v, preu, prev):
 
 def compute_opacity_heatmap(str,rgb,level_num):
     # 用cv2读取图像（带alpha通道，cv2读取顺序是BGRA）
+    global counter
     img = rgb
 
     if len(img.shape) == 3:
@@ -101,11 +106,22 @@ def compute_opacity_heatmap(str,rgb,level_num):
     plt.figure(figsize=(Factory.tile_size, Factory.tile_size))
     plt.imshow(heatmap, cmap='hot', interpolation='nearest')
     plt.colorbar(label='Opacity Score')
-    plt.title("Opacity Heatmap "+str)
+    plt.title("Opacity Heatmap " + str)
     plt.xticks(range(Factory.tile_size))
     plt.yticks(range(Factory.tile_size))
     plt.gca().invert_yaxis()
-    plt.show()
+
+    # 创建保存路径，并加上序号
+    save_path = f"Client/logs/img_{Factory.clientname}/{str}/{counter}.png"
+
+    # 确保目录存在
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+    # 保存热图到文件
+    plt.savefig(save_path)
+    plt.close()
+    # 更新计数器（可以保存在其他地方以便持久化）
+    counter += 1
 
 
     return levels

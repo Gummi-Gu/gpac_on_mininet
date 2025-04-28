@@ -101,7 +101,7 @@ def pre():
             merged_level,level1,level2,level3=pred.get_qualitys(rgb,Factory.u,Factory.v,Factory.preu,Factory.prev)
             Factory.videoSegmentStatus.Qoe=QoEpre(level2)
             merged_level=np.insert(merged_level.flatten(), 0, 0).tolist()
-            print(f"[PRE] {merged_level}")
+            #print(f"[PRE] {merged_level}")
             Factory.videoSegmentStatus.set_all_quality_tiled(merged_level)
 
 
@@ -138,6 +138,7 @@ def QoEpre(level):
 
     D1=Factory.videoSegmentStatus.get_rebuff_time()-last_rebuff_time
     D2=Factory.videoSegmentStatus.get_rebuff_count()-last_rebuff_count
+    #print(f"[PRE] {D1},{D2}")
 
     matrix=qua
     matrix=np.array(matrix).reshape((Factory.tile_size, Factory.tile_size))

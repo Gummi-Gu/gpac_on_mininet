@@ -28,7 +28,7 @@ class MyFilter(gpac.FilterCustom):
 
         self.max_buffer = 10000000
         self.play_buffer = 1000000
-        self.re_buffer = 400000
+        self.re_buffer = 1000000
         self.buffering = True
         self.rebuff_time=0
         self.rebuff_count=0
@@ -75,7 +75,7 @@ class MyFilter(gpac.FilterCustom):
         start_time = time.time()
         if self.rebuff_time!=0:
             dur_time=start_time-self.rebuff_time
-            if  dur_time - self.dur > 0.2:
+            if  dur_time - self.dur > 0.5:
                     self.rebuff_sum_time += (dur_time - self.dur)
                     self.rebuff_count+=1
         self.rebuff_time=start_time
@@ -84,7 +84,6 @@ class MyFilter(gpac.FilterCustom):
         #only one PID in this example
         for pid in self.ipids:
             title = ""
-
             if pid.eos:
                 pass
                 # not done, check buffer levels
@@ -103,8 +102,6 @@ class MyFilter(gpac.FilterCustom):
                     if buffer < self.play_buffer:
                         pc = 100 * buffer / self.play_buffer
                         title += " - buffering " + str(int(pc)) + ' %'
-                        if self.rebuff_time is None:
-                            print('pause')
                         break
                 # show max buffer level
                 if self.max_buffer > self.play_buffer:

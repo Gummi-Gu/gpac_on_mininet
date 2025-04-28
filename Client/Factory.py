@@ -62,8 +62,6 @@ class VideoSegmentStatus:
         self.timestamp_prefix = timestamp
         self.quer_filename = os.path.join(log_dir, f"quer_{timestamp}.csv")
         self.rebuff_filename = os.path.join(log_dir, f"rebuff_quality_{timestamp}.csv")
-        self.image_dir = os.path.join(log_dir, f"images_{timestamp}")
-        os.makedirs(self.image_dir, exist_ok=True)
         self.image_counter = 0
         self.thread = threading.Thread(target=self.fetch_updata_data)
         self.thread.daemon = True
@@ -112,14 +110,10 @@ class VideoSegmentStatus:
         self.rgb_resized = cv2.resize(rgb_image, (348, 224))  # (W, H)
 
         # 构造文件路径
-        image_filename = os.path.join(self.image_dir, f"frame_{self.image_counter:04d}.jpg")
-        self.image_counter += 1
         self.videos.append(self.rgb_resized)
         if len(self.videos) > 32:
             self.videos.pop(0)
-        # 保存当前帧为 JPG 图像
-        cv2.imwrite(image_filename, cv2.cvtColor(self.rgb_resized, cv2.COLOR_RGB2BGR))
-    # -------------------- 日志记录 --------------------
+        # -------------------- 日志记录 --------------------
 
     def log_yaw_pitch(self):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")

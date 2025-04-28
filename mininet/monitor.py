@@ -70,6 +70,7 @@ while True:
         prev_key = ('sum', client_id)
         prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
         prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
+        summary_rate_stats[client_id]['size']=summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1e3
         utilization = (summary_rate_stats[client_id]['size'] / 12.5) * 100
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
