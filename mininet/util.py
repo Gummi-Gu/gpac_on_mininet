@@ -98,6 +98,7 @@ class StreamingMonitorClient:
     def submit_summary_rate_stats(self, summary_rate_stats: Dict[str, Any]) -> bool:
         """提交 速率统计到服务器"""
         payload = summary_rate_stats
+        print(summary_rate_stats)
         return self._send_data("update/summary_rate_stats", payload)
 
     def fetch_traffic_classes_mark(self) -> Optional[Dict[str, Any]]:
