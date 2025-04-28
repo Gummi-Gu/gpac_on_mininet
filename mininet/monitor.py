@@ -14,7 +14,8 @@ def mark2bw(x):
 
 
 
-
+latest_rate_history = {}
+latest_delay_history = {}
 while True:
 
     track_stats = streamingMonitorClient.fetch_track_stats()
@@ -26,9 +27,6 @@ while True:
 
     track_table_data = []
     client_summary = {}
-
-    latest_rate_history = {}
-    latest_delay_history = {}
 
     for track_id, clients in track_stats.items():
         for client_id, stats in clients.items():
@@ -67,12 +65,17 @@ while True:
             ))
 
     for client_id, stats in client_summary.items():
+        prev_key = ('sum', client_id)
+        prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
+        prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
         utilization = (summary_rate_stats[client_id]['size'] / 12.5) * 100
+        latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
+        latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
         track_table_data.append((
             'sum', client_id,
             0.0, 0.0,
-            f"{summary_rate_stats[client_id]['time']:.1f}ms", "0.0ms",  # sum行上一秒delay为0.0
-            f"{summary_rate_stats[client_id]['size']:.1f}MB/s", "0.0MB/s",  # sum行上一秒rate为0.0
+            f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
+            f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"
         ))
 
@@ -139,7 +142,7 @@ while True:
     print("\nBitrate Stats Table:")
     print(bitrate_table)
     print("\nLink Metrics Table:")
-    print(link_table)
+    #print(link_table)
     print("\nClient Stats Table:")
-    print(client_table)
-    time.sleep(5)
+    #print(client_table)
+    time.sleep(1)
