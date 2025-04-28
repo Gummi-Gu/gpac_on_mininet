@@ -21,7 +21,9 @@ track_stats = {}
 bitrate_stats = {}
 stats_lock = threading.Lock()
 client_id=''
-
+current_second = int(time.time())
+current_second_bytes = 0
+second_stats = {}  # 保存每秒出口总量
 app = Flask(__name__)
 CORS(app, origins="*")
 
@@ -43,6 +45,18 @@ def parse_bitrate(filename):
 def update_stats(track_id, bitrate, duration, size):
     """更新轨道ID和比特率的统计信息"""
     with stats_lock:
+        # ===== 这里处理出口总量统计 =====
+        global current_second, current_second_bytes, second_stats
+        now = int(time.time())
+        if now != current_second:
+            # 时间到达了新的秒数，记录上一个秒的数据量
+            second_stats[current_second] = current_second_bytes
+            # 可选：你可以在这里打印或者上传每秒出口量
+            # print(f"Second {current_second}: {current_second_bytes} bytes")
+            streamingMonitorClient.submit_summary_rate_stats({'client1':current_second_bytes})
+            current_second = now
+            current_second_bytes = 0
+        current_second_bytes += size
         # 更新track_id统计
         if track_id not in track_stats:
             track_stats[track_id] = {

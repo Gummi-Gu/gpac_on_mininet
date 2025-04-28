@@ -25,6 +25,15 @@ rebuffer_config = {
 }
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
+bitrate_stats = defaultdict(lambda: defaultdict(lambda: {
+    'avg_delay': 0.0,
+    'avg_rate': 0.0,
+    'latest_delay': 0.0,
+    'latest_rate': 0.0,
+    'resolution': '',
+    'last_update': None
+}))
+
 track_stats = defaultdict(lambda: defaultdict(lambda: {
     'avg_delay': 0.0,
     'avg_rate': 0.0,
@@ -33,6 +42,12 @@ track_stats = defaultdict(lambda: defaultdict(lambda: {
     'resolution': '',
     'last_update': None
 }))
+
+summary_rate_stats = {
+    'client1':0.0,
+    'client2':0.0,
+    'client3':0.0
+}
 
 link_metrics = defaultdict(lambda: {
     'delay': 0.0,
@@ -79,7 +94,18 @@ def update_ip_maps():
     if data:
         with lock:
             ip_maps.update(data)
-        print(ip_maps)
+        #print(ip_maps)
+        return jsonify({"status": "success", "message": "ip_maps updated"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
+
+@app.route('/update/summary_rate_stats', methods=['POST'])
+def update_summary_rate_stats():
+    data = request.get_json()
+    if data:
+        with lock:
+            summary_rate_stats.update(data)
+        print(summary_rate_stats)
         return jsonify({"status": "success", "message": "ip_maps updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -98,7 +124,7 @@ def update_traffic_classes_mark():
     if data:
         with lock:
             TRAFFIC_CLASSES_MARK.update(data)
-        print(TRAFFIC_CLASSES_MARK)
+        #print(TRAFFIC_CLASSES_MARK)
         return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_MARK updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -115,7 +141,7 @@ def update_quality_map():
     if data:
         with lock:
             quality_map.update(data)
-        print(quality_map)
+        #print(quality_map)
         return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_MARK updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -132,7 +158,7 @@ def update_rebuffer_config():
     if data:
         with lock:
             rebuffer_config.update(data)
-        print(rebuffer_config)
+        #print(rebuffer_config)
         return jsonify({"status": "success", "message": "rebuffer_config updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -186,9 +212,9 @@ def update_track_stats():
 def update_bitrate_stats():
     data = request.get_json()
     with lock:
-        track_id = data['bitrate_id']
+        bitrate_id = data['bitrate_id']
         client_id = data['client_id']  # 客户端ID
-        track_stats[track_id][client_id].update({
+        bitrate_stats[bitrate_id][client_id].update({
             'avg_delay': data['avg_delay'],
             'avg_rate': data['avg_rate'],
             'latest_delay': data['latest_delay'],
@@ -321,17 +347,14 @@ def show_dashboard():
                 stats['resolution'], stats['last_update'],
                 f"{utilization:.2f}%"
             ))
-
-    # 添加每个客户端的汇总行
-    for client_id, summary in client_summary.items():
-        avg_utilization = summary['total_utilization'] / summary['track_count']
+    for client_id, stats in client_summary.items():
+        utilization=(stats['total_utilization'] / 100.0) * 100
         track_table_data.append((
-            'client_total', client_id,
-            0, 0,  # 平均延迟和速率不统计
-            summary['total_delay'], summary['total_latest_rate'],
-            0,  # 分辨率为0
-            'N/A',
-            f"{summary['total_utilization']:.2f}%"
+            'summary', client_id,
+            '', '',
+            '', summary_rate_stats[client_id],
+            '', '',
+            f"{utilization:.2f}%"
         ))
 
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="html", floatfmt=".2f")
@@ -369,17 +392,6 @@ def show_dashboard():
                 stats['last_update'],
                 f"{utilization:.2f}%"
             ))
-
-    # 添加每个客户端的汇总行
-    for client_id, summary in bitrate_summary.items():
-        avg_utilization = summary['total_utilization'] / summary['bitrate_count']
-        bitrate_table_data.append((
-            'client_total', client_id,
-            0, 0,  # 平均延迟和速率不统计
-            summary['total_delay'], summary['total_latest_rate'],
-            'N/A',  # 更新时间为N/A
-            f"{avg_utilization:.2f}%"
-        ))
 
     bitrate_table = tabulate(bitrate_table_data, headers=bitrate_headers, tablefmt="html", floatfmt=".2f")
 
