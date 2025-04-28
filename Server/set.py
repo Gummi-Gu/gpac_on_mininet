@@ -53,7 +53,7 @@ def decrease_mark(ip, bit_class):
 
 # 2. 更新 traffic_classes_delay
 traffic_classes_delay_update = {
-    '10.0.0.2': {'client': 'client1', 'delay': 1, 'loss': 1},
+    '10.0.0.2': {'client': 'client1', 'delay': 10, 'loss': 10},
     '10.0.0.3': {'client': 'client4', 'delay': 1, 'loss': 2},
     '10.0.0.4': {'client': 'client4', 'delay': 1, 'loss': 2}
 }
