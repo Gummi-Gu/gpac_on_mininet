@@ -205,7 +205,7 @@ def update_track_stats():
             'latest_rate': data['latest_rate'],
             'last_update': datetime.now()
         })
-        print(track_stats)
+        #print(track_stats)
     return jsonify({'status': 'success'})
 
 @app.route('/bitrate_stats', methods=['POST'])
@@ -221,7 +221,7 @@ def update_bitrate_stats():
             'latest_rate': data['latest_rate'],
             'last_update': datetime.now()
         })
-        print(track_stats)
+        #print(track_stats)
     return jsonify({'status': 'success'})
 
 @app.route('/client_stats', methods=['POST'])
@@ -236,7 +236,7 @@ def update_client_stats():
             'qoe': data['qoe'],
             'last_update': datetime.now()
         })
-        print(client_stats)
+        #print(client_stats)
     return jsonify({'status': 'success'})
 
 @app.route('/link_metrics', methods=['POST'])
@@ -253,7 +253,7 @@ def update_link_metrics():
             'marks': marks,  # 保存 marks 数据
             'last_update': datetime.now()
         })
-        print(link_metrics)
+        #print(link_metrics)
     return jsonify({'status': 'success'})
 
 latest_heatmap=None
@@ -348,12 +348,12 @@ def show_dashboard():
                 f"{utilization:.2f}%"
             ))
     for client_id, stats in client_summary.items():
-        utilization=(stats['total_utilization'] / 100.0) * 100
+        utilization=(summary_rate_stats[client_id] / 100.0) * 100
         track_table_data.append((
             'summary', client_id,
-            '', '',
-            '', summary_rate_stats[client_id],
-            '', '',
+            0.0, 0.0,
+            0.0, summary_rate_stats[client_id],
+            0.0, 0.0,
             f"{utilization:.2f}%"
         ))
 
