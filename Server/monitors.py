@@ -373,7 +373,7 @@ def show_dashboard():
                 f"{utilization:.2f}%"
             ))
     for client_id, stats in client_summary.items():
-        utilization=(summary_rate_stats[client_id] / 100.0) * 100
+        utilization=(summary_rate_stats[client_id]['size'] / 100.0) * 100
         track_table_data.append((
             'summary', client_id,
             0.0, 0.0,

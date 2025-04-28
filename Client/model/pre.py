@@ -94,7 +94,7 @@ def pre():
             yaw,pitch,_,_,_,_=Factory.viewpoint.quaternion_to_yaw_pitch(prediction[0], prediction[1], prediction[2], prediction[3])
             try:
                 map_x, map_y, u, v = Factory.viewpoint.load_maps(yaw, pitch, Factory.fov)
-            except FileNotFoundError:
+            except Exception as e:
                 map_x, map_y, u, v = Factory.viewpoint.focal_cal(yaw, pitch, Factory.fov)
             Factory.preu = u
             Factory.prev = v
