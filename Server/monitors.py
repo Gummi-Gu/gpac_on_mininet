@@ -108,6 +108,10 @@ def update_ip_maps():
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
 
+@app.route('/get/summary_rate_stats', methods=['GET'])
+def get_summary_rate_stats():
+    with lock:
+        return jsonify(summary_rate_stats)
 @app.route('/update/summary_rate_stats', methods=['POST'])
 def update_summary_rate_stats():
     data = request.get_json()
@@ -201,6 +205,11 @@ def update_string_dict():
 def get_string_dict():
     return jsonify(string_dict)
 
+
+@app.route('/get/bitrate_stats', methods=['GET'])
+def get_bitrate_stats():
+    with lock:
+        return jsonify(bitrate_stats)
 
 @app.route('/get/track_stats', methods=['GET'])
 def get_track_stats():
@@ -338,7 +347,7 @@ def format_table(data, headers):
 def show_dashboard():
     # Track Stats 表格
     track_headers = ['Track ID', 'Client ID', 'Avg Delay(ms)', 'Avg Rate(MB/s)',
-                     'Latest Delay(ms)', 'Latest Rate(MB/s)', 'Bit rate', 'Last Update', 'Utilization(%)']
+                     'Latest Delay(ms)', 'Latest Rate(MB/s)', 'Bit rate', 'Utilization(%)']
 
     # 格式化track_stats为适合的表格显示
     track_table_data = []
@@ -349,7 +358,7 @@ def show_dashboard():
             if track_id == 'default':
                 continue
 
-            utilization = (stats['latest_rate'] / 100.0) * 100  # 假设最大带宽是100
+            utilization = (stats['latest_rate'] / 12.5) * 100  # 假设最大带宽是100
             if client_id not in client_summary:
                 client_summary[client_id] = {
                     'total_delay': 0.0,
@@ -369,11 +378,11 @@ def show_dashboard():
                 track_id, client_id,
                 stats['avg_delay'], stats['avg_rate'],
                 stats['latest_delay'], stats['latest_rate'],
-                stats['resolution'], stats['last_update'],
+                stats['resolution'],
                 f"{utilization:.2f}%"
             ))
     for client_id, stats in client_summary.items():
-        utilization=(summary_rate_stats[client_id]['size'] / 100.0) * 100
+        utilization=(summary_rate_stats[client_id]['size'] / 12.5) * 100
         track_table_data.append((
             'summary', client_id,
             0.0, 0.0,
@@ -386,7 +395,7 @@ def show_dashboard():
 
     # Bitrate Stats 表格
     bitrate_headers = ['Bitrate', 'Client ID', 'Avg Delay(ms)', 'Avg Rate(MB/s)',
-                       'Latest Delay(ms)', 'Latest Rate(MB/s)', 'Last Update', 'Utilization(%)']
+                       'Latest Delay(ms)', 'Latest Rate(MB/s)',  'Utilization(%)']
 
     # 格式化bitrate_stats为适合的表格显示
     bitrate_table_data = []
@@ -414,14 +423,13 @@ def show_dashboard():
                 bitrate, client_id,
                 stats['avg_delay'], stats['avg_rate'],
                 stats['latest_delay'], stats['latest_rate'],
-                stats['last_update'],
                 f"{utilization:.2f}%"
             ))
 
     bitrate_table = tabulate(bitrate_table_data, headers=bitrate_headers, tablefmt="html", floatfmt=".2f")
 
     # Link Metrics 表格
-    link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', '12600_rate(Mbit)', '3150_rate(Mbit)', '785_rate(Mbit)', '200_rate(Mbit)', 'Last Update']
+    link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', '12600_rate(Mbit)', '3150_rate(Mbit)', '785_rate(Mbit)', '200_rate(Mbit)']
     link_data = []
     for client_id, stats in link_metrics.items():
         bw_12600=stats['marks']['12600']
@@ -432,18 +440,17 @@ def show_dashboard():
         bw_200 = mark2bw(bw_200)
         bw_3150 = stats['marks']['3150']
         bw_3150 = mark2bw(bw_3150)
-        link_data.append((client_id, stats['delay'], stats['loss_rate'],bw_12600,bw_3150,bw_785,bw_200,stats['last_update']))
+        link_data.append((client_id, stats['delay'], stats['loss_rate'],bw_12600,bw_3150,bw_785,bw_200))
     link_table = tabulate(link_data, headers=link_headers, tablefmt="html", floatfmt=".2f")
 
-    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE', 'Last Update']
+    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE']
     client_table_data = []
     for client_id, stats in client_stats.items():
         client_table_data.append((
             client_id,
             stats['rebuffer_time'],
             stats['rebuffer_count'],
-            stats['qoe'],
-            stats['last_update']
+            stats['qoe']
         ))
     client_table = tabulate(client_table_data, headers=client_headers, tablefmt="html", floatfmt=".2f")
 
@@ -464,7 +471,7 @@ def show_dashboard():
            <body>
                <h2>Track Statistics</h2>
                {track_table}
-               
+
                <h2>Bitrate Statistics</h2>
                {bitrate_table}
 

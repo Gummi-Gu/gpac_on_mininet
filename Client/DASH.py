@@ -28,8 +28,8 @@ class MyCustomDASHAlgo:
         #
         # In this example we simply cycle through qualities
         # Send the newq value via GET request to 127.0.0.1:12567/dash
-        #select_num=Factory.dash_interface.set_quality(group.idx,self.srd_position)
-        select_num=3
+        select_num=Factory.dash_interface.set_quality(group.idx,self.srd_position)
+        #select_num=3
         #Factory.videoSegmentStatus.set_quality_tiled(group.idx,select_num)
         #select_num=1
         #sample_slices = [

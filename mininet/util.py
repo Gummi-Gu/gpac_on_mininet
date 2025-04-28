@@ -107,3 +107,23 @@ class StreamingMonitorClient:
     def fetch_traffic_classes_delay(self) -> Optional[Dict[str, Any]]:
         """获取 TRAFFIC_CLASSES_DELAY 数据"""
         return self._get_data("get/traffic_classes_delay")
+
+    def fetch_track_stats(self):
+        """获取 track_stats 数据"""
+        return self._get_data("get/track_stats")
+
+    def fetch_summary_rate_stats(self):
+        """获取 summary_rate_stats 数据"""
+        return self._get_data("get/summary_rate_stats")
+
+    def fetch_bitrate_stats(self):
+        """获取 bitrate_stats 数据"""
+        return self._get_data("get/bitrate_stats")
+
+    def fetch_link_metrics(self):
+        """获取 link_metrics 数据"""
+        return self._get_data("get/link_metrics")
+
+    def fetch_client_stats(self):
+        """获取 client_stats 数据"""
+        return self._get_data("get/client_stats")

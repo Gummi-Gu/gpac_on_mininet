@@ -106,31 +106,3 @@ class DataGenerator:
             "buffer_time": random.uniform(1, 10),
             "quality_score": random.randint(50, 100)
         }
-
-def main():
-    # 初始化客户端
-    client = StreamingMonitorClient()
-
-    # 模拟持续数据上报
-    while True:
-        try:
-            # 生成并提交track数据
-            track_data = DataGenerator.generate_track_stats(f"video_{random.randint(1,5)}")
-            client.submit_track_stats(**track_data)
-
-            # 生成并提交链路数据
-            link_data = DataGenerator.generate_link_metrics(f"link_{random.randint(1,3)}")
-            client.submit_link_metrics(**link_data)
-
-            # 生成并提交分块质量数据
-            chunk_data = DataGenerator.generate_chunk_quality(
-                f"chunk_{datetime.now().strftime('%H%M%S')}"
-            )
-            client.submit_chunk_quality(**chunk_data)
-
-            print("数据提交成功，等待下一次上报...")
-            time.sleep(10)
-
-        except KeyboardInterrupt:
-            print("\n停止数据上报")
-            break
