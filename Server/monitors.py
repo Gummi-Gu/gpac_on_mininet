@@ -80,6 +80,15 @@ ip_maps={
     'client2':'0.0.0.0',
     'client3':'0.0.0.0'
 }
+
+
+def mark2bw(x):
+    if x == 10:
+        return 50
+    if x == 20:
+        return 20
+    if x == 30:
+        return 10
 # 接口：获取 ip_maps
 
 @app.route('/get/ip_maps', methods=['GET'])
@@ -398,13 +407,6 @@ def show_dashboard():
     # Link Metrics 表格
     link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', '12600_rate(Mbit)', '3150_rate(Mbit)', '785_rate(Mbit)', '200_rate(Mbit)', 'Last Update']
     link_data = []
-    def mark2bw(x):
-        if x == 10:
-            return 200
-        if x == 20:
-            return 60
-        if x == 30:
-            return 20
     for client_id, stats in link_metrics.items():
         bw_12600=stats['marks']['12600']
         bw_12600=mark2bw(bw_12600)

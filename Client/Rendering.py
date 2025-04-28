@@ -121,8 +121,10 @@ class Viewpoint:
         path = os.path.join("Client\precomputed_maps", filename)
         if not os.path.exists(path):
             raise FileNotFoundError(f"No precomputed map for {yaw}/{pitch}")
-
-        data = np.load(path)
+        try:
+            data = np.load(path)
+        except Exception as e:
+            raise e
         return data["map_x"], data["map_y"],data["u"], data["v"]
 
     def listen_for_keys(self):
@@ -149,7 +151,7 @@ class Viewpoint:
             Factory.yaw=yaw
             Factory.pitch=pitch
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
-            time.sleep(0.15)
+            time.sleep(15)
             #print(f"[Rendering] {time.time()}")
             #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
 
@@ -205,7 +207,7 @@ class Renderer:
             map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
         Factory.u = u
         Factory.v = v
-        if Factory.clientname == 'client0':
+        if Factory.clientname == 'client1':
             output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
             cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
             cv2.setWindowTitle(Factory.clientname, title)
