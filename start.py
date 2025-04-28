@@ -16,11 +16,11 @@ def main():
     processes = []
 
     # 启动图片渲染程序
-    render_process = subprocess.Popen(
-        [venv_python, "render_images.py"],  # 使用虚拟环境中的 Python 启动 render_images.py
-        cwd=project_root,  # 保证在项目根目录启动
-    )
-    processes.append(render_process)
+    #render_process = subprocess.Popen(
+    #    [venv_python, "render_images.py"],  # 使用虚拟环境中的 Python 启动 render_images.py
+    #    cwd=project_root,  # 保证在项目根目录启动
+    #)
+    #processes.append(render_process)
 
     for module in modules:
         print(f"Starting {module}...")

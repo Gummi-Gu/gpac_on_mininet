@@ -18,7 +18,7 @@ def update(endpoint, data):
 
 # 1. 更新 traffic_classes_mark
 traffic_classes_mark_update = {
-    '10.0.0.2': {'port': 10086, '12600': 10, '3150': 30, '785': 30, '200': 30},
+    '10.0.0.2': {'port': 10086, '12600': 10, '3150': 10, '785': 30, '200': 30},
     '10.0.0.3': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30},
     '10.0.0.4': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30}
 
@@ -53,7 +53,7 @@ def decrease_mark(ip, bit_class):
 
 # 2. 更新 traffic_classes_delay
 traffic_classes_delay_update = {
-    '10.0.0.2': {'client': 'client1', 'delay': 10, 'loss': 10},
+    '10.0.0.2': {'client': 'client1', 'delay': 1, 'loss': 1},
     '10.0.0.3': {'client': 'client4', 'delay': 1, 'loss': 2},
     '10.0.0.4': {'client': 'client4', 'delay': 1, 'loss': 2}
 }
@@ -93,7 +93,7 @@ def decrease_buffer(client, buffer_type):
 
 # 4. 更新 quality_map
 quality_map_update = {
-    'client1': {0: 1, 1: 2, 2: 3, 3: 3},
+    'client1': {0: 0, 1: 1, 2: 2, 3: 2},
     'client2': {0: 0, 1: 1, 2: 2, 3: 3},
     'client3': {0: 0, 1: 1, 2: 2, 3: 3}
 }
