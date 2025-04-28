@@ -230,9 +230,12 @@ def setup_network():
             ip_addr = get_eth1_ip(client_host)
             ip_maps[client_name] = ip_addr
 
-        streamingMonitorClient.submit_ip_maps(ip_maps)
 
         while True:
+            streamingMonitorClient.submit_ip_maps(ip_maps)
+            TrafficControl.adjust(server)
+            TrafficControl.adjust_loss_and_delay(net)
+            '''
             TrafficControl.report_traffic_classes()
             user_input = input(
                 "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
@@ -257,7 +260,7 @@ def setup_network():
                 test_ping_connection(net.get('client3'), '10.0.0.1')
             else:
                 print("Invalid input!")
-
+            '''
 
     except KeyboardInterrupt:
         pass
