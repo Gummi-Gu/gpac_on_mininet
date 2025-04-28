@@ -138,6 +138,23 @@ def update_traffic_classes_mark():
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
 
+@app.route('/get/traffic_classes_delay', methods=['GET'])
+def get_traffic_classes_delay():
+    with lock:
+        return jsonify(TRAFFIC_CLASSES_DELAY)
+
+# 接口：更新 TRAFFIC_CLASSES_DELAY
+@app.route('/update/traffic_classes_delay', methods=['POST'])
+def update_traffic_classes_delay():
+    data = request.get_json()
+    if data:
+        with lock:
+            TRAFFIC_CLASSES_DELAY.update(data)
+        #print(TRAFFIC_CLASSES_MARK)
+        return jsonify({"status": "success", "message": "TRAFFIC_CLASSES_DELAY updated"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
+
 @app.route('/get/quality_map', methods=['GET'])
 def get_quality_map():
     with lock:
@@ -160,7 +177,6 @@ def get_rebuffer_config():
     with lock:
         return jsonify(rebuffer_config)
 
-# 接口：更新 TRAFFIC_CLASSES_DELAY
 @app.route('/update/rebuffer_config', methods=['POST'])
 def update_rebuffer_config():
     data = request.get_json()
