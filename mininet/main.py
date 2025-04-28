@@ -167,70 +167,71 @@ class TrafficControl:
 
 
 def setup_network():
-    net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-    net.addController('c0')
-    s1 = net.addSwitch('s1')
-    s2 = net.addSwitch('s2')
-
-    server = net.addHost('server', ip='10.0.0.1/24')
-    client1 = net.addHost('client1', ip='10.0.0.2/24')
-    client2 = net.addHost('client2', ip='10.0.0.3/24')
-    client3 = net.addHost('client3', ip='10.0.0.4/24')
-
-    net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
-    net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-    net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
-    net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
-    net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
-    net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
-    net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
-    net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
-
-
-    net.start()
-
-    os.system('ifconfig eth1 0.0.0.0')
-    os.system('ovs-vsctl add-port s2 eth1')
-
-    server.cmd('ifconfig server-eth1 0.0.0.0')
-    client1.cmd('ifconfig client1-eth1 0.0.0.0')
-    client2.cmd('ifconfig client2-eth1 0.0.0.0')
-    client3.cmd('ifconfig client3-eth1 0.0.0.0')
-    server.cmd('dhclient server-eth1')
-    client1.cmd('dhclient client1-eth1')
-    client2.cmd('dhclient client2-eth1')
-    client3.cmd('dhclient client3-eth1')
-    print(server.cmd('ifconfig'))
-    print(client1.cmd('ifconfig'))
-    print(client2.cmd('ifconfig'))
-    print(client3.cmd('ifconfig'))
-    client1.cmd('screen -dm bash_client1')
-    client2.cmd('screen -dm bash_client2')
-    client3.cmd('screen -dm bash_client3')
-    server.cmd('screen -dm bash_server')
-
-    server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
-    #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
-    client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
-    client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
-    client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
-
-    TrafficControl.setup_tc(server)
-
-    def get_eth1_ip(host):
-        output = host.cmd(f'ifconfig {host.name}-eth1')
-        match = re.search(r'inet (\d+\.\d+\.\d+\.\d+)', output)
-        if match:
-            return match.group(1)
-        return None
-
-    for client_name in ['client1', 'client2', 'client3']:
-        client_host = net.get(client_name)
-        ip_addr = get_eth1_ip(client_host)
-        ip_maps[client_name] = ip_addr
-
-    streamingMonitorClient.submit_ip_maps(ip_maps)
     try:
+        net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
+        net.addController('c0')
+        s1 = net.addSwitch('s1')
+        s2 = net.addSwitch('s2')
+
+        server = net.addHost('server', ip='10.0.0.1/24')
+        client1 = net.addHost('client1', ip='10.0.0.2/24')
+        client2 = net.addHost('client2', ip='10.0.0.3/24')
+        client3 = net.addHost('client3', ip='10.0.0.4/24')
+
+        net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
+        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
+        net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
+        net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
+        net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
+        net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
+
+
+        net.start()
+
+        os.system('ifconfig eth1 0.0.0.0')
+        os.system('ovs-vsctl add-port s2 eth1')
+
+        server.cmd('ifconfig server-eth1 0.0.0.0')
+        client1.cmd('ifconfig client1-eth1 0.0.0.0')
+        client2.cmd('ifconfig client2-eth1 0.0.0.0')
+        client3.cmd('ifconfig client3-eth1 0.0.0.0')
+        server.cmd('dhclient server-eth1')
+        client1.cmd('dhclient client1-eth1')
+        client2.cmd('dhclient client2-eth1')
+        client3.cmd('dhclient client3-eth1')
+        print(server.cmd('ifconfig'))
+        print(client1.cmd('ifconfig'))
+        print(client2.cmd('ifconfig'))
+        print(client3.cmd('ifconfig'))
+        client1.cmd('screen -dm bash_client1')
+        client2.cmd('screen -dm bash_client2')
+        client3.cmd('screen -dm bash_client3')
+        server.cmd('screen -dm bash_server')
+
+        server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
+        #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
+        client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
+        client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
+        client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
+
+        TrafficControl.setup_tc(server)
+
+        def get_eth1_ip(host):
+            output = host.cmd(f'ifconfig {host.name}-eth1')
+            match = re.search(r'inet (\d+\.\d+\.\d+\.\d+)', output)
+            if match:
+                return match.group(1)
+            return None
+
+        for client_name in ['client1', 'client2', 'client3']:
+            client_host = net.get(client_name)
+            ip_addr = get_eth1_ip(client_host)
+            ip_maps[client_name] = ip_addr
+
+        streamingMonitorClient.submit_ip_maps(ip_maps)
+
         while True:
             TrafficControl.report_traffic_classes()
             user_input = input(
