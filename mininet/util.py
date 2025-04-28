@@ -95,7 +95,7 @@ class StreamingMonitorClient:
         payload = ip_maps
         return self._send_data("update/ip_maps", payload)
 
-    def submit_summary_rate_stats(self, summary_rate_stats: Dict[str, float]) -> bool:
+    def submit_summary_rate_stats(self, summary_rate_stats: Dict[str, Any]) -> bool:
         """提交 速率统计到服务器"""
         payload = summary_rate_stats
         return self._send_data("update/summary_rate_stats", payload)
