@@ -73,7 +73,7 @@ class MyFilter(gpac.FilterCustom):
     # process
     def process(self):
         start_time = time.time()
-        '''
+
         if self.rebuff_time!=0:
             dur_time=start_time-self.rebuff_time
             if  dur_time > self.dur:
@@ -81,7 +81,7 @@ class MyFilter(gpac.FilterCustom):
                 if dur_time - self.dur > 0.1:
                     self.rebuff_count+=1
         self.rebuff_time=start_time
-        '''
+
         #print(self.dur,self.rebuff_sum_time,self.rebuff_count)
         #only one PID in this example
         for pid in self.ipids:
