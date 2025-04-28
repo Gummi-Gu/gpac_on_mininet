@@ -95,7 +95,7 @@ while True:
         if bitrate == 'default':
             continue
         for client_id, stats in clients.items():
-            utilization = (stats['latest_rate'] / 100.0) * 100  # 假设最大带宽是100
+            utilization = (stats['latest_rate'] / 12.5) * 100  # 假设最大带宽是100
             if client_id not in bitrate_summary:
                 bitrate_summary[client_id] = {
                     'total_delay': 0.0,
