@@ -23,8 +23,7 @@ while True:
     link_metrics = streamingMonitorClient.fetch_link_metrics()
     client_stats = streamingMonitorClient.fetch_client_stats()
 
-    track_headers = ['Trk', 'CltID', 'AvgDly', 'AvgRt', 'LatDly',
-                     'LatRt', 'BitRt', 'Utiliz']
+
     track_table_data = []
     client_summary = {}
 
@@ -78,7 +77,7 @@ while True:
         ))
 
     # headers也同步增加
-    track_headers = ['TrackID', 'CltID', 'AvgDly', 'AvgRat', 'LatDly', 'PrvDly', 'LatRat', 'PrvRat', 'Resol', 'Utiliz']
+    track_headers = ['Trk', 'CltID', 'AvgDly', 'AvgRt', 'LatDly','PrvDly','LatRt', 'PrvRat','BitRt', 'Utiliz']
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="grid")
 
     # Bitrate Stats 表格
