@@ -77,7 +77,7 @@ while True:
         ))
 
     # headers也同步增加
-    track_headers = ['Trk', 'CltID', 'AvgDly', 'AvgRt', 'LatDly','PrvDly','LatRt', 'PrvRat','BitRt', 'Utiliz']
+    track_headers = ['Trk', 'Clt', 'AvgDly', 'AvgRt', 'LatDly','PrvDly','LatRt', 'PrvRat','BitRt', 'Uti']
     track_table = tabulate(track_table_data, headers=track_headers, tablefmt="grid")
 
     # Bitrate Stats 表格
