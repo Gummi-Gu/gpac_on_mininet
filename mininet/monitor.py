@@ -31,7 +31,7 @@ while True:
 
     for track_id, clients in track_stats.items():
         for client_id, stats in clients.items():
-            if track_id == 'default' or client_id != 'client1':
+            if track_id == 'default':
                 continue
             utilization = (stats['latest_rate'] / 12.5) * 100  # 假设最大带宽是100
 
@@ -57,13 +57,14 @@ while True:
             summary['track_count'] += 1
             client_id_num = ''.join(re.findall(r'\d+', client_id))
             # 加入 prev_latest_delay 和 prev_latest_rate
-            track_table_data.append((
-                track_id, str(client_id_num),
-                f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
-                f"{stats['latest_delay']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # 当前和上一秒的时延
-                f"{stats['latest_rate']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # 当前和上一秒的速率
-                stats['resolution'], f"{utilization:.2f}%"
-            ))
+            if client_id == 'client1':
+                track_table_data.append((
+                    track_id, str(client_id_num),
+                    f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
+                    f"{stats['latest_delay']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # 当前和上一秒的时延
+                    f"{stats['latest_rate']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # 当前和上一秒的速率
+                    stats['resolution'], f"{utilization:.2f}%"
+                ))
 
     for client_id, stats in client_summary.items():
         prev_key = ('sum', client_id)
@@ -116,9 +117,9 @@ while True:
 
     bitrate_table = tabulate(bitrate_table_data, headers=bitrate_headers, tablefmt="pretty", floatfmt=".2f")
 
-    print("Track Stats Table:")
+    print("\nTrack Stats Table:")
     print(track_table)
-    print("Bitrate Stats Table:")
+    print("\nBitrate Stats Table:")
     print(bitrate_table)
     #print("\nLink Metrics Table:")
     #print(link_table)
