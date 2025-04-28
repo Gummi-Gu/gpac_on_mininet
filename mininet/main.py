@@ -215,7 +215,7 @@ def setup_network():
         client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
         client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
-        server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor1.py')
+        server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
 
         TrafficControl.setup_tc(server)
 
