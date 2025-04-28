@@ -54,7 +54,7 @@ def update_stats(track_id, bitrate, duration, size):
             second_stats[current_second] = current_second_bytes
             # 可选：你可以在这里打印或者上传每秒出口量
             # print(f"Second {current_second}: {current_second_bytes} bytes")
-            streamingMonitorClient.submit_summary_rate_stats({'client1':current_second_bytes})
+            streamingMonitorClient.submit_summary_rate_stats({client_id:current_second_bytes})
             current_second = now
             current_second_bytes = 0
         current_second_bytes += size

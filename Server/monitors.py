@@ -65,7 +65,7 @@ client_stats = defaultdict(lambda: {
 
 # 新增的数据结构
 TRAFFIC_CLASSES_MARK = {
-    '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
+    '10.0.0.2' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30},
     '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
     '10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
 }
@@ -103,7 +103,7 @@ def update_ip_maps():
     if data:
         with lock:
             ip_maps.update(data)
-        #print(ip_maps)
+        print(ip_maps)
         return jsonify({"status": "success", "message": "ip_maps updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
