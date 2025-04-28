@@ -1,3 +1,4 @@
+import re
 import time
 
 from tabulate import tabulate
@@ -54,10 +55,10 @@ while True:
             summary['total_latest_rate'] += stats['latest_rate']
             summary['total_utilization'] += utilization
             summary['track_count'] += 1
-
+            client_id_num = ''.join(re.findall(r'\d+', client_id))
             # 加入 prev_latest_delay 和 prev_latest_rate
             track_table_data.append((
-                track_id, client_id,
+                track_id, str(client_id_num),
                 f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
                 f"{stats['latest_delay']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # 当前和上一秒的时延
                 f"{stats['latest_rate']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # 当前和上一秒的速率
@@ -71,8 +72,9 @@ while True:
         utilization = (summary_rate_stats[client_id]['size'] / 12.5) * 100
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
+        client_id_num = ''.join(re.findall(r'\d+', client_id))
         track_table_data.append((
-            'sum', client_id,
+            'sum', str(client_id_num),
             0.0, 0.0,
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
             f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
