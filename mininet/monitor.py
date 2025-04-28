@@ -31,7 +31,7 @@ while True:
 
     for track_id, clients in track_stats.items():
         for client_id, stats in clients.items():
-            if track_id == 'default':
+            if track_id == 'default' or client_id != 'client1':
                 continue
             utilization = (stats['latest_rate'] / 12.5) * 100  # 假设最大带宽是100
 
@@ -141,10 +141,10 @@ while True:
 
     print("Track Stats Table:")
     print(track_table)
-    print("\nBitrate Stats Table:")
+    print("Bitrate Stats Table:")
     print(bitrate_table)
-    print("\nLink Metrics Table:")
+    #print("\nLink Metrics Table:")
     #print(link_table)
-    print("\nClient Stats Table:")
+    #print("\nClient Stats Table:")
     #print(client_table)
     time.sleep(1)
