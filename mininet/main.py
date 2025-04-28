@@ -73,12 +73,11 @@ class TrafficControl:
         string_dict=streamingMonitorClient.fetch_traffic_classes_mark()
         TRAFFIC_CLASSES_MARK.update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
         expected_strings=['12600', '3150', '785', '200']
+        # 清空之前的规则
+        connmark_cmds.append('iptables -t mangle -F')  # 清空 mangle 表中的所有规则
+        connmark_cmds.append('iptables -t mangle -X')  # 删除所有用户自定义链
+        connmark_cmds.append('iptables -t mangle -Z')
         for ip in string_dict:
-            # 清空之前的规则
-            connmark_cmds.append('iptables -t mangle -F')  # 清空 mangle 表中的所有规则
-            connmark_cmds.append('iptables -t mangle -X')  # 删除所有用户自定义链
-            connmark_cmds.append('iptables -t mangle -Z')
-
             # 生成新的规则
             if ip in TRAFFIC_CLASSES_MARK:
                 # 获取该 IP 对应的端口和标记
