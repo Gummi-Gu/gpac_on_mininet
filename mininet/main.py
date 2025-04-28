@@ -235,7 +235,7 @@ def setup_network():
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             TrafficControl.report_traffic_classes()
-            input()
+            time.sleep(1)
             '''
             TrafficControl.report_traffic_classes()
             user_input = input(
