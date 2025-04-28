@@ -185,10 +185,10 @@ def setup_network():
         net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
         net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
-
+        print('network set')
 
         net.start()
-
+        print('network start')
         os.system('ifconfig eth1 0.0.0.0')
         os.system('ovs-vsctl add-port s2 eth1')
 
@@ -200,6 +200,7 @@ def setup_network():
         client1.cmd('dhclient client1-eth1')
         client2.cmd('dhclient client2-eth1')
         client3.cmd('dhclient client3-eth1')
+        print('ip request')
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
         print(client2.cmd('ifconfig'))
@@ -216,7 +217,7 @@ def setup_network():
         client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
-
+        print('server start')
         TrafficControl.setup_tc(server)
 
         def get_eth1_ip(host):
