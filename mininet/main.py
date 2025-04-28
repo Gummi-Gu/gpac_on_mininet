@@ -235,6 +235,7 @@ def setup_network():
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
+            input()
             '''
             TrafficControl.report_traffic_classes()
             user_input = input(
