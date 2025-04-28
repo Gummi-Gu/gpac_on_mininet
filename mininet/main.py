@@ -13,8 +13,8 @@ streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '35mbit', 'ceil': '40mbit', 'classid': '1:10'},
-    'middle': {'mark': 20, 'rate': '30mbit', 'ceil': '35mbit', 'classid': '1:20'},
-    'low': {'mark': 30, 'rate': '5mbit', 'ceil': '5mbit', 'classid': '1:30'},
+    'middle': {'mark': 20, 'rate': '30mbit', 'ceil': '30mbit', 'classid': '1:20'},
+    'low': {'mark': 30, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:30'},
 }
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
