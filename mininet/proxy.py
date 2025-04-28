@@ -52,6 +52,7 @@ def update_stats(track_id, bitrate, duration, size):
         if now != current_second:
             # 时间到达了新的秒数，记录上一个秒的数据量
             current_second_bytes/=1e6
+            current_second_time*=1e3
             second_stats[current_second] = {'size':current_second_bytes,'time': current_second_time}
             # 可选：你可以在这里打印或者上传每秒出口量
             # print(f"Second {current_second}: {current_second_bytes} bytes")
