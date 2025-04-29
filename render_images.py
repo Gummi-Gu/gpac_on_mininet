@@ -9,7 +9,7 @@ matplotlib.use('TkAgg')
 
 def render_images(image_directory):
     last_image_time = 0
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=100)  # 设置窗口为800x800像素
 
     img_plot = None  # 保存 imshow 返回的对象
 
