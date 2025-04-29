@@ -213,3 +213,39 @@ class Renderer:
             cv2.setWindowTitle(Factory.clientname, title)
             cv2.waitKey(1)  # 必须有waitKey，不然窗口不刷新
         time.sleep(dur)
+
+import concurrent.futures
+
+def precompute_all_mappings_threaded(yaw_list, pitch_list, fov_list):
+    """
+    多线程快速预计算所有(yaw, pitch, fov)组合，返回dict
+    """
+    mapping_cache = {}
+
+    def compute_mapping(yaw, pitch, fov):
+        key = (yaw, pitch, fov)
+        try:
+            map_x, map_y, u, v = Factory.viewpoint.load_maps(yaw, pitch, fov)
+        except FileNotFoundError:
+            map_x, map_y, u, v = Factory.viewpoint.focal_cal(yaw, pitch, fov)
+        return key, (map_x, map_y, u, v)
+
+    # 把所有组合列出来
+    tasks = [(yaw, pitch, fov) for yaw in yaw_list for pitch in pitch_list for fov in fov_list]
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        future_to_task = {executor.submit(compute_mapping, *task): task for task in tasks}
+
+        for future in concurrent.futures.as_completed(future_to_task):
+            key, mapping = future.result()
+            mapping_cache[key] = mapping
+            print(f"完成: yaw={key[0]}, pitch={key[1]}, fov={key[2]}")
+
+    return mapping_cache
+
+if __name__ == "__main__":
+    yaw_list = [x for x in range(-89,179)]
+    pitch_list = [x for x in range(0,179)]
+    fov_list = [120]
+    Factory.Factory_init()
+    mapping_cache = precompute_all_mappings_threaded(yaw_list, pitch_list, fov_list)

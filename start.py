@@ -50,7 +50,7 @@ def main():
     timeout = 60  # 每轮运行时间（秒）
 
     try:
-        for _ in range(120):
+        for _ in range(1):
             processes = start_clients(venv_python, modules, project_root)
             start_time = time.time()
 
