@@ -247,6 +247,7 @@ def setup_network():
         TrafficControl.setup_tc(server)
 
         while True:
+            streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             TrafficControl.report_traffic_classes()
