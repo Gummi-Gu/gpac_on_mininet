@@ -166,7 +166,7 @@ def QoEpre(level):
     diff_matrix_normalized = (diff_matrix - np.min(diff_matrix)) / max(0.1,(np.max(diff_matrix) - np.min(diff_matrix)))
     U=np.sum(diff_matrix_normalized/4)
 
-    Qoe = -10 * D1 - 10 * D2 + 1 * B - 2 * S - 1 * U
+    Qoe = -10 * D1 - 5 * D2 + 1 * B - 2 * S - 1 * U
 
     last_Qoa=qua
     last_rebuff_time=Factory.videoSegmentStatus.get_rebuff_time()

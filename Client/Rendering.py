@@ -132,6 +132,11 @@ class Viewpoint:
         #with keyboard.Listener(on_press=self.on_press) as listener:
         #    listener.join()
         #data = pd.read_csv('./Client/video_0_droped.csv')  # 替换为你的实际路径
+        Factory.yaw = -19
+        Factory.pitch = 94
+        Factory.videoSegmentStatus.set_xyzw(0.078, -0.716, 0.026, 0.693)
+        return
+
         df = pd.read_csv('Client/model/data/train/csv/4/video_4.csv')
 
         # 保留1位小数并去重
@@ -151,7 +156,8 @@ class Viewpoint:
             Factory.yaw=yaw
             Factory.pitch=pitch
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
-            time.sleep(0.2)
+            print(yaw,pitch,x,y,z,w)
+            time.sleep(0.1)
             #print(f"[Rendering] {time.time()}")
             #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
 
@@ -203,11 +209,11 @@ class Renderer:
     def render(self, rgb, title,dur):
         try:
             map_x, map_y, u, v = Factory.viewpoint.load_maps(Factory.yaw, Factory.pitch, Factory.fov)
-        except FileNotFoundError:
+        except Exception as e:
             map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
         Factory.u = u
         Factory.v = v
-        if Factory.clientname == 'client1':
+        if Factory.clientname == 'client0':
             output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
             cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
             cv2.setWindowTitle(Factory.clientname, title)

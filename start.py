@@ -3,17 +3,13 @@ import time
 import os
 import signal
 
-def start_clients(venv_python, modules, project_root):
-    """启动所有客户端进程"""
-    processes = []
-
+def start_monitor(venv_python, project_root):
     # 启动图片渲染程序
-    render_process = subprocess.Popen(
-        [venv_python, "render_images.py"],
-        cwd=project_root,
-        creationflags=subprocess.CREATE_NEW_CONSOLE  # 每个进程单开窗口
-    )
-    # processes.append(render_process)
+    #render_process = subprocess.Popen(
+    #    [venv_python, "render_images.py"],
+    #    cwd=project_root,
+    #    creationflags=subprocess.CREATE_NEW_CONSOLE  # 每个进程单开窗口
+    #)
 
     # 启动监控
     monitor_process = subprocess.Popen(
@@ -21,9 +17,11 @@ def start_clients(venv_python, modules, project_root):
         cwd=project_root,
         creationflags=subprocess.CREATE_NEW_CONSOLE
     )
-    # processes.append(monitor_process)
     time.sleep(3)
 
+def start_clients(venv_python, modules, project_root):
+    """启动所有客户端进程"""
+    processes = []
     for module in modules:
         print(f"Starting {module}...")
         p = subprocess.Popen(
@@ -59,9 +57,9 @@ def main():
     ]
 
     timeout = 60  # 每轮运行时间（秒）
-
+    #start_monitor(venv_python,project_root)
     try:
-        for _ in range(1):
+        for _ in range(60):
             processes = start_clients(venv_python, modules, project_root)
             start_time = time.time()
 

@@ -9,7 +9,6 @@ import random
 import numpy as np
 from collections import deque, defaultdict
 from Server.util import StreamingMonitorClient
-from mininet.proxy import client_id
 
 streamingMonitorClient=StreamingMonitorClient()
 # 设备配置
@@ -20,9 +19,9 @@ def update(endpoint, data):
     url = f"{SERVER_URL}/update/{endpoint}"
     try:
         response = requests.post(url, json=data)
-        print(f"请求接口: {url}")
-        print(f"请求数据: {json.dumps(data, indent=2)}")
-        print(f"响应: {response.status_code} {response.json()}")
+        #print(f"请求接口: {url}")
+        #print(f"请求数据: {json.dumps(data, indent=2)}")
+        #print(f"响应: {response.status_code} {response.json()}")
     except Exception as e:
         print(f"请求失败: {e}")
 
@@ -143,7 +142,7 @@ class StreamingOptimizer:
         self.rebuff_event=0.0
 
         # 强化学习参数
-        self.state_size = 35  # 状态向量维度（根据实际特征计算）
+        self.state_size = 72  # 状态向量维度（根据实际特征计算）
         self.action_size = 60  # 总动作数量
         self.batch_size = 32
         self.buffer_size = 10000
@@ -280,6 +279,10 @@ class StreamingOptimizer:
 
             time.sleep(1)  # 每秒采一次
 
+        self.traffic_classes_mark=streamingMonitorClient.fetch_traffic_classes_mark()
+        self.quality_map=streamingMonitorClient.fetch_quality_map()
+        self.rebuffer_config=streamingMonitorClient.fetch_rebuffer_config()
+
         # 对每个指标取平均
         # 为了简单，我们只处理需要的字段，逐项平均
         avg_traffic_classes_mark = {}
@@ -290,34 +293,48 @@ class StreamingOptimizer:
         avg_bitrate_stats = {}
         avg_summary_rate_stats = {}
 
+        def safe_get_and_set(d, keys, default=0):
+            """从嵌套字典d中取值，如果某层key不存在则补上并赋default"""
+            for key in keys[:-1]:
+                if key not in d:
+                    d[key] = {}
+                d = d[key]
+            if keys[-1] not in d:
+                d[keys[-1]] = default
+            return d[keys[-1]]
+
         # traffic_classes_mark 平均
         for ip in ['10.0.0.2', '10.0.0.3', '10.0.0.4']:
             avg_traffic_classes_mark[ip] = {}
             for bw in ['12600', '3150', '785', '200']:
                 avg_traffic_classes_mark[ip][bw] = np.mean(
-                    [sample[ip][bw] for sample in traffic_classes_mark_list]
+                    [safe_get_and_set(sample, [ip, bw]) for sample in traffic_classes_mark_list]
                 )
 
         # quality_map 平均
         for client in ['client1', 'client2', 'client3']:
             avg_quality_map[client] = {}
-            for level in [0, 1, 2, 3]:
+            for level in ['0', '1', '2', '3']:
                 avg_quality_map[client][level] = np.mean(
-                    [sample[client][level] for sample in quality_map_list]
+                    [safe_get_and_set(sample, [client, level]) for sample in quality_map_list]
                 )
 
         # client_stats 平均
         for client in ['client1', 'client2', 'client3']:
             avg_client_stats[client] = {
-                'rebuffer_time': np.mean([sample[client]['rebuffer_time'] for sample in client_stats_list]),
-                'rebuffer_count': np.mean([sample[client]['rebuffer_count'] for sample in client_stats_list])
+                'rebuffer_time': np.mean(
+                    [safe_get_and_set(sample, [client, 'rebuffer_time']) for sample in client_stats_list]),
+                'rebuffer_count': np.mean(
+                    [safe_get_and_set(sample, [client, 'rebuffer_count']) for sample in client_stats_list]),
             }
 
         # rebuffer_config 平均
         for client in ['client1', 'client2', 'client3']:
             avg_rebuffer_config[client] = {
-                're_buffer': np.mean([sample[client]['re_buffer'] for sample in rebuffer_config_list]),
-                'play_buffer': np.mean([sample[client]['play_buffer'] for sample in rebuffer_config_list])
+                're_buffer': np.mean(
+                    [safe_get_and_set(sample, [client, 're_buffer']) for sample in rebuffer_config_list]),
+                'play_buffer': np.mean(
+                    [safe_get_and_set(sample, [client, 'play_buffer']) for sample in rebuffer_config_list]),
             }
 
         # track_stats 平均
@@ -325,8 +342,10 @@ class StreamingOptimizer:
             avg_track_stats[track_id] = {}
             for client in ['client1', 'client2', 'client3']:
                 avg_track_stats[track_id][client] = {
-                    'latest_delay': np.mean([sample[track_id][client]['latest_delay'] for sample in track_stats_list]),
-                    'latest_rate': np.mean([sample[track_id][client]['latest_rate'] for sample in track_stats_list]),
+                    'latest_delay': np.mean(
+                        [safe_get_and_set(sample, [track_id, client, 'latest_delay']) for sample in track_stats_list]),
+                    'latest_rate': np.mean(
+                        [safe_get_and_set(sample, [track_id, client, 'latest_rate']) for sample in track_stats_list]),
                 }
 
         # bitrate_stats 平均
@@ -334,16 +353,24 @@ class StreamingOptimizer:
             avg_bitrate_stats[bitrate] = {}
             for client in ['client1', 'client2', 'client3']:
                 avg_bitrate_stats[bitrate][client] = {
-                    'latest_delay': np.mean([sample[bitrate][client]['latest_delay'] for sample in bitrate_stats_list]),
-                    'latest_rate': np.mean([sample[bitrate][client]['latest_rate'] for sample in bitrate_stats_list]),
+                    'latest_delay': np.mean(
+                        [safe_get_and_set(sample, [bitrate, client, 'latest_delay']) for sample in bitrate_stats_list]),
+                    'latest_rate': np.mean(
+                        [safe_get_and_set(sample, [bitrate, client, 'latest_rate']) for sample in bitrate_stats_list]),
                 }
 
         # summary_rate_stats 平均
         for client in ['client1', 'client2', 'client3']:
             avg_summary_rate_stats[client] = {
-                'size': np.mean([sample[client]['size'] for sample in summary_rate_stats_list]),
-                'time': np.mean([sample[client]['time'] for sample in summary_rate_stats_list]),
+                'size': np.mean([safe_get_and_set(sample, [client, 'size']) for sample in summary_rate_stats_list]),
+                'time': np.mean([safe_get_and_set(sample, [client, 'time']) for sample in summary_rate_stats_list]),
             }
+
+        self.client_stats=avg_client_stats
+        self.track_stats=avg_track_stats
+        self.bitrate_stats=avg_bitrate_stats
+        self.summary_rate_stats=avg_summary_rate_stats
+
 
         # 用平均值构造 state
         state = []
@@ -353,7 +380,7 @@ class StreamingOptimizer:
                 state.append(avg_traffic_classes_mark[ip][bw] / 30)
 
         for client in ['client1', 'client2', 'client3']:
-            for level in [0, 1, 2, 3]:
+            for level in ['0', '1', '2', '3']:
                 state.append(avg_quality_map[client][level] / 3)
 
         for client in ['client1', 'client2', 'client3']:
@@ -560,8 +587,49 @@ class StreamingOptimizer:
         torch.nn.utils.clip_grad_norm_(self.q_network.parameters(), 1.0)  # 梯度裁剪
         self.optimizer.step()
 
+    def is_action_valid(self, action_type, target, param, operation):
+        """检查动作在当前状态下是否有效"""
+        try:
+            if action_type == "traffic_mark":
+                current = self.traffic_classes_mark[target][param]
+                if operation == "increase":
+                    return current < 30  # 上限30
+                else:
+                    return current > 10  # 下限10
+
+            elif action_type == "quality_map":
+                current = self.quality_map[target][param]
+                if operation == "increase":
+                    return current < 3  # 质量等级上限3
+                else:
+                    return current > 0  # 下限0
+
+            elif action_type == "buffer_config":
+                current = self.rebuffer_config[target][param]
+                if operation == "increase":
+                    return current < 3000000  # 缓冲区上限
+                else:
+                    return current > 1000000  # 缓冲区下限
+
+        except KeyError:
+            return False
+        return False
+
+    def get_valid_actions(self):
+        """返回当前所有有效动作的ID列表"""
+        valid_actions = []
+        for action_id in range(self.action_size):
+            action_params = self.decode_action(action_id)
+            if self.is_action_valid(*action_params):
+                valid_actions.append(action_id)
+        return valid_actions
+
     def choose_action(self, state):
         """改进的ε-greedy策略"""
+        valid_actions = self.get_valid_actions()
+        if not valid_actions:
+            return None
+
         if random.uniform(0, 1) < self.exploration_rate:
             return random.randint(0, self.action_size - 1)
         else:
@@ -577,6 +645,8 @@ class StreamingOptimizer:
 
     def train(self, episodes=1000):
         """完整的训练流程"""
+        state=None
+        recent_rewards = []
         for episode in range(episodes):
             if state is None:
                 state = self.get_current_state()
@@ -588,7 +658,7 @@ class StreamingOptimizer:
             # 执行动作并获取奖励
             success = self.execute_action(action_id)
             reward = self.calculate_reward(prev_state) if success else -10
-
+            print(f"get reward:{reward}")
             # 获取新状态
             next_state = self.get_current_state()
             done = False  # 假设连续任务
@@ -597,14 +667,23 @@ class StreamingOptimizer:
             self.store_experience(prev_state, action_id, reward, next_state, done)
             prev_state=next_state
 
-            # 经验回放学习
             if len(self.replay_buffer) >= self.batch_size:
                 batch = self.sample_experience()
-                for exp in batch:
-                    self.update_q(*exp)
+                # 将批次拆分为单独的列表
+                states = [exp[0] for exp in batch]
+                actions = [exp[1] for exp in batch]
+                rewards = [exp[2] for exp in batch]
+                next_states = [exp[3] for exp in batch]
+                dones = [exp[4] for exp in batch]
+                # 一次处理整个批次
+                self.update_q(states, actions, rewards, next_states, dones)
 
             # 更新探索率
             self.decay_exploration()
+
+            recent_rewards.append(reward)
+            if len(recent_rewards) > 100:
+                recent_rewards.pop(0)
 
             # 定期同步目标网络
             if episode % 100 == 0:
@@ -612,8 +691,22 @@ class StreamingOptimizer:
 
             # 输出训练进度
             if episode % 50 == 0:
-                print(f"Episode {episode}: Epsilon {self.exploration_rate:.2f} | Recent Reward {reward:.2f}")
+                avg_reward = np.mean(recent_rewards)
+                print(f"Episode {episode} | Avg Reward: {avg_reward:.2f}")
+                self.save_model(f"checkpoint_{episode}.pth")
 
+    def save_model(self, path):
+        torch.save({
+            'q_net': self.q_network.state_dict(),
+            'target_net': self.target_network.state_dict(),
+            'optimizer': self.optimizer.state_dict()
+        }, path)
+
+    def load_model(self, path):
+        checkpoint = torch.load(path)
+        self.q_network.load_state_dict(checkpoint['q_net'])
+        self.target_network.load_state_dict(checkpoint['target_net'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
 
 if __name__ == "__main__":
     agent = StreamingOptimizer()

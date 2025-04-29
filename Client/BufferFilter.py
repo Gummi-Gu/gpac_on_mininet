@@ -76,7 +76,7 @@ class MyFilter(gpac.FilterCustom):
         if self.rebuff_time!=0:
             dur_time=start_time-self.rebuff_time
             if  dur_time - self.dur > 0.5:
-                    self.rebuff_sum_time += (dur_time - self.dur)
+                    self.rebuff_sum_time += (dur_time - self.dur-0.5)
                     self.rebuff_count+=1
         self.rebuff_time=start_time
         #print(self.dur,self.rebuff_sum_time,self.rebuff_count)
@@ -130,8 +130,7 @@ class MyFilter(gpac.FilterCustom):
             dur = pck.dur
             dur /= self.timescale
             #Factory.render.render(rgb,title)
-            if Factory.clientname=='client1':
-                Factory.render.push_frame(rgb,title,dur)
+            Factory.render.push_frame(rgb,title,dur)
             Factory.videoSegmentStatus.set_rgb(rgb)
 
             #get packet duration for later sleep
