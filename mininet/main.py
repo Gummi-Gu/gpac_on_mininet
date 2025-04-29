@@ -12,8 +12,8 @@ from mininet.cli import CLI
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
-    'high': {'mark': 10, 'rate': '40mbit', 'ceil': '40mbit', 'classid': '1:10'},
-    'middle': {'mark': 20, 'rate': '30mbit', 'ceil': '30mbit', 'classid': '1:20'},
+    'high': {'mark': 10, 'rate': '50mbit', 'ceil': '50mbit', 'classid': '1:10'},
+    'middle': {'mark': 20, 'rate': '35mbit', 'ceil': '35mbit', 'classid': '1:20'},
     'low': {'mark': 30, 'rate': '10mbit', 'ceil': '10mbit', 'classid': '1:30'},
 }
 TRAFFIC_CLASSES_MARK = {
@@ -40,7 +40,7 @@ class TrafficControl:
         cmds = [
             'tc qdisc del dev server-eth0 root 2>/dev/null',
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 85mbit',
+            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 105mbit',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["middle"]["classid"]} htb rate {TRAFFIC_CLASSES["middle"]["rate"]} ceil {TRAFFIC_CLASSES["middle"]["ceil"]}',
             f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
