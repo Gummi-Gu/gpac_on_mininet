@@ -150,7 +150,7 @@ def process_stats_batch(batch):
                     current_second = sec
                     current_second_bytes = 0
                     current_second_time = 0
-            current_second_bytes += data['bytes']
+            current_second_bytes += data['bytes']/1000
             current_second_time += data['delay']
 
         # 更新轨道统计
