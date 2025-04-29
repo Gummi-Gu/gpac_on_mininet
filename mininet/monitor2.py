@@ -51,15 +51,7 @@ while True:
     for client_id, qualities in quality_map.items():
         row = [client_id]
         for i in range(len(quality_headers) - 1):  # 减1是因为 'Client ID' 占了第一个位置
-            if i == 3:
-                i=12600
-            elif i == 2:
-                i=3150
-            elif i == 1:
-                i=785
-            elif i == 0:
-                i=200
-            row.append(qualities.get(i, 'N/A'))  # 若缺失某一段，填 'N/A'
+            row.append(qualities.get(str(i), 'N/A'))  # 若缺失某一段，填 'N/A'
         quality_data.append(row)
 
     quality_table = tabulate(quality_data, headers=quality_headers, tablefmt="pretty")
