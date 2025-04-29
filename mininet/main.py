@@ -210,16 +210,6 @@ def setup_network():
         client3.cmd('screen -dm bash_client3')
         server.cmd('screen -dm bash_server')
 
-        server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
-        #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
-        client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
-        client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
-        client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
-        print('server start')
-        server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
-        server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
-        print('monitor start')
-        TrafficControl.setup_tc(server)
 
         def get_eth1_ip(host):
             output = host.cmd(f'ifconfig {host.name}-eth1')
@@ -245,10 +235,21 @@ def setup_network():
                 except Exception as e:
                     print(f"{e}，{max_retry_interval}retry...")
                     time.sleep(max_retry_interval)
+        submit_with_retry(streamingMonitorClient, ip_maps)
+
+
+        server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
+        #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
+        client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
+        client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
+        client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
+        print('server start')
+        server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
+        server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
+        print('monitor start')
+        TrafficControl.setup_tc(server)
 
         while True:
-            submit_with_retry(streamingMonitorClient, ip_maps)
-            time.sleep(3)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             TrafficControl.report_traffic_classes()
