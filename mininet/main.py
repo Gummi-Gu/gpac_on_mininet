@@ -229,11 +229,8 @@ def setup_network():
             每次失败后等待 max_retry_interval 秒再试一次。
             """
             while True:
-                try:
-                    client.submit_ip_maps(ip_maps)
-                    break
-                except Exception as e:
-                    print(f"{e}，{max_retry_interval}retry...")
+                    if client.submit_ip_maps(ip_maps) is not None:
+                        break
                     time.sleep(max_retry_interval)
         submit_with_retry(streamingMonitorClient, ip_maps)
 
