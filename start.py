@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import time
 import os
 import signal
@@ -57,7 +58,8 @@ def main():
     ]
 
     timeout = 60  # 每轮运行时间（秒）
-    #start_monitor(venv_python,project_root)
+    if sys.argv[1] == 'monitor':
+        start_monitor(venv_python,project_root)
     try:
         for _ in range(60):
             processes = start_clients(venv_python, modules, project_root)

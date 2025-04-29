@@ -450,11 +450,11 @@ class StreamingOptimizer:
         avg_quality = sum(
             self.quality_map[client][level]
             for client in self.quality_map
-            for level in [0, 1, 2, 3]
+            for level in ['0', '1', '2', '3']
         ) / (3 * 12)  # 归一化
 
         # 假设通过监控获取缓冲次数（这里使用随机模拟）
-        rebuffer_events =self.rebuff_event/200
+        rebuffer_events =self.rebuff_event/10
 
         reward = (
                 0.3 * log_normalize(bandwidth_util) +
@@ -462,7 +462,7 @@ class StreamingOptimizer:
                 0.3 * fairness_qoe+
                 0.3 * avg_quality +
                 0.5 * qoe-
-                0.5 * rebuffer_events
+                1 * rebuffer_events
         )
         return reward
 
@@ -509,7 +509,7 @@ class StreamingOptimizer:
             params = (
                 "quality_map",
                 ['client1', 'client2', 'client3'][B],
-                C,  # level 0-3
+                str(C),  # level 0-3
                 "increase" if D == 0 else "decrease"
             )
         else:
@@ -600,9 +600,9 @@ class StreamingOptimizer:
             elif action_type == "quality_map":
                 current = self.quality_map[target][param]
                 if operation == "increase":
-                    return current < 3  # 质量等级上限3
+                    return int(current) < 3  # 质量等级上限3
                 else:
-                    return current > 0  # 下限0
+                    return int(current) > 0  # 下限0
 
             elif action_type == "buffer_config":
                 current = self.rebuffer_config[target][param]
@@ -710,4 +710,5 @@ class StreamingOptimizer:
 
 if __name__ == "__main__":
     agent = StreamingOptimizer()
+    agent.load_model('checkpoint_0.pth')
     agent.train(episodes=1000)

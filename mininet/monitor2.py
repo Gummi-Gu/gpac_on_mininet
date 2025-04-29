@@ -4,6 +4,8 @@ import time
 from tabulate import tabulate
 
 import util
+from Server.monitors import quality_map
+
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 def mark2bw(x):
     if x == 10:
@@ -13,13 +15,10 @@ def mark2bw(x):
     if x == 30:
         return 10
 
-
-
-latest_rate_history = {}
-latest_delay_history = {}
 while True:
     link_metrics = streamingMonitorClient.fetch_link_metrics()
     client_stats = streamingMonitorClient.fetch_client_stats()
+    quality_map = streamingMonitorClient.fetch_quality_map()
 
     # Link Metrics 表格
     link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', '12600_rate', '3150_rate', '785_rate','200_rate']
@@ -44,6 +43,29 @@ while True:
         ))
 
     client_table = tabulate(client_table_data, headers=client_headers, tablefmt="pretty", floatfmt=".2f")
+
+    # Quality Map 表格
+    quality_headers = ['Client ID'] + [f'Quality {i}' for i in range(max(len(q) for q in quality_map.values()))]
+    quality_data = []
+
+    for client_id, qualities in quality_map.items():
+        row = [client_id]
+        for i in range(len(quality_headers) - 1):  # 减1是因为 'Client ID' 占了第一个位置
+            if i == 3:
+                i=12600
+            elif i == 2:
+                i=3150
+            elif i == 1:
+                i=785
+            elif i == 0:
+                i=200
+            row.append(qualities.get(i, 'N/A'))  # 若缺失某一段，填 'N/A'
+        quality_data.append(row)
+
+    quality_table = tabulate(quality_data, headers=quality_headers, tablefmt="pretty")
+
+    print("\nQuality Map Table:")
+    print(quality_table)
     print("\nLink Metrics Table:")
     print(link_table)
     print("\nClient Stats Table:")

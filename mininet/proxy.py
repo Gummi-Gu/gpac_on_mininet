@@ -23,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 全局配置
-BUFFER_SIZE = 1024 * 32  # 1MB缓冲块
+BUFFER_SIZE = 1024 * 32  # 32kb缓冲块
 STATS_BATCH_SIZE = 1  # 批量处理统计事件数
 CONNECTION_POOL_SIZE = 100  # 连接池大小
 
