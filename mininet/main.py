@@ -229,7 +229,7 @@ def setup_network():
             每次失败后等待 max_retry_interval 秒再试一次。
             """
             while True:
-                    if client.submit_ip_maps(ip_maps) is not None:
+                    if client.submit_ip_maps(ip_maps) is True:
                         break
                     time.sleep(max_retry_interval)
         submit_with_retry(streamingMonitorClient, ip_maps)
