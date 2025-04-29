@@ -127,3 +127,7 @@ class StreamingMonitorClient:
     def fetch_client_stats(self):
         """获取 client_stats 数据"""
         return self._get_data("get/client_stats")
+
+    def fetch_quality_map(self):
+        """获取 quality_map 数据"""
+        return self._get_data("get/quality_map")

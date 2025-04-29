@@ -4,7 +4,8 @@ import time
 import random
 from datetime import datetime
 import json
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
+
 
 class StreamingMonitorClient:
     def __init__(self, server_url: str = "http://localhost:5000"):
@@ -24,6 +25,22 @@ class StreamingMonitorClient:
         except requests.exceptions.RequestException as e:
             print(f"提交数据失败: {str(e)}")
             return False
+
+    def _get_data(self, endpoint: str) -> Optional[Dict[str, Any]]:
+        """通用数据获取方法"""
+        try:
+            response = self.session.get(
+                f"{self.base_url}/{endpoint}",
+                timeout=5
+            )
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"获取数据失败，状态码: {response.status_code}")
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"获取数据失败: {str(e)}")
+            return None
 
     def submit_track_stats(
         self,
@@ -75,34 +92,38 @@ class StreamingMonitorClient:
         }
         return self._send_data("chunk_quality", payload)
 
-class DataGenerator:
-    """模拟数据生成器"""
+    def fetch_traffic_classes_mark(self) -> Optional[Dict[str, Any]]:
+        """获取 TRAFFIC_CLASSES_MARK 数据"""
+        return self._get_data("get/traffic_classes_mark")
 
-    @staticmethod
-    def generate_track_stats(track_id: str) -> Dict:
-        return {
-            "track_id": track_id,
-            "avg_delay": random.uniform(10, 100),
-            "avg_rate": random.uniform(1, 5),
-            "latest_delay": random.uniform(5, 150),
-            "latest_rate": random.uniform(0.5, 6)
-        }
+    def fetch_traffic_classes_delay(self) -> Optional[Dict[str, Any]]:
+        """获取 TRAFFIC_CLASSES_DELAY 数据"""
+        return self._get_data("get/traffic_classes_delay")
 
-    @staticmethod
-    def generate_link_metrics(link_id: str) -> Dict:
-        return {
-            "link_id": link_id,
-            "delay": random.uniform(20, 500),
-            "loss_rate": random.uniform(0, 0.2)
-        }
+    def fetch_track_stats(self):
+        """获取 track_stats 数据"""
+        return self._get_data("get/track_stats")
 
-    @staticmethod
-    def generate_chunk_quality(chunk_id: str) -> Dict:
-        resolutions = ["1280x720", "1920x1080", "3840x2160"]
-        return {
-            "chunk_id": chunk_id,
-            "bitrate": random.choice([2000, 4000, 8000]),
-            "resolution": random.choice(resolutions),
-            "buffer_time": random.uniform(1, 10),
-            "quality_score": random.randint(50, 100)
-        }
+    def fetch_summary_rate_stats(self):
+        """获取 summary_rate_stats 数据"""
+        return self._get_data("get/summary_rate_stats")
+
+    def fetch_bitrate_stats(self):
+        """获取 bitrate_stats 数据"""
+        return self._get_data("get/bitrate_stats")
+
+    def fetch_link_metrics(self):
+        """获取 link_metrics 数据"""
+        return self._get_data("get/link_metrics")
+
+    def fetch_client_stats(self):
+        """获取 client_stats 数据"""
+        return self._get_data("get/client_stats")
+
+    def fetch_quality_map(self):
+        """获取 quality_map 数据"""
+        return self._get_data("get/quality_map")
+
+    def fetch_rebuffer_config(self):
+        """获取 rebuffer_config 数据"""
+        return self._get_data("get/rebuffer_config")

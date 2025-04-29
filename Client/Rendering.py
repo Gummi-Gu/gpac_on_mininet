@@ -19,8 +19,8 @@ import numpy as np
 class Viewpoint:
     def __init__(self,choice=0):
         # 设置输出参数
-        self.output_width = 400
-        self.output_height = 300
+        self.output_width = 800
+        self.output_height = 600
         self.angle_thread = threading.Thread(target=self.listen_for_keys)
         self.angle_thread.daemon = True  # 设置为守护线程，确保程序退出时线程也会退出
         self.angle_thread.start()
@@ -151,7 +151,7 @@ class Viewpoint:
             Factory.yaw=yaw
             Factory.pitch=pitch
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
-            time.sleep(15)
+            time.sleep(0.2)
             #print(f"[Rendering] {time.time()}")
             #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
 
