@@ -279,9 +279,9 @@ def setup_network():
             '''
 
     except KeyboardInterrupt:
+        net.stop()
         pass
     finally:
-        net.stop()
         os.system("sudo mn -c")
         os.system("sudo pkill screen")
 
