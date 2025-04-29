@@ -7,12 +7,20 @@ def start_clients(venv_python, modules, project_root):
     """启动所有客户端进程"""
     processes = []
 
-    # 启动图片渲染程序
-    #render_process = subprocess.Popen(
-    #    [venv_python, "render_images.py"],  # 使用虚拟环境中的 Python 启动 render_images.py
-    #    cwd=project_root,  # 保证在项目根目录启动
-    #)
-    #processes.append(render_process)
+    #启动图片渲染程序
+    render_process = subprocess.Popen(
+        [venv_python, "render_images.py"],  # 使用虚拟环境中的 Python 启动 render_images.py
+        cwd=project_root,  # 保证在项目根目录启动
+    )
+    processes.append(render_process)
+
+    #启动监控
+    render_process = subprocess.Popen(
+        [venv_python, "Server/monitors"],  # 使用虚拟环境中的 Python 启动 render_images.py
+        cwd=project_root,  # 保证在项目根目录启动
+    )
+    processes.append(render_process)
+    time.sleep(3)
 
     for module in modules:
         print(f"Starting {module}...")

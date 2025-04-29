@@ -233,9 +233,21 @@ def setup_network():
             ip_addr = get_eth1_ip(client_host)
             ip_maps[client_name] = ip_addr
 
+        def submit_with_retry(client, ip_maps, max_retry_interval=5):
+            """
+            尝试向服务器提交 ip_maps，如果失败则无限重试，直到成功为止。
+            每次失败后等待 max_retry_interval 秒再试一次。
+            """
+            while True:
+                try:
+                    client.submit_ip_maps(ip_maps)
+                    break
+                except Exception as e:
+                    print(f"{e}，{max_retry_interval}retry...")
+                    time.sleep(max_retry_interval)
 
         while True:
-            streamingMonitorClient.submit_ip_maps(ip_maps)
+            submit_with_retry(streamingMonitorClient, ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             TrafficControl.report_traffic_classes()
