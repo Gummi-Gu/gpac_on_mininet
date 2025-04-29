@@ -248,10 +248,11 @@ def setup_network():
 
         while True:
             submit_with_retry(streamingMonitorClient, ip_maps)
+            time.sleep(3)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             TrafficControl.report_traffic_classes()
-            time.sleep(5)
+
             '''
             TrafficControl.report_traffic_classes()
             user_input = input(
