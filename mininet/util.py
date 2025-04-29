@@ -21,7 +21,7 @@ class StreamingMonitorClient:
             )
             return response.status_code == 200
         except requests.exceptions.RequestException as e:
-            print(f"提交数据失败: {str(e)}")
+            print(f"fail {str(e)}")
             return False
 
     def _get_data(self, endpoint: str) -> Optional[Dict[str, Any]]:
@@ -34,10 +34,10 @@ class StreamingMonitorClient:
             if response.status_code == 200:
                 return response.json()
             else:
-                print(f"获取数据失败，状态码: {response.status_code}")
+                print(f"fail {response.status_code}")
                 return None
         except requests.exceptions.RequestException as e:
-            print(f"获取数据失败: {str(e)}")
+            print(f"fail {str(e)}")
             return None
 
     def submit_track_stats(
