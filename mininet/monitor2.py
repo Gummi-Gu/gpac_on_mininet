@@ -4,7 +4,6 @@ import time
 from tabulate import tabulate
 
 import util
-from Server.monitors import quality_map
 
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 def mark2bw(x):
