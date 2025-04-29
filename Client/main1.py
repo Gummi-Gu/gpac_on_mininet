@@ -23,7 +23,8 @@ def run_pipeline():
     if len(sys.argv) > 1:
         src = fs.load_src(sys.argv[1])
     else:
-        src = fs.load_src(f"http://{ip}:10086/01/files/dash_tiled.mpd")
+        src = fs.load_src(f"http://127.0.0.1:10085/01/files/dash_tiled.mpd")
+        #src = fs.load_src(f"http://{ip}:10086/01/files/dash_tiled.mpd")
 
     # 加载自定义 filter 并设置其源
     my_filter = Factory.bufferFilter

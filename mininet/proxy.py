@@ -23,8 +23,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 全局配置
-BUFFER_SIZE = 1024 * 1024  # 1MB缓冲块
-STATS_BATCH_SIZE = 100  # 批量处理统计事件数
+BUFFER_SIZE = 1024 * 32  # 1MB缓冲块
+STATS_BATCH_SIZE = 1  # 批量处理统计事件数
 CONNECTION_POOL_SIZE = 100  # 连接池大小
 
 # 共享数据结构
@@ -86,7 +86,7 @@ def update_stats(track_id, bitrate, duration, size):
             track_id,
             bitrate,
             duration * 1000,  # 转换为毫秒
-            size,
+            size / 1000,
             time.time()
         ))
     except queue.Full:
@@ -100,7 +100,6 @@ def process_stats_batch(batch):
     time_map = {}
     track_map = {}
     bitrate_map = {}
-
     # 聚合数据
     for track_id, bitrate, delay_ms, size, timestamp in batch:
         # 按时间聚合
@@ -144,7 +143,7 @@ def process_stats_batch(batch):
                 if current_second_bytes > 0:
                     streamingMonitorClient.submit_summary_rate_stats({
                         client_id: {
-                            'size': current_second_bytes / 1e6,
+                            'size': current_second_bytes,
                             'time': current_second_time
                         }
                     })
@@ -270,13 +269,11 @@ def run_server(target, port, proxy_port):
         t = threading.Thread(target=stats_consumer, daemon=True)
         t.start()
 
-    # 配置高性能服务器
+    # 修正服务器配置（删除无效参数）
     server = ThreadedWSGIServer(
         '0.0.0.0',
         proxy_port,
-        app,
-        threaded=True,
-        processes=4  # 根据CPU核心数调整
+        app  # 仅保留必需参数
     )
     logger.info(f"Optimized proxy running on :{proxy_port}")
     server.serve_forever()
