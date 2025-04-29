@@ -61,7 +61,7 @@ def main():
     if sys.argv[1] == 'monitor':
         start_monitor(venv_python,project_root)
     try:
-        for _ in range(60):
+        while True:
             processes = start_clients(venv_python, modules, project_root)
             start_time = time.time()
 

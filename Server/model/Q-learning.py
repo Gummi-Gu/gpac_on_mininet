@@ -439,7 +439,7 @@ class StreamingOptimizer:
         qoe=sum(
             self.client_stats[client]['qoe']
             for client in ['client1', 'client2', 'client3']
-        ) / (50 * 3)
+        ) / (30 * 3)
 
         fairness_band=fairness([self.summary_rate_stats[client]['size']
             for client in self.summary_rate_stats])
@@ -458,10 +458,10 @@ class StreamingOptimizer:
 
         reward = (
                 0.3 * log_normalize(bandwidth_util) +
-                0.3 * fairness_band+
-                0.3 * fairness_qoe+
+                0.3 * (fairness_band-0.5)+
+                0.3 * (fairness_qoe-0.5)+
                 0.3 * avg_quality +
-                0.5 * qoe-
+                1 * qoe-
                 1 * rebuffer_events
         )
         return reward
@@ -622,21 +622,31 @@ class StreamingOptimizer:
             action_params = self.decode_action(action_id)
             if self.is_action_valid(*action_params):
                 valid_actions.append(action_id)
+            #print(action_params)
+            #print(self.is_action_valid(*action_params))
         return valid_actions
 
     def choose_action(self, state):
-        """改进的ε-greedy策略"""
+        """改进的ε-greedy策略，仅考虑有效动作"""
         valid_actions = self.get_valid_actions()
         if not valid_actions:
-            return None
+            return None  # 无有效动作时可返回None或处理异常
 
+        # ε-greedy策略
         if random.uniform(0, 1) < self.exploration_rate:
-            return random.randint(0, self.action_size - 1)
+            # 随机探索：从有效动作中随机选择
+            return random.choice(valid_actions)
         else:
+            # 利用Q网络选择最优有效动作
             state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
             with torch.no_grad():
-                q_values = self.q_network(state_tensor)
-            return q_values.argmax().item()
+                q_values = self.q_network(state_tensor).cpu().numpy().flatten()
+
+            # 筛选有效动作的Q值
+            valid_q = [(action, q_values[action]) for action in valid_actions]
+            # 找出Q值最大的动作
+            best_action = max(valid_q, key=lambda x: x[1])[0]
+            return best_action
 
     def decay_exploration(self):
         """指数衰减探索率"""
@@ -657,10 +667,11 @@ class StreamingOptimizer:
 
             # 执行动作并获取奖励
             success = self.execute_action(action_id)
-            reward = self.calculate_reward(prev_state) if success else -10
-            print(f"get reward:{reward}")
+
             # 获取新状态
             next_state = self.get_current_state()
+            reward = self.calculate_reward(next_state) if success else -10
+            print(f"get reward:{reward}")
             done = False  # 假设连续任务
 
             # 存储经验
