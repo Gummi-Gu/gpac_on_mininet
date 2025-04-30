@@ -14,6 +14,9 @@ def mark2bw(x):
     if x == 30:
         return 10
 
+
+total_qoe = 0.0
+client_count = 0
 while True:
     link_metrics = streamingMonitorClient.fetch_link_metrics()
     client_stats = streamingMonitorClient.fetch_client_stats()
@@ -36,8 +39,6 @@ while True:
     client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE', 'Avg QoE']
     client_table_data = []
 
-    total_qoe = 0.0
-    client_count = 0
 
     for client_id, stats in client_stats.items():
         qoe = stats['qoe']
