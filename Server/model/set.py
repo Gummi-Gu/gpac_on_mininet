@@ -18,9 +18,9 @@ def update(endpoint, data):
 
 # 1. 更新 traffic_classes_mark
 traffic_classes_mark_update = {
-    '10.0.0.2': {'port': 10086, '12600': 10, '3150': 10, '785': 10, '200': 10},
-    '10.0.0.3': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30},
-    '10.0.0.4': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30}
+    '10.0.0.2': {'port': 10086, '12600': 20, '3150': 10, '785': 20, '200': 30},
+    '10.0.0.3': {'port': 10086, '12600': 20, '3150': 10, '785': 20, '200': 30},
+    '10.0.0.4': {'port': 10086, '12600': 20, '3150': 10, '785': 20, '200': 30}
 
 }
 
@@ -53,9 +53,9 @@ def decrease_mark(ip, bit_class):
 
 # 2. 更新 traffic_classes_delay
 traffic_classes_delay_update = {
-    '10.0.0.2': {'client': 'client1', 'delay': 1, 'loss': 1},
-    '10.0.0.3': {'client': 'client4', 'delay': 1, 'loss': 2},
-    '10.0.0.4': {'client': 'client4', 'delay': 1, 'loss': 2}
+    '10.0.0.2': {'client': 'client1', 'delay': 0, 'loss': 0},
+    '10.0.0.3': {'client': 'client4', 'delay': 0, 'loss': 0},
+    '10.0.0.4': {'client': 'client4', 'delay': 0, 'loss': 0}
 }
 
 # 3. 更新 rebuffer_config
@@ -93,7 +93,7 @@ def decrease_buffer(client, buffer_type):
 
 # 4. 更新 quality_map
 quality_map_update = {
-    'client1': {0: 0, 1: 0, 2: 0, 3: 0},
+    'client1': {0: 0, 1: 1, 2: 2, 3: 3},
     'client2': {0: 0, 1: 1, 2: 2, 3: 3},
     'client3': {0: 0, 1: 1, 2: 2, 3: 3}
 }
@@ -125,14 +125,17 @@ def decrease_quality(client, level):
         print(f"错误：客户端 {client} 不存在")
 # --- 选择你要更新的内容，执行更新 ---
 
-# 更新 traffic_classes_mark
-update("traffic_classes_mark", traffic_classes_mark_update)
+def reset():
+    # 更新 traffic_classes_mark
+    update("traffic_classes_mark", traffic_classes_mark_update)
 
-# 更新 traffic_classes_delay
-update("traffic_classes_delay", traffic_classes_delay_update)
+    # 更新 traffic_classes_delay
+    update("traffic_classes_delay", traffic_classes_delay_update)
 
-# 更新 rebuffer_config
-update("rebuffer_config", rebuffer_config_update)
+    # 更新 rebuffer_config
+    update("rebuffer_config", rebuffer_config_update)
 
-# 更新 quality_map
-update("quality_map", quality_map_update)
+    # 更新 quality_map
+    update("quality_map", quality_map_update)
+
+reset()

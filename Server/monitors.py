@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+from sympy import threaded
 from tabulate import tabulate
 from collections import defaultdict
 from datetime import datetime
@@ -14,9 +15,9 @@ string_dict = {
             '200': 0
         }
 quality_map = {
-    'client1':{0:0,1:1,2:3,3:3},
-    'client2':{0:0,1:1,2:3,3:3},
-    'client3':{0:0,1:1,2:3,3:3}
+    'client1':{0:0,1:1,2:2,3:3},
+    'client2':{0:0,1:1,2:2,3:3},
+    'client3':{0:0,1:1,2:2,3:3}
 }
 rebuffer_config = {
     'client1':{'re_buffer': 1000000,'play_buffer': 1000000},
@@ -66,8 +67,8 @@ client_stats = defaultdict(lambda: {
 # 新增的数据结构
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30},
-    '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
-    '10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
+    '10.0.0.3' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30},
+    '10.0.0.4' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30}
 }
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
@@ -487,4 +488,4 @@ def show_dashboard():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

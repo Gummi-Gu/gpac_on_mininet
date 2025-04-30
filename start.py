@@ -2,17 +2,8 @@ import subprocess
 import sys
 import time
 import os
-import signal
 
 def start_monitor(venv_python, project_root):
-    # 启动图片渲染程序
-    #render_process = subprocess.Popen(
-    #    [venv_python, "render_images.py"],
-    #    cwd=project_root,
-    #    creationflags=subprocess.CREATE_NEW_CONSOLE  # 每个进程单开窗口
-    #)
-
-    # 启动监控
     monitor_process = subprocess.Popen(
         [venv_python, "Server/monitors.py"],
         cwd=project_root,
@@ -20,32 +11,27 @@ def start_monitor(venv_python, project_root):
     )
     time.sleep(3)
 
-def start_clients(venv_python, modules, project_root):
-    """启动所有客户端进程"""
-    processes = []
-    for module in modules:
-        print(f"Starting {module}...")
-        p = subprocess.Popen(
-            [venv_python, "-m", module],
-            cwd=project_root,
-            creationflags=subprocess.CREATE_NEW_CONSOLE
-        )
-        processes.append(p)
-        time.sleep(1)
-    print("All clients started.\n")
-    return processes
+def start_single_client(venv_python, module, project_root):
+    print(f"Starting {module}...")
+    p = subprocess.Popen(
+        [venv_python, "-m", module],
+        cwd=project_root,
+        creationflags=subprocess.CREATE_NEW_CONSOLE
+    )
+    return {"module": module, "process": p, "start_time": time.time()}
 
-def stop_clients(processes):
-    """停止所有客户端进程"""
-    for p in processes:
-        if p.poll() is None:  # 还在运行的才需要终止
-            print(f"Terminating process {p.pid}...")
-            p.terminate()
-            try:
-                p.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                print(f"Process {p.pid} did not terminate, killing...")
-                p.kill()
+def restart_client(process_info, venv_python, project_root):
+    p = process_info["process"]
+    module = process_info["module"]
+    if p.poll() is None:
+        print(f"Terminating process {p.pid} ({module})...")
+        p.terminate()
+        try:
+            p.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            print(f"Process {p.pid} did not terminate, killing...")
+            p.kill()
+    return start_single_client(venv_python, module, project_root)
 
 def main():
     project_root = os.path.dirname(os.path.abspath(__file__))  # 项目根目录
@@ -57,39 +43,39 @@ def main():
         "Client.main3",
     ]
 
-    timeout = 60  # 每轮运行时间（秒）
-    if sys.argv[1] == 'monitor':
-        start_monitor(venv_python,project_root)
+    if len(sys.argv) > 1 and sys.argv[1] == 'monitor':
+        start_monitor(venv_python, project_root)
+
+    # 启动所有客户端，每隔10秒一个
+    process_infos = []
+    for module in modules:
+        process_infos.append(start_single_client(venv_python, module, project_root))
+        time.sleep(10)
+
     try:
         while True:
-            processes = start_clients(venv_python, modules, project_root)
-            start_time = time.time()
-
-            while True:
-                elapsed = time.time() - start_time
-                if elapsed > timeout:
-                    print(f"\nTime limit {timeout}s reached.")
-                    break
-
-                # 检查子进程是否意外退出
-                for p in processes:
-                    if p.poll() is not None:
-                        print(f"Process {p.pid} exited early.")
-                        break  # 有子进程提前退出了，跳出重新启动
-
-                time.sleep(1)
-
-            print("\nRestarting clients...\n")
-            stop_clients(processes)
-            time.sleep(1)  # 给点时间再重启
+            time.sleep(1)  # 主循环每秒检查
+            for i, info in enumerate(process_infos):
+                p = info["process"]
+                if p.poll() is not None:
+                    print(f"Process {p.pid} ({info['module']}) exited early. Restarting...")
+                    process_infos[i] = start_single_client(venv_python, info["module"], project_root)
+                elif time.time() - info["start_time"] > 60:
+                    print(f"Process {p.pid} ({info['module']}) reached 60s. Restarting...")
+                    process_infos[i] = restart_client(info, venv_python, project_root)
 
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received. Stopping all clients...")
-        stop_clients(processes)
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        stop_clients(processes)
+        for info in process_infos:
+            p = info["process"]
+            if p.poll() is None:
+                print(f"Terminating process {p.pid}...")
+                p.terminate()
+                try:
+                    p.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    print(f"Process {p.pid} did not terminate, killing...")
+                    p.kill()
 
 if __name__ == "__main__":
     main()

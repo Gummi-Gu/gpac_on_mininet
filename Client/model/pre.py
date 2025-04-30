@@ -110,6 +110,7 @@ def pre():
 def QoEpre(level):
     global last_rebuff_time, last_rebuff_count, last_Qoa
     qua=Factory.videoSegmentStatus.get_quality()[1:]
+    print(qua)
     level=level.flatten()
     B=0
     for j,i in enumerate(qua):
@@ -118,10 +119,10 @@ def QoEpre(level):
         if i==1:
             B+=2*level[j]
         if i==2:
-            B+=3*level[j]
+            B+=4*level[j]
         if i == 3:
-            B += 4 * level[j]
-    B=B/Factory.tile_num*10
+            B += 8 * level[j]
+    B=B/Factory.tile_num
 
     matrix1,matrix2=qua,last_Qoa
     if last_Qoa is None:
@@ -134,7 +135,7 @@ def QoEpre(level):
     # 计算两个矩阵之间的元素差异（以比特率为单位）
     diff_matrix = np.abs(matrix1_bitrate - matrix2_bitrate)
     S = (diff_matrix - np.min(diff_matrix)) / max(0.1,(np.max(diff_matrix) - np.min(diff_matrix)))
-    S = np.sum(S)
+    S = np.sum(S)/Factory.tile_num
 
     D1=Factory.videoSegmentStatus.get_rebuff_time()-last_rebuff_time
     D2=Factory.videoSegmentStatus.get_rebuff_count()-last_rebuff_count
@@ -164,14 +165,14 @@ def QoEpre(level):
             diff_matrix[i, j] = np.mean(diffs)
     # 对差异矩阵进行 Min-Max 归一化
     diff_matrix_normalized = (diff_matrix - np.min(diff_matrix)) / max(0.1,(np.max(diff_matrix) - np.min(diff_matrix)))
-    U=np.sum(diff_matrix_normalized/4)
+    U=np.sum(diff_matrix_normalized)/Factory.tile_num
 
-    Qoe = -10 * D1 - 5 * D2 + 1 * B - 2 * S - 1 * U
+    Qoe = -4 * D1 - 1 * D2 + 1 * B - 1 * S - 2 * U
 
     last_Qoa=qua
     last_rebuff_time=Factory.videoSegmentStatus.get_rebuff_time()
     last_rebuff_count=Factory.videoSegmentStatus.get_rebuff_count()
-    print(f"[PRE]{Qoe}")
+    print(f"[PRE]{Qoe:.2f},{D1:.2f},{D2:.2f},{B:.2f},{S:.2f},{U:.2f}")
     return Qoe
 
 

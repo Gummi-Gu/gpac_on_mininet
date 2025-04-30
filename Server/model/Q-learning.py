@@ -1,4 +1,3 @@
-import json
 import time
 
 import requests
@@ -8,7 +7,8 @@ import torch.optim as optim
 import random
 import numpy as np
 from collections import deque, defaultdict
-from Server.util import StreamingMonitorClient
+from util import StreamingMonitorClient
+import set
 
 streamingMonitorClient=StreamingMonitorClient()
 # 设备配置
@@ -44,7 +44,7 @@ def fairness(q):
 import numpy as np
 
 
-def log_normalize(x, min_val=0, max_val=1, eps=1e-8):
+def log_normalize(x, min_val=None, max_val=None, eps=0.1):
     """
     对x进行log归一化，映射到[0, 1]之间。
     参数:
@@ -62,11 +62,11 @@ def log_normalize(x, min_val=0, max_val=1, eps=1e-8):
 
     # 自动确定归一化区间
     if min_val is None:
-        min_val = np.min(log_x)
+        min_val = np.log(0+eps)
     if max_val is None:
-        max_val = np.max(log_x)
+        max_val = np.log(1+eps)
 
-    norm_x = (log_x - min_val) / (max_val - min_val + eps)
+    norm_x = (log_x - min_val) / (max_val - min_val)
     return norm_x
 
 
@@ -257,7 +257,7 @@ class StreamingOptimizer:
         self.client_stats = streamingMonitorClient.fetch_client_stats()
         for client in ['client1', 'client2', 'client3']:
             self.rebuff_event += (
-                    self.client_stats[client]['rebuffer_time'] + self.client_stats[client]['rebuffer_count'])
+                    4*self.client_stats[client]['rebuffer_time'] + self.client_stats[client]['rebuffer_count'])
 
         # 存5次原始数据
         traffic_classes_mark_list = []
@@ -416,8 +416,9 @@ class StreamingOptimizer:
         self.client_stats = streamingMonitorClient.fetch_client_stats()
         for client in ['client1', 'client2', 'client3']:
             temp += (
-                    self.client_stats[client]['rebuffer_time'] + self.client_stats[client]['rebuffer_count'])
-        self.rebuff_event = temp - self.rebuff_event
+                    4*self.client_stats[client]['rebuffer_time'] + self.client_stats[client]['rebuffer_count'])
+        self.rebuff_event = np.max(temp - self.rebuff_event,0)
+        print(self.rebuff_event)
 
         return np.array(state)
 
@@ -439,30 +440,31 @@ class StreamingOptimizer:
         qoe=sum(
             self.client_stats[client]['qoe']
             for client in ['client1', 'client2', 'client3']
-        ) / (30 * 3)
+        ) / (5 * 3)
 
         fairness_band=fairness([self.summary_rate_stats[client]['size']
             for client in self.summary_rate_stats])
 
         fairness_qoe=fairness([self.client_stats[client]['qoe']
-            for client in self.summary_rate_stats])
+            for client in self.client_stats])
 
-        avg_quality = sum(
-            self.quality_map[client][level]
-            for client in self.quality_map
-            for level in ['0', '1', '2', '3']
-        ) / (3 * 12)  # 归一化
+        delay=sum(
+            self.summary_rate_stats[client]['time']
+            for client in ['client1', 'client2', 'client3']
+        ) / 3000  # 最大可能值
 
         # 假设通过监控获取缓冲次数（这里使用随机模拟）
-        rebuffer_events =self.rebuff_event/10
+        rebuffer_events =self.rebuff_event/60
+
+        print(log_normalize(bandwidth_util),(fairness_band-0.5),(fairness_qoe-0.5),qoe,rebuffer_events,delay)
 
         reward = (
                 0.3 * log_normalize(bandwidth_util) +
                 0.3 * (fairness_band-0.5)+
                 0.3 * (fairness_qoe-0.5)+
-                0.3 * avg_quality +
                 1 * qoe-
-                1 * rebuffer_events
+                1 * rebuffer_events-
+                1 * delay
         )
         return reward
 
@@ -618,7 +620,7 @@ class StreamingOptimizer:
     def get_valid_actions(self):
         """返回当前所有有效动作的ID列表"""
         valid_actions = []
-        for action_id in range(self.action_size):
+        for action_id in range(24):#self.action_size
             action_params = self.decode_action(action_id)
             if self.is_action_valid(*action_params):
                 valid_actions.append(action_id)
@@ -657,7 +659,10 @@ class StreamingOptimizer:
         """完整的训练流程"""
         state=None
         recent_rewards = []
+        pre_reward=0
         for episode in range(episodes):
+            state=None
+            set.reset()
             if state is None:
                 state = self.get_current_state()
             else:
@@ -671,11 +676,16 @@ class StreamingOptimizer:
             # 获取新状态
             next_state = self.get_current_state()
             reward = self.calculate_reward(next_state) if success else -10
-            print(f"get reward:{reward}")
+            dreward=reward-pre_reward
+            dreward=0.5*dreward+0.5*reward
+            pre_reward=reward
+            print(f"get reward:{dreward}")
+            if reward > 2:
+                continue
             done = False  # 假设连续任务
 
             # 存储经验
-            self.store_experience(prev_state, action_id, reward, next_state, done)
+            self.store_experience(prev_state, action_id, dreward, next_state, done)
             prev_state=next_state
 
             if len(self.replay_buffer) >= self.batch_size:
@@ -721,5 +731,5 @@ class StreamingOptimizer:
 
 if __name__ == "__main__":
     agent = StreamingOptimizer()
-    agent.load_model('checkpoint_0.pth')
-    agent.train(episodes=1000)
+    #agent.load_model('checkpoint_0.pth')
+    agent.train(episodes=360)
