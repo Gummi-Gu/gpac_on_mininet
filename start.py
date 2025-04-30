@@ -39,8 +39,8 @@ def main():
 
     modules = [
         "Client.main1",
-        #"Client.main2",
-        #"Client.main3",
+        "Client.main2",
+        "Client.main3",
     ]
 
     if len(sys.argv) > 1 and sys.argv[1] == 'monitor':

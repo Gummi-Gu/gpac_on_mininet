@@ -1,5 +1,6 @@
 import re
 import time
+from collections import defaultdict
 
 from tabulate import tabulate
 
@@ -8,6 +9,11 @@ streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 latest_rate_history = {}
 latest_delay_history = {}
+summary_state=defaultdict(lambda: {
+    'total_delay': 0.0,
+    'total_rate': 0.0,
+    'count': 0
+})
 while True:
 
     track_stats = streamingMonitorClient.fetch_track_stats()
@@ -66,9 +72,14 @@ while True:
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
         client_id_num = ''.join(re.findall(r'\d+', client_id))
+        summary_state[client_id]['total_delay'] += stats['latest_delay']
+        summary_state[client_id]['total_rate'] += stats['latest_rate']
+        summary_state[client_id]['count'] += 1
+        avg_rate=summary_state[client_id]['total_rate']/summary_state[client_id]['count']
+        avg_delay=summary_state[client_id]['total_delay']/summary_state[client_id]['count']
         track_table_data.append((
             'sum', str(client_id_num),
-            0.0, 0.0,
+            avg_delay, avg_rate,
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
             f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"

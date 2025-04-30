@@ -1,5 +1,6 @@
 import re
 import time
+from collections import defaultdict
 
 from tabulate import tabulate
 
@@ -13,6 +14,11 @@ def mark2bw(x):
         return 25
     if x == 30:
         return 10
+
+summary_state=defaultdict(lambda: {
+    'qoe': 0.0,
+    'count': 0
+})
 
 while True:
     link_metrics = streamingMonitorClient.fetch_link_metrics()
@@ -33,12 +39,15 @@ while True:
     link_table = tabulate(link_data, headers=link_headers, tablefmt="pretty", floatfmt=".2f")
 
     # Client Stats 表格
-    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE']
+    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE', 'Avg_Qoe']
     client_table_data = []
 
     for client_id, stats in client_stats.items():
+        summary_state['qoe'] += stats['qoe']
+        summary_state['count'] += 1
+        avg_qoe=summary_state['qoe']/summary_state['count']
         client_table_data.append((
-            client_id, stats['rebuffer_time'], stats['rebuffer_count'], stats['qoe']
+            client_id, stats['rebuffer_time'], stats['rebuffer_count'], stats['qoe'], avg_qoe
         ))
 
     client_table = tabulate(client_table_data, headers=client_headers, tablefmt="pretty", floatfmt=".2f")

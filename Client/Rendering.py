@@ -214,7 +214,7 @@ class Renderer:
             map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
         Factory.u = u
         Factory.v = v
-        if Factory.clientname == 'client0':
+        if Factory.clientname != 'client0':
             output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
             cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
             cv2.setWindowTitle(Factory.clientname, title)
