@@ -75,7 +75,7 @@ class ServerThread:
             app,
             max_workers=160  # 根据硬件调整（CPU核心数*10~20）
         )
-        print(f"启动线程池服务器：http://{host}:{port}")
+        print(f"strat on：http://{host}:{port}")
 
     def serve_forever(self):
         self.server.serve_forever()
