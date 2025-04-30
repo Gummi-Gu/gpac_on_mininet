@@ -43,9 +43,9 @@ while True:
     client_table_data = []
 
     for client_id, stats in client_stats.items():
-        summary_state['qoe'] += stats['qoe']
-        summary_state['count'] += 1
-        avg_qoe=summary_state['qoe']/summary_state['count']
+        summary_state[client_id]['qoe'] += stats['qoe']
+        summary_state[client_id]['count'] += 1
+        avg_qoe=summary_state[client_id]['qoe']/summary_state[client_id]['count']
         client_table_data.append((
             client_id, stats['rebuffer_time'], stats['rebuffer_count'], stats['qoe'], avg_qoe
         ))
