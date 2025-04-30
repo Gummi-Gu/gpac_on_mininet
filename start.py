@@ -45,6 +45,25 @@ def main():
 
     if len(sys.argv) > 1 and sys.argv[1] == 'monitor':
         start_monitor(venv_python, project_root)
+        modules = [
+        ]
+    if len(sys.argv) > 1 and sys.argv[1] == '1':
+        modules = [
+            "Client.main1"
+        ]
+
+    if len(sys.argv) > 1 and sys.argv[1] == '2':
+        modules = [
+            "Client.main1",
+            "Client.main2",
+        ]
+
+    if len(sys.argv) > 1 and sys.argv[1] == '3':
+        modules = [
+            "Client.main1",
+            "Client.main2",
+            "Client.main3",
+        ]
 
     # 启动所有客户端，每隔10秒一个
     process_infos = []
