@@ -11,9 +11,9 @@ def mark2bw(x):
     if x == 10:
         return 45
     if x == 20:
-        return 20
+        return 25
     if x == 30:
-        return 10
+        return 5
 
 summary_state=defaultdict(lambda: {
     'qoe': 0.0,
