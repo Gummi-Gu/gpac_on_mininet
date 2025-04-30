@@ -8,9 +8,6 @@ streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 latest_rate_history = {}
 latest_delay_history = {}
-
-summary_time=0
-count=0
 while True:
 
     track_stats = streamingMonitorClient.fetch_track_stats()
@@ -48,43 +45,33 @@ while True:
             summary['total_delay'] += stats['latest_delay']
             summary['total_latest_rate'] += stats['latest_rate']
             summary['total_utilization'] += utilization
-            summary_time+=stats['latest_delay']
-            count += 1
-            avg_delay=summary_time/count
+            summary['track_count'] += 1
             client_id_num = ''.join(re.findall(r'\d+', client_id))
             # 加入 prev_latest_delay 和 prev_latest_rate
             if client_id == 'client1':
                 track_table_data.append((
                     track_id, str(client_id_num),
-                    f"{avg_delay:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
+                    f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
                     f"{stats['latest_delay']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # 当前和上一秒的时延
                     f"{stats['latest_rate']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # 当前和上一秒的速率
                     stats['resolution'], f"{utilization:.2f}%"
                 ))
 
-
-
     for client_id, stats in client_summary.items():
         prev_key = ('sum', client_id)
-        prev_latest_rate = latest_rate_history.get(prev_key, 0.0)
-        prev_latest_delay = latest_delay_history.get(prev_key, 0.0)
-
+        prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
+        prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
+        #summary_rate_stats[client_id]['size']=summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1e3
         utilization = (summary_rate_stats[client_id]['size'] / 10) * 100
-
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
-
         client_id_num = ''.join(re.findall(r'\d+', client_id))
-
-        count = summary_rate_stats[client_id].get('count', 1)  # 防止除0
-        avg_time = summary_rate_stats[client_id]['time'] / count
-
         track_table_data.append((
             'sum', str(client_id_num),
-            0.0, f"{avg_time:.1f}ms",
-            f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",
-            f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",
-             f"{utilization:.2f}%"
+            0.0, 0.0,
+            f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
+            f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
+            0.0, f"{utilization:.2f}%"
         ))
 
     # headers也同步增加
