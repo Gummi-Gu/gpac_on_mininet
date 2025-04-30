@@ -418,7 +418,7 @@ class StreamingOptimizer:
             temp += (
                     4*self.client_stats[client]['rebuffer_time'] + self.client_stats[client]['rebuffer_count'])
         self.rebuff_event = np.max(temp - self.rebuff_event,0)
-        print(self.rebuff_event)
+        #print(self.rebuff_event)
 
         return np.array(state)
 
