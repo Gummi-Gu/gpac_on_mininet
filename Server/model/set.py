@@ -93,7 +93,7 @@ def decrease_buffer(client, buffer_type):
 
 # 4. 更新 quality_map
 quality_map_update = {
-    'client1': {0: 0, 1: 1, 2: 2, 3: 3},
+    'client1': {0: 0, 1: 1, 2: 3, 3: 3},
     'client2': {0: 0, 1: 1, 2: 2, 3: 3},
     'client3': {0: 0, 1: 1, 2: 2, 3: 3}
 }

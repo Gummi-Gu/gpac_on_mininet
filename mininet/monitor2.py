@@ -8,9 +8,9 @@ import util
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 def mark2bw(x):
     if x == 10:
-        return 50
-    if x == 20:
         return 35
+    if x == 20:
+        return 25
     if x == 30:
         return 10
 

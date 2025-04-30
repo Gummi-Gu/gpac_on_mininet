@@ -714,7 +714,7 @@ class StreamingOptimizer:
             if episode % 50 == 0:
                 avg_reward = np.mean(recent_rewards)
                 print(f"Episode {episode} | Avg Reward: {avg_reward:.2f}")
-                self.save_model(f"checkpoint_{episode}.pth")
+                self.save_model(f"checkpoint_{episode}—{time.time()}.pth")
 
     def save_model(self, path):
         torch.save({
@@ -732,4 +732,4 @@ class StreamingOptimizer:
 if __name__ == "__main__":
     agent = StreamingOptimizer()
     #agent.load_model('checkpoint_0.pth')
-    agent.train(episodes=360)
+    agent.train(episodes=400)

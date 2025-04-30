@@ -134,7 +134,6 @@ def get_qualitys(rgb,u,v,preu,prev):
     level3=compute_opacity_heatmap("prev_circle",frame3,Factory.level_num)
     # 逐元素比较并取最大值
     #merged_level = np.maximum(level1, np.maximum(level2, level3))
-    level1[level1 == 3] -= 1
     #print(level1.flatten())
     #print(level2.flatten())
     merged_level = np.maximum(level1,level2)
