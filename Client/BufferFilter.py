@@ -34,6 +34,7 @@ class MyFilter(gpac.FilterCustom):
         self.rebuff_count=0
         self.rebuff_sum_time=0
         self.dur=0.0
+        self.end_time=time.time()
 
     def set_rebuffer_playbuffer(self,v1,v2):
         self.re_buffer=v1
@@ -71,6 +72,7 @@ class MyFilter(gpac.FilterCustom):
         return 0
 
     # process
+
     def process(self):
         start_time = time.time()
         if self.rebuff_time!=0:
@@ -137,14 +139,15 @@ class MyFilter(gpac.FilterCustom):
 
 
             pid.drop_packet()
-
-            cv2.waitKey(1)
-
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
             #time.sleep(max(0,dur-(time.time() - start_time)))
             #print(dur-(time.time() - start_time))
             self.dur=dur
             #print("[BufferFilter]",time.time() - start_time)
             Factory.videoSegmentStatus.set_rebuff_time_count(self.rebuff_sum_time,self.rebuff_count)
+            #time.sleep(self.dur)
+            time.sleep(max(0,self.dur-(time.time()-self.end_time)))
+            #print(self.dur-(time.time()-self.end_time))
+            self.end_time=time.time()
 
         return 0

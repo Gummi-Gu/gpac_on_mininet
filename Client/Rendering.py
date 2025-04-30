@@ -203,6 +203,7 @@ class Renderer:
             try:
                 rgb, title, dur = self.frame_queue.get(timeout=0.5)
                 self.render(rgb, title, dur)
+                time.sleep(dur)
             except queue.Empty:
                 continue  # 队列空了就继续循环，不会卡死
 
@@ -213,12 +214,12 @@ class Renderer:
             map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
         Factory.u = u
         Factory.v = v
-        if Factory.clientname == 'client0':
+        if Factory.clientname == 'client1':
             output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
             cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
             cv2.setWindowTitle(Factory.clientname, title)
             cv2.waitKey(1)  # 必须有waitKey，不然窗口不刷新
-        time.sleep(dur)
+
 
 import concurrent.futures
 
