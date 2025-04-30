@@ -72,8 +72,8 @@ while True:
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
         client_id_num = ''.join(re.findall(r'\d+', client_id))
-        summary_state[client_id]['total_delay'] += stats['latest_delay']
-        summary_state[client_id]['total_rate'] += stats['latest_rate']
+        summary_state[client_id]['total_delay'] += summary_rate_stats[client_id]['time']
+        summary_state[client_id]['total_rate'] += summary_rate_stats[client_id]['size']
         summary_state[client_id]['count'] += 1
         avg_rate=summary_state[client_id]['total_rate']/summary_state[client_id]['count']
         avg_delay=summary_state[client_id]['total_delay']/summary_state[client_id]['count']
