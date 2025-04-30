@@ -50,7 +50,6 @@ def main():
     process_infos = []
     for module in modules:
         process_infos.append(start_single_client(venv_python, module, project_root))
-        time.sleep(10)
 
     try:
         while True:

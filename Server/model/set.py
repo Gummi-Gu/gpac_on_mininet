@@ -8,9 +8,9 @@ def update(endpoint, data):
     url = f"{SERVER_URL}/update/{endpoint}"
     try:
         response = requests.post(url, json=data)
-        print(f"请求接口: {url}")
-        print(f"请求数据: {json.dumps(data, indent=2)}")
-        print(f"响应: {response.status_code} {response.json()}")
+        #print(f"请求接口: {url}")
+        #print(f"请求数据: {json.dumps(data, indent=2)}")
+        #print(f"响应: {response.status_code} {response.json()}")
     except Exception as e:
         print(f"请求失败: {e}")
 
@@ -18,9 +18,9 @@ def update(endpoint, data):
 
 # 1. 更新 traffic_classes_mark
 traffic_classes_mark_update = {
-    '10.0.0.2': {'port': 10086, '12600': 20, '3150': 10, '785': 20, '200': 30},
-    '10.0.0.3': {'port': 10086, '12600': 20, '3150': 10, '785': 20, '200': 30},
-    '10.0.0.4': {'port': 10086, '12600': 20, '3150': 10, '785': 20, '200': 30}
+    '10.0.0.2': {'port': 10086, '12600': 30, '3150': 30, '785': 30, '200': 30},
+    '10.0.0.3': {'port': 10086, '12600': 20, '3150': 20, '785': 20, '200': 20},
+    '10.0.0.4': {'port': 10086, '12600': 10, '3150': 10, '785': 10, '200': 10}
 
 }
 
@@ -31,9 +31,9 @@ def increase_mark(ip, bit_class):
             current = traffic_classes_mark_update[ip][bit_class]
             new_value = min(current + 10, 30)  # 确保不超过30
             traffic_classes_mark_update[ip][bit_class] = new_value
-            print(f"已增加 {ip} 的 {bit_class} 到 {new_value}")
-        else:
-            print(f"错误：{bit_class} 不存在于 {ip}")
+            #print(f"已增加 {ip} 的 {bit_class} 到 {new_value}")
+        #else:
+            #print(f"错误：{bit_class} 不存在于 {ip}")
     else:
         print(f"错误：{ip} 不存在于配置")
 
@@ -44,9 +44,9 @@ def decrease_mark(ip, bit_class):
             current = traffic_classes_mark_update[ip][bit_class]
             new_value = max(current - 10, 10)  # 确保不低于10
             traffic_classes_mark_update[ip][bit_class] = new_value
-            print(f"已降低 {ip} 的 {bit_class} 到 {new_value}")
-        else:
-            print(f"错误：{bit_class} 不存在于 {ip}")
+            #print(f"已降低 {ip} 的 {bit_class} 到 {new_value}")
+        #else:
+            #print(f"错误：{bit_class} 不存在于 {ip}")
     else:
         print(f"错误：{ip} 不存在于配置")
 
@@ -72,9 +72,9 @@ def increase_buffer(client, buffer_type):
             current = rebuffer_config_update[client][buffer_type]
             new_value = min(current + 100000, 3000000)
             rebuffer_config_update[client][buffer_type] = new_value
-            print(f"已增加 {client} 的 {buffer_type}：{current} -> {new_value}")
-        else:
-            print(f"错误：{buffer_type} 不存在（应为 re_buffer/play_buffer）")
+            #print(f"已增加 {client} 的 {buffer_type}：{current} -> {new_value}")
+        #else:
+            #print(f"错误：{buffer_type} 不存在（应为 re_buffer/play_buffer）")
     else:
         print(f"错误：客户端 {client} 不存在")
 
@@ -85,9 +85,9 @@ def decrease_buffer(client, buffer_type):
             current = rebuffer_config_update[client][buffer_type]
             new_value = max(current - 100000, 1000000)
             rebuffer_config_update[client][buffer_type] = new_value
-            print(f"已减少 {client} 的 {buffer_type}：{current} -> {new_value}")
-        else:
-            print(f"错误：{buffer_type} 不存在（应为 re_buffer/play_buffer）")
+            #print(f"已减少 {client} 的 {buffer_type}：{current} -> {new_value}")
+        #else:
+            #print(f"错误：{buffer_type} 不存在（应为 re_buffer/play_buffer）")
     else:
         print(f"错误：客户端 {client} 不存在")
 
@@ -105,9 +105,9 @@ def increase_quality(client, level):
             current = quality_map_update[client][level]
             new_value = min(current + 1, 3)
             quality_map_update[client][level] = new_value
-            print(f"已提升 {client} 的层级 {level}：{current} -> {new_value}")
-        else:
-            print(f"错误：层级 {level} 不存在于 {client}")
+            #print(f"已提升 {client} 的层级 {level}：{current} -> {new_value}")
+        #else:
+            #print(f"错误：层级 {level} 不存在于 {client}")
     else:
         print(f"错误：客户端 {client} 不存在")
 
@@ -118,9 +118,9 @@ def decrease_quality(client, level):
             current = quality_map_update[client][level]
             new_value = max(current - 1, 0)
             quality_map_update[client][level] = new_value
-            print(f"已降低 {client} 的层级 {level}：{current} -> {new_value}")
-        else:
-            print(f"错误：层级 {level} 不存在于 {client}")
+            #print(f"已降低 {client} 的层级 {level}：{current} -> {new_value}")
+        #else:
+            #print(f"错误：层级 {level} 不存在于 {client}")
     else:
         print(f"错误：客户端 {client} 不存在")
 # --- 选择你要更新的内容，执行更新 ---

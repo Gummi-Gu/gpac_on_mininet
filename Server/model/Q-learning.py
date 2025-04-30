@@ -676,16 +676,16 @@ class StreamingOptimizer:
             # 获取新状态
             next_state = self.get_current_state()
             reward = self.calculate_reward(next_state) if success else -10
-            dreward=reward-pre_reward
-            dreward=0.5*dreward+0.5*reward
-            pre_reward=reward
-            print(f"get reward:{dreward}")
+            #dreward=reward-pre_reward
+            #dreward=0.5*dreward+0.5*reward
+            #pre_reward=reward
+            print(f"get reward:{reward}")
             if reward > 2:
                 continue
             done = False  # 假设连续任务
 
             # 存储经验
-            self.store_experience(prev_state, action_id, dreward, next_state, done)
+            self.store_experience(prev_state, action_id, reward, next_state, done)
             prev_state=next_state
 
             if len(self.replay_buffer) >= self.batch_size:

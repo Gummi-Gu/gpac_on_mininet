@@ -58,17 +58,22 @@ while True:
                 ))
 
     for client_id, stats in client_summary.items():
+        total_time = summary_rate_stats[client_id]['time']  # 总时延
+        count = summary_rate_stats[client_id].get('count', 1)  # 采样次数，避免除0
+        avg_delay = total_time / count  # 平均时延
+
         prev_key = ('sum', client_id)
-        prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
-        prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
-        #summary_rate_stats[client_id]['size']=summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1e3
+        prev_latest_rate = latest_rate_history.get(prev_key, 0.0)
+        prev_latest_delay = latest_delay_history.get(prev_key, 0.0)
         utilization = (summary_rate_stats[client_id]['size'] / 10) * 100
+
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
+
         client_id_num = ''.join(re.findall(r'\d+', client_id))
         track_table_data.append((
             'sum', str(client_id_num),
-            0.0, 0.0,
+            0.0, f"{avg_delay:.1f}ms",
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
             f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"

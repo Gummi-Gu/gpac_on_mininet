@@ -33,13 +33,33 @@ while True:
     link_table = tabulate(link_data, headers=link_headers, tablefmt="pretty", floatfmt=".2f")
 
     # Client Stats 表格
-    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE']
+    client_headers = ['Client ID', 'Rebuffer Time(s)', 'Rebuffer Count', 'QoE', 'Avg QoE']
     client_table_data = []
 
+    total_qoe = 0.0
+    client_count = 0
+
     for client_id, stats in client_stats.items():
+        qoe = stats['qoe']
+        if isinstance(qoe, list):
+            avg_qoe = sum(qoe) / len(qoe) if qoe else 0.0
+        else:
+            avg_qoe = qoe
+
+        total_qoe += avg_qoe
+        client_count += 1
+
         client_table_data.append((
-            client_id, stats['rebuffer_time'], stats['rebuffer_count'], stats['qoe']
+            client_id,
+            stats['rebuffer_time'],
+            stats['rebuffer_count'],
+            qoe if not isinstance(qoe, list) else f"{avg_qoe:.2f}",  # 显示为当前值或平均值
+            f"{avg_qoe:.2f}"
         ))
+
+    # 在表格最后添加一行总平均 QoE
+    overall_avg_qoe = total_qoe / client_count if client_count > 0 else 0.0
+    client_table_data.append(('All Clients Avg', '', '', '', f"{overall_avg_qoe:.2f}"))
 
     client_table = tabulate(client_table_data, headers=client_headers, tablefmt="pretty", floatfmt=".2f")
 
