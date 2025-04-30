@@ -79,7 +79,7 @@ while True:
         avg_delay=summary_state[client_id]['total_delay']/summary_state[client_id]['count']
         track_table_data.append((
             'sum', str(client_id_num),
-            avg_delay, avg_rate,
+            f"{avg_delay:.1f}ms", f"{avg_rate:.1f}MB/s",
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
             f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"
