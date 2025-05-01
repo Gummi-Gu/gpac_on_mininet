@@ -17,12 +17,12 @@ string_dict = {
 quality_map = {
     'client1':{0:0,1:1,2:2,3:3},
     'client2':{0:0,1:1,2:2,3:3},
-    'client3':{0:0,1:1,2:2,3:3}
+    #'client3':{0:0,1:1,2:2,3:3}
 }
 rebuffer_config = {
     'client1':{'re_buffer': 1000000,'play_buffer': 1000000},
     'client2':{'re_buffer': 1000000,'play_buffer': 1000000},
-    'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
+    #'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
 }
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
@@ -47,7 +47,7 @@ track_stats = defaultdict(lambda: defaultdict(lambda: {
 summary_rate_stats = {
     'client1': {'size':0.0,'time':0.0},
     'client2':{'size':0.0,'time':0.0},
-    'client3':{'size':0.0,'time':0.0}
+    #'client3':{'size':0.0,'time':0.0}
 }
 
 link_metrics = defaultdict(lambda: {
@@ -73,13 +73,13 @@ TRAFFIC_CLASSES_MARK = {
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
     '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
-    '10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
+    #'10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
 }
 
 ip_maps={
     'client1':'0.0.0.0',
     'client2':'0.0.0.0',
-    'client3':'0.0.0.0'
+    #'client3':'0.0.0.0'
 }
 
 

@@ -148,9 +148,9 @@ class StreamingOptimizer:
         self.buffer_size = 10000
         self.discount_factor = 0.95
         self.learning_rate = 0.001
-        self.exploration_rate = 1.0
+        self.exploration_rate = 0.8
         self.min_exploration_rate = 0.01
-        self.exploration_decay = 0.995
+        self.exploration_decay = 1
 
 
         # 初始化Q网络和目标网络
@@ -422,7 +422,7 @@ class StreamingOptimizer:
 
         return np.array(state)
 
-    def calculate_reward(self, prev_state):
+    def calculate_reward(self):
         """计算即时奖励"""
         # 基于以下因素计算奖励：
         # 1. 带宽利用率（越高越好）
@@ -451,7 +451,7 @@ class StreamingOptimizer:
         delay=sum(
             self.summary_rate_stats[client]['time']
             for client in ['client1', 'client2', 'client3']
-        ) / 3000  # 最大可能值
+        ) / 1500  # 最大可能值
 
         # 假设通过监控获取缓冲次数（这里使用随机模拟）
         rebuffer_events =self.rebuff_event/60
@@ -659,35 +659,38 @@ class StreamingOptimizer:
         """完整的训练流程"""
         state=None
         recent_rewards = []
-        pre_reward=0
         for episode in range(episodes):
-            state=None
-            set.reset()
+            if episode%5==0:
+                state=None
+                prev_reward=0
+                set.reset()
             if state is None:
                 state = self.get_current_state()
+                prev_reward = self.calculate_reward()
             else:
                 state=prev_state
+            print(f"get reward1:{prev_reward}")
             action_id = self.choose_action(state)
             prev_state = state.copy()
-
             # 执行动作并获取奖励
             success = self.execute_action(action_id)
 
             # 获取新状态
             next_state = self.get_current_state()
-            reward = self.calculate_reward(next_state) if success else -10
-            #dreward=reward-pre_reward
-            #dreward=0.5*dreward+0.5*reward
-            #pre_reward=reward
-            print(f"get reward:{reward}")
+            reward = self.calculate_reward() if success else -10
+            print(f"get reward2:{reward}")
+            dreward=reward-prev_reward
+            print(f"get dreward:{dreward}")
+            prev_reward=reward
             if reward > 2:
                 continue
             done = False  # 假设连续任务
 
             # 存储经验
-            self.store_experience(prev_state, action_id, reward, next_state, done)
-            prev_state=next_state
+            self.store_experience(prev_state, action_id, dreward, next_state, done)
 
+            prev_state=next_state
+            
             if len(self.replay_buffer) >= self.batch_size:
                 batch = self.sample_experience()
                 # 将批次拆分为单独的列表
@@ -731,5 +734,5 @@ class StreamingOptimizer:
 
 if __name__ == "__main__":
     agent = StreamingOptimizer()
-    #agent.load_model('checkpoint_0.pth')
-    agent.train(episodes=400)
+    agent.load_model('checkpoint_350—1746019196.4254582.pth')
+    agent.train(episodes=1001)

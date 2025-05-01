@@ -19,17 +19,17 @@ TRAFFIC_CLASSES = {
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
     '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
-    '10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
+    #'10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
 }
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
     '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
-    '10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
+    #'10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
 }
 ip_maps={
     'client1':'0.0.0.0',
     'client2':'0.0.0.0',
-    'client3':'0.0.0.0'
+    #'client3':'0.0.0.0'
 }
 
 
@@ -175,16 +175,16 @@ def setup_network():
         server = net.addHost('server', ip='10.0.0.1/24')
         client1 = net.addHost('client1', ip='10.0.0.2/24')
         client2 = net.addHost('client2', ip='10.0.0.3/24')
-        client3 = net.addHost('client3', ip='10.0.0.4/24')
+        #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
         net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
-        net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
+        #net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
-        net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
+        #net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
         print('network set')
 
         net.start()
@@ -195,19 +195,19 @@ def setup_network():
         server.cmd('ifconfig server-eth1 0.0.0.0')
         client1.cmd('ifconfig client1-eth1 0.0.0.0')
         client2.cmd('ifconfig client2-eth1 0.0.0.0')
-        client3.cmd('ifconfig client3-eth1 0.0.0.0')
+        #client3.cmd('ifconfig client3-eth1 0.0.0.0')
         server.cmd('dhclient server-eth1')
         client1.cmd('dhclient client1-eth1')
         client2.cmd('dhclient client2-eth1')
-        client3.cmd('dhclient client3-eth1')
+        #client3.cmd('dhclient client3-eth1')
         print('ip request')
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
         print(client2.cmd('ifconfig'))
-        print(client3.cmd('ifconfig'))
+        #print(client3.cmd('ifconfig'))
         client1.cmd('screen -dm bash_client1')
         client2.cmd('screen -dm bash_client2')
-        client3.cmd('screen -dm bash_client3')
+        #client3.cmd('screen -dm bash_client3')
         server.cmd('screen -dm bash_server')
 
 
@@ -218,7 +218,7 @@ def setup_network():
                 return match.group(1)
             return None
 
-        for client_name in ['client1', 'client2', 'client3']:
+        for client_name in ip_maps.items():
             client_host = net.get(client_name)
             ip_addr = get_eth1_ip(client_host)
             ip_maps[client_name] = ip_addr
@@ -239,7 +239,7 @@ def setup_network():
         #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
         client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
         client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
-        client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
+        #client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
         print('server start')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
@@ -274,7 +274,7 @@ def setup_network():
                 # 测试 10.0.0.1 到 10.0.0.2 和 10.0.0.3 的延迟和丢包
                 test_ping_connection(net.get('client1'), '10.0.0.1')
                 test_ping_connection(net.get('client2'), '10.0.0.1')
-                test_ping_connection(net.get('client3'), '10.0.0.1')
+                #test_ping_connection(net.get('client3'), '10.0.0.1')
             else:
                 print("Invalid input!")
             '''
