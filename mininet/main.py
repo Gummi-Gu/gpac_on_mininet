@@ -2,6 +2,8 @@ import os
 import random
 import re
 import time
+from collections import defaultdict
+
 import util
 
 from mininet.net import Mininet
@@ -61,7 +63,10 @@ class TrafficControl:
 
         traffic_classes_band=normalized
         # 阶段1：为每个(ip, 带宽)生成唯一标记
-        ip_mark_mapping = {}
+        ip_mark_mapping = defaultdict(lambda: defaultdict(lambda: {
+            'mark':0,
+            'bw':0
+        }))
         current_mark = 10  # 起始标记值
 
         print(traffic_classes_band)
