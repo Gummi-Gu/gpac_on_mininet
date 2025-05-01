@@ -1,7 +1,7 @@
 import re
 import time
 from collections import defaultdict
-
+from collections import defaultdict, deque
 from tabulate import tabulate
 
 import util
@@ -9,11 +9,12 @@ streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 latest_rate_history = {}
 latest_delay_history = {}
-summary_state=defaultdict(lambda: {
-    'total_delay': 0.0,
-    'total_rate': 0.0,
-    'count': 0
-})
+
+
+# 改为保存最近10秒的 (timestamp, delay, rate)
+summary_state = defaultdict(lambda: deque())
+WINDOW_SECONDS = 10
+
 while True:
 
     track_stats = streamingMonitorClient.fetch_track_stats()
@@ -72,11 +73,19 @@ while True:
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
         client_id_num = ''.join(re.findall(r'\d+', client_id))
-        summary_state[client_id]['total_delay'] += summary_rate_stats[client_id]['time']
-        summary_state[client_id]['total_rate'] += summary_rate_stats[client_id]['size']
-        summary_state[client_id]['count'] += 1
-        avg_rate=summary_state[client_id]['total_rate']/summary_state[client_id]['count']
-        avg_delay=summary_state[client_id]['total_delay']/summary_state[client_id]['count']
+        now = time.time()
+        summary_state[client_id].append(
+            (now, summary_rate_stats[client_id]['time'], summary_rate_stats[client_id]['size']))
+        # 保留最近10秒内的记录
+        while summary_state[client_id] and now - summary_state[client_id][0][0] > WINDOW_SECONDS:
+            summary_state[client_id].popleft()
+        # 计算过去10秒内的平均
+        records = summary_state[client_id]
+        if records:
+            avg_delay = sum(d for _, d, _ in records) / len(records)
+            avg_rate = sum(r for _, _, r in records) / len(records)
+        else:
+            avg_delay = avg_rate = 0.0
         track_table_data.append((
             'sum', str(client_id_num),
             f"{avg_delay:.1f}ms", f"{avg_rate:.1f}MB/s",

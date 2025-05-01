@@ -18,9 +18,9 @@ def update(endpoint, data):
 
 # 1. 更新 traffic_classes_mark
 traffic_classes_mark_update = {
-    '10.0.0.2': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30},
-    '10.0.0.3': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30},
-    '10.0.0.4': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30}
+    '10.0.0.2': {'port': 10086, '12600': 30, '3150': 30, '785': 30, '200': 30},
+    '10.0.0.3': {'port': 10086, '12600': 30, '3150': 30, '785': 30, '200': 30},
+    #'10.0.0.4': {'port': 10086, '12600': 10, '3150': 20, '785': 30, '200': 30}
 
 }
 
@@ -55,14 +55,14 @@ def decrease_mark(ip, bit_class):
 traffic_classes_delay_update = {
     '10.0.0.2': {'client': 'client1', 'delay': 0, 'loss': 0},
     '10.0.0.3': {'client': 'client4', 'delay': 0, 'loss': 0},
-    '10.0.0.4': {'client': 'client4', 'delay': 0, 'loss': 0}
+    #'10.0.0.4': {'client': 'client4', 'delay': 0, 'loss': 0}
 }
 
 # 3. 更新 rebuffer_config
 rebuffer_config_update = {
-    'client1': {'re_buffer': 1000000, 'play_buffer': 1000000},
-    'client2': {'re_buffer': 1000000, 'play_buffer': 1000000},
-    'client3': {'re_buffer': 1000000, 'play_buffer': 1000000}
+    'client1': {'re_buffer': 1, 'play_buffer': 2},
+    'client2': {'re_buffer': 1, 'play_buffer': 2},
+    #'client3': {'re_buffer': 1000000, 'play_buffer': 1000000}
 }
 
 def increase_buffer(client, buffer_type):
@@ -95,7 +95,7 @@ def decrease_buffer(client, buffer_type):
 quality_map_update = {
     'client1': {0: 0, 1: 1, 2: 2, 3: 3},
     'client2': {0: 0, 1: 1, 2: 2, 3: 3},
-    'client3': {0: 0, 1: 1, 2: 2, 3: 3}
+    #'client3': {0: 0, 1: 1, 2: 2, 3: 3}
 }
 
 def increase_quality(client, level):

@@ -27,14 +27,14 @@ class MyFilter(gpac.FilterCustom):
         self.push_cap("CodecID", "Raw", gpac.GF_CAPS_INPUT)
 
         self.max_buffer = 10000000
-        self.play_buffer = 1000000
-        self.re_buffer = 1000000
+        self.play_buffer = 1
+        self.re_buffer = 1
+        self.buffer=0
         self.buffering = True
         self.rebuff_time=0
         self.rebuff_count=0
         self.rebuff_sum_time=0
         self.dur=0.0
-        self.end_time=time.time()
 
     def set_rebuffer_playbuffer(self,v1,v2):
         self.re_buffer=v1
@@ -53,8 +53,8 @@ class MyFilter(gpac.FilterCustom):
             #but are forwarded to the DASH algo
             evt = gpac.FilterEvent(gpac.GF_FEVT_BUFFER_REQ)
             evt.buffer_req.max_buffer_us = self.max_buffer
-            evt.buffer_req.max_playout_us = self.play_buffer
-            evt.buffer_req.min_playout_us = self.re_buffer
+            evt.buffer_req.max_playout_us = self.play_buffer*8000000
+            evt.buffer_req.min_playout_us = self.re_buffer*8000000
             pid.send_event(evt)
 
             #2-  we are a sink, we MUST send a play event
@@ -89,25 +89,12 @@ class MyFilter(gpac.FilterCustom):
                 pass
                 # not done, check buffer levels
             else:
-                buffer = pid.buffer
-                if self.re_buffer:
-                    # playout buffer underflow
-                    if buffer < self.re_buffer*2:
-                        title += " - low buffer"
-                        #print('low buffer')
-                        self.buffering = True
-                    elif buffer > self.re_buffer*2.5:
-                        self.buffering = False
-                if self.buffering:
-                    # playout buffer not yet filled
-                    if buffer < self.play_buffer:
-                        pc = 100 * buffer / self.play_buffer
-                        title += " - buffering " + str(int(pc)) + ' %'
-                        break
-                # show max buffer level
-                if self.max_buffer > self.play_buffer:
-                    pc = buffer / self.max_buffer * 100
-                    title += f" - buffer {buffer / 1000000:.2f}" + 's ' + str(int(pc)) + ' %'
+                buffer=self.buffer
+                if buffer<self.re_buffer*self.timescale:
+                    self.buffering = True
+                elif buffer>self.play_buffer*self.timescale:
+                    self.buffering = False
+                title=f'buffer: {self.buffer/self.timescale:.2f}s - {self.buffer/(self.play_buffer*self.timescale)*100:.2f}%'
             pck = pid.get_packet()
             if pck is None:
                 break
@@ -120,34 +107,26 @@ class MyFilter(gpac.FilterCustom):
                 data = self.tmp_pck.data
             else:
                 data = pck.data
-
             #convert to cv2 image for some well known formats
             #note that for YUV formats here, we assume stride luma is width and stride chroma is width/2
             #shoe img in 360 view
             if self.pixfmt == 'nv12':
                 yuv = data.reshape((self.height * 3 // 2, self.width))
                 rgb = cv2.cvtColor(yuv, cv2.COLOR_YUV2RGB_NV12)
-
-
             dur = pck.dur
             dur /= self.timescale
             #Factory.render.render(rgb,title)
-            Factory.render.push_frame(rgb,title,dur)
+            self.buffer=Factory.render.push_frame(rgb,title,dur)
+            #print(buffer)
             Factory.videoSegmentStatus.set_rgb(rgb)
-
             #get packet duration for later sleep
-
-
-            pid.drop_packet()
-            # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
-            #time.sleep(max(0,dur-(time.time() - start_time)))
+            if self.buffering is False:
+                time.sleep(dur*5)
             #print(dur-(time.time() - start_time))
             self.dur=dur
             #print("[BufferFilter]",time.time() - start_time)
-            Factory.videoSegmentStatus.set_rebuff_time_count(self.rebuff_sum_time,self.rebuff_count)
             #time.sleep(self.dur)
-            time.sleep(max(0,self.dur-(time.time()-self.end_time)))
-            #print(self.dur-(time.time()-self.end_time))
-            self.end_time=time.time()
+            # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
+            pid.drop_packet()
 
         return 0

@@ -20,8 +20,8 @@ quality_map = {
     #'client3':{0:0,1:1,2:2,3:3}
 }
 rebuffer_config = {
-    'client1':{'re_buffer': 1000000,'play_buffer': 1000000},
-    'client2':{'re_buffer': 1000000,'play_buffer': 1000000},
+    'client1':{'re_buffer': 1,'play_buffer': 1.5},
+    'client2':{'re_buffer': 1,'play_buffer': 1.5},
     #'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
 }
 # 数据结构定义

@@ -181,8 +181,11 @@ class Viewpoint:
 
 class Renderer:
     def __init__(self):
-        self.frame_queue = queue.Queue(maxsize=10)  # 可以限制最大缓存帧数
+        self.frame_queue = queue.Queue(maxsize=3000)  # 可以限制最大缓存帧数
         self.running = False
+        self.rebuff_time=None
+        self.rebuff_sum_time=0
+        self.rebuff_count=0
         self.start()
 
     def start(self):
@@ -197,13 +200,23 @@ class Renderer:
     def push_frame(self, rgb, title, dur):
         if not self.frame_queue.full():
             self.frame_queue.put((rgb, title, dur))  # 将帧和标题一起放进去
+        return self.frame_queue.qsize()
+
 
     def _render_loop(self):
         while self.running:
             try:
                 rgb, title, dur = self.frame_queue.get(timeout=0.5)
+                print(self.frame_queue.qsize())
                 self.render(rgb, title, dur)
+                if self.rebuff_time is None and self.frame_queue.qsize() < 10:
+                    self.rebuff_count+=1
+                    self.rebuff_time=time.time()
+                elif self.rebuff_time is not None and self.frame_queue.qsize() > 20:
+                    self.rebuff_sum_time += time.time()-self.rebuff_time
+                    self.rebuff_time = None
                 time.sleep(dur)
+                Factory.videoSegmentStatus.set_rebuff_time_count(self.rebuff_sum_time, self.rebuff_count)
             except queue.Empty:
                 continue  # 队列空了就继续循环，不会卡死
 
@@ -214,11 +227,12 @@ class Renderer:
             map_x, map_y, u, v = Factory.viewpoint.focal_cal(Factory.yaw, Factory.pitch, Factory.fov)
         Factory.u = u
         Factory.v = v
-        if Factory.clientname == 'client0':
+        if Factory.clientname == 'client1':
             output_img = cv2.remap(rgb, map_x, map_y, cv2.INTER_LINEAR)
             cv2.imshow(Factory.clientname, cv2.cvtColor(output_img, cv2.COLOR_RGB2BGR))
             cv2.setWindowTitle(Factory.clientname, title)
             cv2.waitKey(1)  # 必须有waitKey，不然窗口不刷新
+
 
 
 import concurrent.futures
