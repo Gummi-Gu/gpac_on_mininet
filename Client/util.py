@@ -105,8 +105,11 @@ class StreamingMonitorClient:
     def fetch_client_stats(self) -> Optional[Dict[str, Any]]:
         return self._get_data("get/client_stats")
 
-    def fetch_buffer(self) -> Optional[Dict[str, Any]]:
-        return self._get_data("get/rebuffer_config")
+    def fetch_track_stats(self) -> Optional[Dict[str, Any]]:
+        return self._get_data("get/track_stats")
+
+    def fetch_client_states(self) -> Optional[Dict[str, Any]]:
+        return self._get_data("get/client_stats")
 
     def fetch_quality(self) -> Optional[Dict[int, int]]:
         return self._get_data("get/quality_map")
@@ -114,3 +117,15 @@ class StreamingMonitorClient:
     def fetch_ip_maps(self) -> Optional[Dict[str, str]]:
         """从服务器拉取 IP 映射表"""
         return self._get_data("get/ip_maps")
+
+    def fetch_bitrate_stats(self):
+        """获取 bitrate_stats 数据"""
+        return self._get_data("get/bitrate_stats")
+
+    def fetch_summary_rate_stats(self):
+        """获取 summary_rate_stats 数据"""
+        return self._get_data("get/summary_rate_stats")
+
+    def fetch_rebuffer_config(self):
+        """获取 rebuffer_config 数据"""
+        return self._get_data("get/rebuffer_config")

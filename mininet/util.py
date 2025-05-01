@@ -67,7 +67,8 @@ class StreamingMonitorClient:
         avg_delay: float,
         avg_rate: float,
         latest_delay: float,
-        latest_rate: float
+        latest_rate: float,
+        avg_size: float
     ) -> bool:
         """提交流轨道统计信息"""
         payload = {
@@ -76,7 +77,8 @@ class StreamingMonitorClient:
             "avg_delay": avg_delay,
             "avg_rate": avg_rate,
             "latest_delay": latest_delay,
-            "latest_rate": latest_rate
+            "latest_rate": latest_rate,
+            'avg_size': avg_size,
         }
         return self._send_data("bitrate_stats", payload)
 

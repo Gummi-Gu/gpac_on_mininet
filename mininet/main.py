@@ -41,6 +41,26 @@ class TrafficControl:
     def adjust(server):
         """为每个IP的每个带宽值创建独立标记和TC类"""
         traffic_classes_band=streamingMonitorClient.fetch_traffic_classes_mark()
+        normalized = {}
+        for ip, data in traffic_classes_band.items():
+            # 提取除 'port' 外的码率字段
+            bitrate_weights = {k: v for k, v in data.items() if k != 'port'}
+
+            # 手动计算总和
+            total = 0
+            for v in bitrate_weights.values():
+                total += v
+
+            # 避免除以 0
+            if total == 0:
+                norm_weights = {k: 0 for k in bitrate_weights}
+            else:
+                norm_weights = {k: v / total for k, v in bitrate_weights.items()}
+
+            # 组合结果
+            normalized[ip] = {'port': data['port'], **norm_weights}
+
+        traffic_classes_band=normalized
         # 阶段1：为每个(ip, 带宽)生成唯一标记
         ip_mark_mapping = {}
         current_mark = 10  # 起始标记值
