@@ -152,7 +152,8 @@ class VideoSegmentStatus:
         while True:
             # 每 1 秒记录一次 rebuff_time, rebuff_count 和 quality_tiled
             if time.time() - last_log_time >= 1:
-                buffer=streamingMonitorClient.fetch_client_states()[clientname]
+                buffer=streamingMonitorClient.fetch_rebuffer_config()
+                buffer=buffer[clientname]
                 bufferFilter.set_rebuffer_playbuffer(int(buffer['re_buffer']),int(buffer['play_buffer']))
                 streamingMonitorClient.submit_client_stats(clientname, self.rebuff_time, self.rebuff_count, self.Qoe)
                 streamingMonitorClient.submit_chunk_qualities(self.quality_tiled,clientname)
