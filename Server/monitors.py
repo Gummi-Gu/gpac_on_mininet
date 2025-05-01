@@ -20,8 +20,8 @@ quality_map = {
     #'client3':{0:0,1:1,2:2,3:3}
 }
 rebuffer_config = {
-    'client1':{'re_buffer': 1,'play_buffer': 1.5},
-    'client2':{'re_buffer': 1,'play_buffer': 1.5},
+    'client1':{'re_buffer': 1,'play_buffer': 2},
+    'client2':{'re_buffer': 1,'play_buffer': 2},
     #'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
 }
 # 数据结构定义
@@ -32,7 +32,8 @@ bitrate_stats = defaultdict(lambda: defaultdict(lambda: {
     'latest_delay': 0.0,
     'latest_rate': 0.0,
     'resolution': '',
-    'last_update': None
+    'last_update': None,
+    'avg_size': 0.0,
 }))
 
 track_stats = defaultdict(lambda: defaultdict(lambda: {
@@ -68,7 +69,7 @@ client_stats = defaultdict(lambda: {
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30},
     '10.0.0.3' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30},
-    '10.0.0.4' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30}
+    #'10.0.0.4' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30}
 }
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
@@ -119,7 +120,7 @@ def update_summary_rate_stats():
     if data:
         with lock:
             summary_rate_stats.update(data)
-        print(summary_rate_stats)
+        #print(summary_rate_stats)
         return jsonify({"status": "success", "message": "ip_maps updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -254,7 +255,8 @@ def update_bitrate_stats():
             'avg_rate': data['avg_rate'],
             'latest_delay': data['latest_delay'],
             'latest_rate': data['latest_rate'],
-            'last_update': datetime.now()
+            'last_update': datetime.now(),
+            'avg_size': data['avg_size'],
         })
         #print(track_stats)
     return jsonify({'status': 'success'})

@@ -9,6 +9,8 @@ from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
 
+from Client.Q_learning import total_bandwidth
+
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
@@ -31,71 +33,99 @@ ip_maps={
     'client2':'0.0.0.0',
     #'client3':'0.0.0.0'
 }
-
+total_bandwidth=16
 
 
 class TrafficControl:
     @staticmethod
-    def setup_tc(server):
-        cmds = [
-            'tc qdisc del dev server-eth0 root 2>/dev/null',
+    def adjust(server):
+        """为每个IP的每个带宽值创建独立标记和TC类"""
+        traffic_classes_band=streamingMonitorClient.fetch_traffic_classes_mark()
+        # 阶段1：为每个(ip, 带宽)生成唯一标记
+        ip_mark_mapping = {}
+        current_mark = 10  # 起始标记值
+
+        # 遍历所有IP和配置
+        for ip, config in traffic_classes_band.items():
+            # 为每个字符串对应的带宽生成独立标记
+            for str_key in ['12600', '3150', '785', '200']:
+                if (bw := config.get(str_key)) is not None:
+                    # 每个IP的每个带宽分配唯一标记
+                    ip_mark_mapping[ip][str_key] = {
+                        'mark': current_mark,
+                        'bw': bw*total_bandwidth
+                    }
+                    current_mark += 10  # 步长10保证唯一
+
+        # 阶段2：计算总带宽需求
+        total_bw = total_bandwidth
+
+        # 阶段3：清除旧配置
+        server.cmd('tc qdisc del dev server-eth0 root 2>/dev/null')
+
+        # 阶段4：构建TC配置
+        tc_cmds = [
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            'tc class add dev server-eth0 parent 1: classid 1:1 htb rate 16mbit',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["high"]["classid"]} htb rate {TRAFFIC_CLASSES["high"]["rate"]} ceil {TRAFFIC_CLASSES["high"]["ceil"]}',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["middle"]["classid"]} htb rate {TRAFFIC_CLASSES["middle"]["rate"]} ceil {TRAFFIC_CLASSES["middle"]["ceil"]}',
-            f'tc class add dev server-eth0 parent 1:1 classid {TRAFFIC_CLASSES["low"]["classid"]} htb rate {TRAFFIC_CLASSES["low"]["rate"]} ceil {TRAFFIC_CLASSES["low"]["ceil"]}',
-            'tc filter add dev server-eth0 parent 1: protocol ip handle 10 fw flowid 1:10',
-            'tc filter add dev server-eth0 parent 1: protocol ip handle 20 fw flowid 1:20',
-            'tc filter add dev server-eth0 parent 1: protocol ip handle 30 fw flowid 1:30',
-        ]
-        connmark_cmds = [
-            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "12600" -j CONNMARK --set-mark 10',
-            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "3150" -j CONNMARK --set-mark 20',
-            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "785" -j CONNMARK --set-mark 30',
-            'iptables -t mangle -A PREROUTING -p tcp --dport 10086 -m string --algo kmp --string "200" -j CONNMARK --set-mark 30',
-            'iptables -t mangle -A OUTPUT -p tcp --sport 10086 -j CONNMARK --restore-mark'
+            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {total_bw}mbit'
         ]
 
-        for cmd in cmds + connmark_cmds:
+        # 为每个唯一标记创建TC类
+        created_classes = set()
+        for ip_config in ip_mark_mapping.values():
+            for item in ip_config.values():
+                mark = item['mark']
+                if mark in created_classes:
+                    continue
+
+                tc_cmds.extend([
+                    f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
+                    f'htb rate {item["bw"]}mbit ceil {item["bw"] * 2}mbit',
+                    f'tc filter add dev server-eth0 parent 1: protocol ip '
+                    f'handle {mark} fw flowid 1:{mark}'
+                ])
+                created_classes.add(mark)
+
+        # 执行TC命令
+        for cmd in tc_cmds:
             server.cmd(cmd)
 
-    @staticmethod
-    def adjust(server):
-        """
-        生成针对特定 IP 地址的 connmark 规则。
-        :param server:
-        :param ip: 源 IP 地址
-        :param port: 目标端口
-        :param string_dict: 一个字典，包含匹配的字符串和对应的标记（只会包含12600，3150，785）
-        :return: 包含生成的 iptables 规则的列表
-        """
-        connmark_cmds = []
-        string_dict=streamingMonitorClient.fetch_traffic_classes_mark()
-        TRAFFIC_CLASSES_MARK.update(string_dict)  # 合并输入的 string_dict 到指定 IP 的标记中
-        expected_strings=['12600', '3150', '785', '200']
-        # 清空之前的规则
-        connmark_cmds.append('iptables -t mangle -F')  # 清空 mangle 表中的所有规则
-        connmark_cmds.append('iptables -t mangle -X')  # 删除所有用户自定义链
-        connmark_cmds.append('iptables -t mangle -Z')
-        for ip in string_dict:
-            # 生成新的规则
-            if ip in TRAFFIC_CLASSES_MARK:
-                # 获取该 IP 对应的端口和标记
-                port = TRAFFIC_CLASSES_MARK[ip]['port']
-                for string in expected_strings:
-                    if string in TRAFFIC_CLASSES_MARK[ip]:
-                        mark = TRAFFIC_CLASSES_MARK[ip][string]
-                        #rule = f'iptables -t mangle -A PREROUTING -p tcp --dport {port}  -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
-                        rule = f'iptables -t mangle -A PREROUTING -p tcp -s {ip} --dport {port} -m string --algo kmp --string "{string}" -j CONNMARK --set-mark {mark}'
-                        connmark_cmds.append(rule)
+        # 阶段5：构建iptables规则
+        iptables_cmds = [
+            'iptables -t mangle -F',
+            'iptables -t mangle -X',
+            'iptables -t mangle -Z'
+        ]
 
-                # 恢复连接标记规则
-                connmark_cmds.append(
-                    f'iptables -t mangle -A OUTPUT -p tcp --sport {port} -j CONNMARK --restore-mark')
+        port_set = set()
 
-            # 执行命令
-            for cmd in connmark_cmds:
-                server.cmd(cmd)
+        # 生成每个IP的规则
+        for ip, config in traffic_classes_band.items():
+            port = config['port']
+            port_set.add(port)
+
+            mark_info = ip_mark_mapping[ip]
+            for str_key in ['12600', '3150', '785', '200']:
+                if str_key not in mark_info:
+                    continue
+
+                rule = (
+                    f'iptables -t mangle -A PREROUTING '
+                    f'-s {ip} -p tcp --dport {port} '
+                    f'-m string --algo kmp --string "{str_key}" '
+                    f'-j CONNMARK --set-mark {mark_info[str_key]["mark"]}'
+                )
+                iptables_cmds.append(rule)
+
+        # 添加端口恢复规则
+        for port in port_set:
+            iptables_cmds.append(
+                f'iptables -t mangle -A OUTPUT '
+                f'-p tcp --sport {port} -j CONNMARK --restore-mark'
+            )
+
+        # 执行iptables命令
+        for cmd in iptables_cmds:
+            server.cmd(cmd)
 
     @staticmethod
     def adjust_loss_and_delay(net):
@@ -244,7 +274,6 @@ def setup_network():
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
         print('monitor start')
-        TrafficControl.setup_tc(server)
 
         while True:
             streamingMonitorClient.submit_ip_maps(ip_maps)

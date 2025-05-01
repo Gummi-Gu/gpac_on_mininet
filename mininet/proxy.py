@@ -126,7 +126,8 @@ def process_stats_batch(batch):
         if bitrate not in bitrate_map:
             bitrate_map[bitrate] = {
                 'count': 0, 'total_delay': 0, 'total_size': 0,
-                'latest_delay': 0, 'latest_size': 0
+                'latest_delay': 0, 'latest_size': 0,
+                'history': []  # 新增历史记录
             }
         br = bitrate_map[bitrate]
         br['count'] += 1
@@ -134,6 +135,7 @@ def process_stats_batch(batch):
         br['total_size'] += size
         br['latest_delay'] = delay_ms
         br['latest_size'] = size
+        br['history'].append((timestamp, size))  # 记录时间和大小
 
     # 更新全局统计
     with stats_lock:
@@ -180,7 +182,14 @@ def process_stats_batch(batch):
         # 更新码率统计
         for bitrate, data in bitrate_map.items():
             if bitrate not in bitrate_stats:
-                bitrate_stats[bitrate] = data
+                bitrate_stats[bitrate] = {
+                    'count': data['count'],
+                    'total_delay': data['total_delay'],
+                    'total_size': data['total_size'],
+                    'latest_delay': data['latest_delay'],
+                    'latest_size': data['latest_size'],
+                    'history': data['history'].copy()  # 初始化历史记录
+                }
             else:
                 br = bitrate_stats[bitrate]
                 br['count'] += data['count']
@@ -188,9 +197,19 @@ def process_stats_batch(batch):
                 br['total_size'] += data['total_size']
                 br['latest_delay'] = data['latest_delay']
                 br['latest_size'] = data['latest_size']
+                br['history'].extend(data['history'])  # 合并历史记录
 
-            # 计算并提交
+            # 清理超过10秒的历史数据
+            current_time = time.time()
+            ten_seconds_ago = current_time - 10
             br = bitrate_stats[bitrate]
+            br['history'] = [(ts, sz) for ts, sz in br['history'] if ts >= ten_seconds_ago]
+
+            # 计算过去10秒的平均文件大小
+            recent_sizes = [sz for ts, sz in br['history']]
+            recent_avg_size = sum(recent_sizes) / len(recent_sizes) if recent_sizes else 0
+
+            # 提交码率统计（新增参数）
             avg_delay = br['total_delay'] / br['count']
             avg_rate = br['total_size'] / br['total_delay'] if br['total_delay'] else 0
             streamingMonitorClient.submit_bitrate_stats(
@@ -198,7 +217,8 @@ def process_stats_batch(batch):
                 avg_delay,
                 avg_rate,
                 br['latest_delay'],
-                br['latest_size'] / br['latest_delay'] if br['latest_delay'] else 0
+                br['latest_size'] / br['latest_delay'] if br['latest_delay'] else 0,
+                recent_avg_size  # 新增参数：过去10秒平均大小
             )
 
 
@@ -281,4 +301,5 @@ def run_server(target, port, proxy_port):
 
 if __name__ == '__main__':
     client_id = sys.argv[1]
-    run_server("10.0.0.1", 10086, 10086)
+    #run_server("10.0.0.1", 10086, 10086)
+    run_server("127.0.0.1", 10086, 10085)

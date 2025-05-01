@@ -100,7 +100,7 @@ while True:
 
     # Bitrate Stats 表格
     bitrate_headers = ['Bitrat', 'CltID', 'AvgDly', 'AvgRat', 'LatDly',
-                       'LatRat', 'Utiliz']
+                       'LatRat', 'Avgsize','Utiliz']
     bitrate_table_data = []
     bitrate_summary = {}
 
@@ -124,6 +124,7 @@ while True:
             bitrate_table_data.append((
                 bitrate, client_id, f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
                 f"{stats['latest_delay']:.1f}ms", f"{stats['latest_rate']:.1f}MB/s",
+                f"{stats['avg_size']:.1f}KB",
                 f"{utilization:.2f}%"
             ))
 
