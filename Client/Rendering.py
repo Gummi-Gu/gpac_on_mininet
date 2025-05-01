@@ -207,7 +207,7 @@ class Renderer:
         while self.running:
             try:
                 rgb, title, dur = self.frame_queue.get(timeout=0.5)
-                print(self.frame_queue.qsize())
+                #print(self.frame_queue.qsize())
                 self.render(rgb, title, dur)
                 if self.rebuff_time is None and self.frame_queue.qsize() < 10:
                     self.rebuff_count+=1
