@@ -9,8 +9,6 @@ from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
 
-from Client.Q_learning import total_bandwidth
-
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 TRAFFIC_CLASSES = {
@@ -33,6 +31,7 @@ ip_maps={
     'client2':'0.0.0.0',
     #'client3':'0.0.0.0'
 }
+
 total_bandwidth=16
 
 
