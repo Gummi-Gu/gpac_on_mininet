@@ -64,6 +64,7 @@ class TrafficControl:
         ip_mark_mapping = {}
         current_mark = 10  # 起始标记值
 
+        print(traffic_classes_band)
         # 遍历所有IP和配置
         for ip, config in traffic_classes_band.items():
             # 为每个字符串对应的带宽生成独立标记
