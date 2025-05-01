@@ -218,7 +218,7 @@ def setup_network():
                 return match.group(1)
             return None
 
-        for client_name in ip_maps.items():
+        for client_name,_ in ip_maps.items():
             client_host = net.get(client_name)
             ip_addr = get_eth1_ip(client_host)
             ip_maps[client_name] = ip_addr
