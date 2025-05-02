@@ -13,6 +13,8 @@ from mininet.cli import CLI
 
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
+total_bandwidth=24
+
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '8mbit', 'ceil': '9mbit', 'classid': '1:10'},
     'middle': {'mark': 20, 'rate': '4mbit', 'ceil': '5mbit', 'classid': '1:20'},
@@ -34,7 +36,7 @@ ip_maps={
     #'client3':'0.0.0.0'
 }
 
-total_bandwidth=16
+
 
 
 class TrafficControl:
@@ -92,7 +94,7 @@ class TrafficControl:
         # 阶段4：构建TC配置
         tc_cmds = [
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {total_bw}mbit'
+            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.2)}mbit'
         ]
 
         # 为每个唯一标记创建TC类
@@ -105,7 +107,7 @@ class TrafficControl:
 
                 tc_cmds.extend([
                     f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
-                    f'htb rate {item["bw"]}mbit ceil {item["bw"]}mbit',
+                    f'htb rate {item["bw"]}mbit ceil {item["bw"]+ 1}mbit',
                     f'tc filter add dev server-eth0 parent 1: protocol ip '
                     f'handle {mark} fw flowid 1:{mark}'
                 ])

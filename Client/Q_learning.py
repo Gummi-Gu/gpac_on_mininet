@@ -1,5 +1,8 @@
+import os
 import queue
+import sys
 import time
+from datetime import datetime
 
 import requests
 import torch
@@ -16,14 +19,15 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # ====================== 参数 ======================
 streamingMonitorClient=StreamingMonitorClient()
 client_name='client1'
-client_ip='10.0.0.1'
-total_bandwidth=16
+client_ip='10.0.0.2'
+total_bandwidth=24
 alpha = 0.3
 beta = 0.3
 lambda_ = 0.2
 theta = 0.2
 gamma = 0.1
-
+save_dir = "./saved_models"
+os.makedirs(save_dir, exist_ok=True)
 # ====================== 经验回放缓冲区 ======================
 class ReplayBuffer:
     def __init__(self, capacity=10000):
@@ -55,7 +59,7 @@ class ReplayBuffer:
 
 # ====================== DQN 模型定义 ======================
 class ClientDQN(nn.Module):
-    def __init__(self, input_dim=3, output_dim=4):
+    def __init__(self, input_dim=5, output_dim=54):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(input_dim, 64),
@@ -69,14 +73,60 @@ class ClientDQN(nn.Module):
         return self.net(x)
 
 
+# ====================== 缩减后的动作空间设计 ======================
+class ReducedActionSpace:
+    def __init__(self):
+        # 离散化带宽因子（3种选择）
+        self.bw_options = {
+            0: 0.5,  # 保守带宽利用
+            1: 1,  # 平衡模式
+            2: 1.5  # 激进模式
+        }
+
+        # 质量调整策略（4种全局策略）
+        self.quality_strategies = {
+            0: [0, 0, 0, 0],  # 全低质量
+            1: [0, 0, 1, 2],  # 流畅模式
+            2: [0, 1, 1, 3],  # 性价比模式
+            3: [0, 1, 2, 3],  # 正常模式
+            4: [0, 2, 3, 3],  # 高质量模式
+            5: [3, 3, 3, 3]   # 全高模式
+        }
+
+        # 缓冲区配置（3种预设）
+        self.buffer_presets = {
+            0: 1,  # 低延迟模式
+            1: 2,  # 平衡模式
+            2: 3  # 高流畅性模式
+        }
+
+    def get_action(self, action_idx):
+        """将离散动作编号解码为具体参数组合"""
+        bw_idx = action_idx // (len(self.quality_strategies) * len(self.buffer_presets))
+        remaining = action_idx % (len(self.quality_strategies) * len(self.buffer_presets))
+
+        quality_idx = remaining // len(self.buffer_presets)
+        buffer_idx = remaining % len(self.buffer_presets)
+
+        return {
+            'bw_factor': self.bw_options[bw_idx],
+            'quality_up': self.quality_strategies[quality_idx],
+            'buffer': self.buffer_presets[buffer_idx]
+        }
+
+    @property
+    def action_space_size(self):
+        return len(self.bw_options) * len(self.quality_strategies) * len(self.buffer_presets)
+
 # ====================== 客户端智能体 ======================
 class DQNClient:
     def __init__(self, client_id, gamma=0.99):
         self.client_id = client_id  # 质量等级映射表
 
         # 模型参数
-        self.input_dim = 4  # [预测带宽, 缓冲区, 实际带宽, 实际时延]
-        self.output_dim = 4  # 可选分辨率等级数量（0-3）
+        self.action_space = ReducedActionSpace()
+        self.output_dim = self.action_space.action_space_size  # 72个动作
+        self.input_dim = 5  # [预测带宽, 缓冲区, 实际带宽, 实际时延， Qoe]
 
         # 初始化模型
         self.policy_net = ClientDQN(self.input_dim, self.output_dim).to(device)
@@ -107,15 +157,17 @@ class DQNClient:
         buffer_level = env_data['buffer_level']
         actual_band = env_data['actual_bandwidth']
         actual_delay = env_data['actual_delay']
+        qoe = env_data['qoe']
         predicted_bw_sum=0
         for i,j in predicted_bw.items():
             predicted_bw_sum+=j
         # 状态归一化
         state = np.array([
             predicted_bw_sum,  # 假设最大带宽20000kbps
-            buffer_level / 10.0,  # 假设缓冲区最大10秒
+            buffer_level / 5.0,  # 假设缓冲区最大10秒
             actual_band / 2,
-            actual_delay / 1000
+            actual_delay / 1000,
+            qoe/4
         ], dtype=np.float32)
 
         return torch.FloatTensor(state).to(device)
@@ -123,13 +175,7 @@ class DQNClient:
     def select_action(self, state):
         """ε-贪婪策略选择动作"""
         if np.random.random() < self.epsilon:
-            actions = {
-                'bw_factor': round(np.random.uniform(0.2, 0.9), 2),  # 保留两位小数可选
-                'quality_up': list(np.random.randint(0, 4, 4)),
-                'buffer': np.random.randint(1,6)
-            }
-            #return np.random.randint(self.output_dim)
-            return actions
+            return np.random.randint(self.output_dim)
         else:
             with torch.no_grad():
                 q_values = self.policy_net(state)
@@ -191,10 +237,11 @@ class LocalEnvSimulator:
         self.actual_delay=0
         self.buffer_queue=queue.Queue(maxsize=10)
         self.qoe_queue=queue.Queue(maxsize=10)
+        self.action_space = ReducedActionSpace()
 
     def update(self, endpoint, data):
 
-        url = f"127.0.0.1:5000/update/{endpoint}"
+        url = f"http://127.0.0.1:5000/update/{endpoint}"
         try:
             response = requests.post(url, json=data)
         except Exception as e:
@@ -202,8 +249,31 @@ class LocalEnvSimulator:
 
     def step(self, action):
         """执行动作并返回新状态和奖励"""
+        action=self.action_space.get_action(action)
         # 应用动作
         total_bw=action['bw_factor']
+        quality_map=action['quality_up']
+        bitrate_mapping = {
+            0: '200',
+            1: '785',
+            2: '3150',
+            3: '12600'
+        }
+        temp={}
+        # 遍历所有 quality 等级
+        for quality_value in range(4):
+            # 找出所有 value 为当前 quality 的 key
+            keys = [k for k, v in enumerate(quality_map) if v == quality_value]
+
+            # 映射成比特率（字符串）
+            mapped_keys = [bitrate_mapping[k] for k in keys]
+
+            # 累加 self.predicted_bandwidth 中这些比特率对应的值
+            total = sum(self.predicted_bandwidth.get(k, 0) for k in mapped_keys)
+
+            temp[bitrate_mapping[quality_value]] = total
+        self.predicted_bandwidth=temp
+
         traffic_classes_mark_update = {
             client_ip: {'port': 10086,
                         '12600': total_bw*self.predicted_bandwidth['12600'],
@@ -212,23 +282,17 @@ class LocalEnvSimulator:
                         '200': total_bw*self.predicted_bandwidth['200']},
         }
         self.update("traffic_classes_mark",traffic_classes_mark_update)
-
-        quality_map=action['quality_up']
         quality_map_update = {
             client_name: {0:quality_map[0],1:quality_map[1],2:quality_map[2],3:quality_map[3]}
         }
         self.update("quality_map", quality_map_update)
-
         rebuffer_config_update = {
             client_name: {'re_buffer': action['buffer'], 'play_buffer': action['buffer']+1},
         }
         self.update("rebuffer_config", rebuffer_config_update)
-
         state=self.get_state()
-
         # 这里简化奖励计算，实际应根据QoE公式计算
         reward = self.calculate_reward()
-
         '''
         # 更新环境状态（示例逻辑）
         self.predicted_bandwidth = self.predicted_bandwidth * 0.9 + np.random.normal(0, 500)
@@ -240,27 +304,39 @@ class LocalEnvSimulator:
 
     def calculate_reward(self):
         # === 1. 缓冲区稳定性 ===
+        if self.buffer_queue.qsize() == 10:
+            self.buffer_queue.get()
         self.buffer_queue.put(self.buffer_level)
         buffer_list = list(self.buffer_queue.queue)
-        P_buffer = np.std(buffer_list) if len(buffer_list) >= 2 else 0
+        P_buffer = np.std(buffer_list) if len(buffer_list)>2 else 0 # 标准化后计算标准差
+        P_buffer = 1 / (1 + np.exp(-P_buffer))
 
         # === 2. 当前帧 QoE 获取 ===
         temp = streamingMonitorClient.fetch_client_states()
         qoe_list = [buffer['qoe'] for buffer in temp.values()]
-        N = len(qoe_list)
-        S_qoe = self.qoe
+        S_qoe = self.qoe/4
 
         # === 3. QoE 稳定性（跨 step）===
+        if self.qoe_queue.qsize() == 10:
+            self.qoe_queue.get()
         self.qoe_queue.put(S_qoe)
         qoe_queue_list = list(self.qoe_queue.queue)
-        P_qoe = np.std(qoe_queue_list) if len(qoe_queue_list) >= 2 else 0
+        P_qoe = np.std(qoe_queue_list)  if len(qoe_list)>2 else 0
+        P_qoe = 1 / (1 + np.exp(-P_qoe))# 标准化后计算标准差
 
         # === 4. QoE 公平性 ===
-        fairness_qoe = (self.qoe ** 2) / (N * sum(q ** 2 for q in qoe_list) + 1e-6) if N > 0 else 0
+        for _ in range(4):
+            qoe_list.append(4)
+        N = len(qoe_list)
+        fairness_qoe = (S_qoe ** 2) / (N * sum(q ** 2 for q in qoe_list) + 1e-6) if N > 0 else 0
 
         # === 5. 带宽利用率 ===
         total_used_bw = self.actual_bandwidth*8 # 使用总带宽
         bandwidth_efficiency = total_used_bw / total_bandwidth
+
+        # === 6. 时延 ===
+        delay=self.actual_delay / 1000
+
 
         # === 7. 奖励函数组合 ===
         reward = (
@@ -269,7 +345,16 @@ class LocalEnvSimulator:
                 + beta * bandwidth_efficiency
                 - lambda_ * P_qoe
                 - theta * P_buffer
+                - delay
         )
+
+        print(f"\n========== reward 参数 ==========\n"
+              f"S_qoe:{S_qoe},\n"
+              f"fairness_qoe:{fairness_qoe,qoe_list},\n"
+              f"bandwidth_efficiency:{bandwidth_efficiency},\n"
+              f"P_qoe:{P_qoe},\n"
+              f"P_buffer:{P_buffer},\n"
+              f"delay:{delay}\n")
 
         return reward
 
@@ -280,16 +365,20 @@ class LocalEnvSimulator:
         avg_delay=0
         avg_buffer={'rebuffer':0,'play':0}
         avg_qoe=0
-        for _ in range(5):
+        N=15
+        for _ in range(N):
             time.sleep(1)
-            temp=streamingMonitorClient.fetch_track_stats()
-            for track,states in temp.items():
-                if track == 'default':
-                    continue
-                for client_id , state in states.items():
-                    if client_id != client_name :
-                        continue
-                    avg_num[str(state['resolution'])]+=1
+            temp=streamingMonitorClient.fetch_orign_quality_tiled()['data']
+            for i in temp:
+                if i == 0:
+                    avg_num['200']+=1
+                elif i == 1:
+                    avg_num['785']+=1
+                elif i == 2:
+                    avg_num['3150']+=1
+                elif i == 3:
+                    avg_num['12600']+=1
+
             temp=streamingMonitorClient.fetch_bitrate_stats()
             for bitrate, clients in temp.items():
                 if bitrate == 'default':
@@ -317,14 +406,14 @@ class LocalEnvSimulator:
                 avg_buffer['play']+=buffer['play_buffer']
 
         for key in avg_num:
-            avg_num[key] /= 5
+            avg_num[key] /= N
         for key in avg_size:
-            avg_size[key] /= 5
+            avg_size[key] /= N
         for key in avg_buffer:
-            avg_buffer[key] /= 5
-        avg_band /= 5
-        avg_delay /= 5
-        avg_qoe /= 5
+            avg_buffer[key] /= N
+        avg_band /= N
+        avg_delay /= N
+        avg_qoe /= N
 
         sum = {'12600': 0, '3150': 0, '785': 0, '200': 0}
         for i, j in avg_num.items():
@@ -344,7 +433,15 @@ class LocalEnvSimulator:
         self.actual_delay=avg_delay
 
         self.qoe=avg_qoe
-
+        '''
+        print(f"\n========== state 参数 ==========\n"
+              f"predicted_bandwidth:{self.predicted_bandwidth}\n"
+              f"buffer_level:{self.buffer_level}\n"
+              f"actual_bandwidth:{self.actual_bandwidth}\n"
+              f"actual_delay:{self.actual_delay}\n"
+              f"qoe:{self.qoe}\n"
+              )
+        '''
         return {
             'predicted_bandwidth': self.predicted_bandwidth,
             'buffer_level': self.buffer_level,
@@ -366,7 +463,7 @@ def client_training_loop(client_id, num_episodes=1000):
         total_reward = 0
 
         # 模拟单次训练（实际应替换为与真实环境交互）
-        for _ in range(1):  # 假设每个episode包含10个决策步骤
+        for _ in range(10):  # 假设每个episode包含10个决策步骤
             # 获取状态并选择动作
             state_tensor = client.get_state(state)
             action = client.select_action(state_tensor)
@@ -389,11 +486,19 @@ def client_training_loop(client_id, num_episodes=1000):
 
             # 训练模型
             if len(client.memory.buffer) > client.batch_size:
+
                 loss = client.update_model()
+
+            print(f"========== 结果 ==========\n"
+                  f"action:{env.action_space.get_action(action)} \nreward: {reward}\n")
 
         # 定期同步目标网络
         if episode % 10 == 0:
             client.sync_target_network()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            model_path = os.path.join(save_dir, f"client_dqn_ep{episode}_{timestamp}.pt")
+            torch.save(client.policy_net.state_dict(), model_path)
+            print(f"[模型保存] Episode {episode} 模型已保存至 {model_path}")
 
         # 输出训练信息
         print(f"Client {client_id} Episode {episode}, Total Reward: {total_reward:.2f}, Epsilon: {client.epsilon:.2f}")
@@ -423,5 +528,7 @@ class FederatedServer:
 
 # ====================== 使用示例 ======================
 if __name__ == "__main__":
+    client_ip = sys.argv[1] if len(sys.argv) > 1 else '10.0.0.2'
+    client_name = sys.argv[2] if len(sys.argv) > 2 else 'client1'
     # 单个客户端本地训练
     client_training_loop(client_id=client_name, num_episodes=100)

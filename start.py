@@ -11,6 +11,13 @@ def start_monitor(venv_python, project_root):
     )
     time.sleep(3)
 
+def start_qlearning(venv_python, project_root):
+    qlearning_process = subprocess.Popen(
+        [venv_python, "Client/Q_learning.py"],
+        cwd=project_root,
+        creationflags=subprocess.CREATE_NEW_CONSOLE
+    )
+
 def start_single_client(venv_python, module, project_root):
     print(f"Starting {module}...")
     p = subprocess.Popen(
@@ -56,12 +63,9 @@ def main():
             "Client.main2",
         ]
 
-    if len(sys.argv) > 1 and sys.argv[1] == '3':
-        modules = [
-            "Client.main1",
-            "Client.main2",
-            "Client.main3",
-        ]
+    if len(sys.argv) > 2 and sys.argv[2] == 'q':
+        start_qlearning(venv_python, project_root)
+
     process_infos = []
     for module in modules:
         process_infos.append(start_single_client(venv_python, module, project_root))

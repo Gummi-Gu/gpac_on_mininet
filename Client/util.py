@@ -6,6 +6,8 @@ from datetime import datetime
 import json
 from typing import Dict, Optional, Any
 
+from sympy.physics.units import femto
+
 
 class StreamingMonitorClient:
     def __init__(self, server_url: str = "http://localhost:5000"):
@@ -65,6 +67,13 @@ class StreamingMonitorClient:
             "data": data
         }
         return self._send_data("update_heatmap", payload)
+
+
+    def submit_orign_quality_tiled(self,data) -> bool:
+        payload = {
+            "data": data
+        }
+        return self._send_data("update/orign_quality_tiled", payload)
 
     def submit_client_stats(
         self,
@@ -129,3 +138,11 @@ class StreamingMonitorClient:
     def fetch_rebuffer_config(self):
         """获取 rebuffer_config 数据"""
         return self._get_data("get/rebuffer_config")
+
+    def fetch_orign_quality_tiled(self):
+        """获取 orign_quality_tiled 数据"""
+        return self._get_data("get/orign_quality_tiled")
+
+if __name__ == "__main__":
+    s=StreamingMonitorClient()
+    print(s.fetch_orign_quality_tiled())

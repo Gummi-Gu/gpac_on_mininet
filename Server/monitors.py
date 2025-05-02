@@ -21,7 +21,7 @@ quality_map = {
 }
 rebuffer_config = {
     'client1':{'re_buffer': 1,'play_buffer': 2},
-    'client2':{'re_buffer': 1,'play_buffer': 2},
+    'client2':{'re_buffer': 2,'play_buffer': 3},
     #'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
 }
 # 数据结构定义
@@ -67,8 +67,8 @@ client_stats = defaultdict(lambda: {
 
 # 新增的数据结构
 TRAFFIC_CLASSES_MARK = {
-    '10.0.0.2' : {'port': 10086, '12600': 0.2, '3150':0.1, '785':0.1, '200':0.1},
-    '10.0.0.3' : {'port': 10086, '12600': 0.2, '3150':0.1, '785':0.1, '200':0.1},
+    '10.0.0.2' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
+    '10.0.0.3' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
     #'10.0.0.4' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30}
 }
 TRAFFIC_CLASSES_DELAY = {
@@ -83,6 +83,10 @@ ip_maps={
     #'client3':'0.0.0.0'
 }
 
+orign_quality_tiled={
+    'data':[1,2,3],
+}
+
 
 def mark2bw(x):
     if x == 10:
@@ -92,6 +96,21 @@ def mark2bw(x):
     if x == 30:
         return 10
 # 接口：获取 ip_maps
+
+@app.route('/get/orign_quality_tiled', methods=['GET'])
+def get_orign_quality_tiled():
+    with lock:
+        return jsonify(orign_quality_tiled)
+@app.route('/update/orign_quality_tiled', methods=['POST'])
+def update_orign_quality_tiled():
+    data = request.get_json()
+    if data:
+        with lock:
+            orign_quality_tiled.update(data)
+        #print(summary_rate_stats)
+        return jsonify({"status": "success", "message": "orign_quality_tiled"})
+    else:
+        return jsonify({"status": "error", "message": "Invalid data"}), 400
 
 @app.route('/get/ip_maps', methods=['GET'])
 def get_ip_maps():

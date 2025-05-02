@@ -5,11 +5,13 @@ from collections import defaultdict, deque
 from tabulate import tabulate
 
 import util
+
+
 streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
 
 latest_rate_history = {}
 latest_delay_history = {}
-
+total_bandwidth=24/8
 
 # 改为保存最近10秒的 (timestamp, delay, rate)
 summary_state = defaultdict(lambda: deque())
@@ -31,7 +33,7 @@ while True:
         for client_id, stats in clients.items():
             if track_id == 'default':
                 continue
-            utilization = (stats['latest_rate'] / 2) * 100  # 假设最大带宽是20
+            utilization = (stats['latest_rate'] / total_bandwidth) * 100  # 假设最大带宽是20
 
             prev_key = (track_id, client_id)
             prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
@@ -69,7 +71,7 @@ while True:
         prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
         prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
         #summary_rate_stats[client_id]['size']=summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1e3
-        utilization = (summary_rate_stats[client_id]['size'] / 2) * 100
+        utilization = (summary_rate_stats[client_id]['size'] / total_bandwidth) * 100
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
         client_id_num = ''.join(re.findall(r'\d+', client_id))
@@ -108,7 +110,7 @@ while True:
         if bitrate == 'default':
             continue
         for client_id, stats in clients.items():
-            utilization = (stats['latest_rate'] / 2) * 100  # 假设最大带宽是100
+            utilization = (stats['latest_rate'] / total_bandwidth) * 100  # 假设最大带宽是100
             if client_id not in bitrate_summary:
                 bitrate_summary[client_id] = {
                     'total_delay': 0.0,
