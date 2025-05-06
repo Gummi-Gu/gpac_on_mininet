@@ -199,13 +199,13 @@ def process_stats_batch(batch):
                 br['latest_size'] = data['latest_size']
                 br['history'].extend(data['history'])  # 合并历史记录
 
-            # 清理超过10秒的历史数据
+            # 清理超过5秒的历史数据
             current_time = time.time()
-            ten_seconds_ago = current_time - 10
+            ten_seconds_ago = current_time - 5
             br = bitrate_stats[bitrate]
             br['history'] = [(ts, sz) for ts, sz in br['history'] if ts >= ten_seconds_ago]
 
-            # 计算过去10秒的平均文件大小
+            # 计算过去5秒的平均文件大小
             recent_sizes = [sz for ts, sz in br['history']]
             recent_avg_size = sum(recent_sizes) / len(recent_sizes) if recent_sizes else 0
 
@@ -218,7 +218,7 @@ def process_stats_batch(batch):
                 avg_rate,
                 br['latest_delay'],
                 br['latest_size'] / br['latest_delay'] if br['latest_delay'] else 0,
-                recent_avg_size  # 新增参数：过去10秒平均大小
+                recent_avg_size  # 新增参数：过去5秒平均大小
             )
 
 

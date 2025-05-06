@@ -78,7 +78,7 @@ def main():
                 if p.poll() is not None:
                     print(f"Process {p.pid} ({info['module']}) exited early. Restarting...")
                     process_infos[i] = start_single_client(venv_python, info["module"], project_root)
-                elif time.time() - info["start_time"] > 60:
+                elif time.time() - info["start_time"] > 65:
                     print(f"Process {p.pid} ({info['module']}) reached 60s. Restarting...")
                     process_infos[i] = restart_client(info, venv_python, project_root)
 

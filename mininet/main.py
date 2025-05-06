@@ -11,9 +11,9 @@ from mininet.node import Controller, OVSSwitch
 from mininet.link import TCLink
 from mininet.cli import CLI
 
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient=util.StreamingMonitorClient()
 
-total_bandwidth=24
+total_bandwidth=20
 
 TRAFFIC_CLASSES = {
     'high': {'mark': 10, 'rate': '8mbit', 'ceil': '9mbit', 'classid': '1:10'},
@@ -94,7 +94,7 @@ class TrafficControl:
         # 阶段4：构建TC配置
         tc_cmds = [
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.2)}mbit'
+            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.1)}mbit'
         ]
 
         # 为每个唯一标记创建TC类

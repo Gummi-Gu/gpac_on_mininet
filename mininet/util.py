@@ -6,7 +6,7 @@ import json
 from typing import Dict, Optional, Any
 
 class StreamingMonitorClient:
-    def __init__(self, server_url: str = "http://localhost:5000"):
+    def __init__(self, server_url: str = "http://192.168.3.22:5000"):
         self.base_url = server_url
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})

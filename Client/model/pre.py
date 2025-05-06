@@ -67,7 +67,7 @@ def start():
 def pre():
     time.sleep(1)
     while True:
-        time.sleep(1)  # 模拟一秒一个输入数据，可以去掉或改为接收信号的时间间隔
+        start_time=time.time()
         # 模拟接收一帧实时数据（10维向量）
         video_data=Factory.videoSegmentStatus.get_video()
         try:
@@ -77,7 +77,6 @@ def pre():
         tensor_list = [torch.tensor(ndarray) for ndarray in video_data]
         tensor_stack = torch.stack(tensor_list)
         video_data = tensor_stack.unsqueeze(0).permute(0,1,4,2,3)
-
         motion_data=Factory.videoSegmentStatus.get_motion()
         try:
             motion_data=evenly_expand_list(motion_data, 32)
@@ -103,6 +102,7 @@ def pre():
             merged_level=np.insert(merged_level.flatten(), 0, 0).tolist()
             #print(f"[PRE] {merged_level}")
             Factory.videoSegmentStatus.set_all_quality_tiled(merged_level)
+        time.sleep(max(0.0,1-time.time()+start_time))  # 模拟一秒一个输入数据，可以去掉或改为接收信号的时间间隔
 
 
 
@@ -110,7 +110,7 @@ def pre():
 def QoEpre(level):
     global last_rebuff_time, last_rebuff_count, last_Qoa
     qua=Factory.videoSegmentStatus.get_quality()[1:]
-    print(qua)
+    #print(qua)
     level=level.flatten()
     B=0
     for j,i in enumerate(qua):
@@ -172,7 +172,16 @@ def QoEpre(level):
     last_Qoa=qua
     last_rebuff_time=Factory.videoSegmentStatus.get_rebuff_time()
     last_rebuff_count=Factory.videoSegmentStatus.get_rebuff_count()
-    print(f"[PRE]{Qoe:.2f},{D1:.2f},{D2:.2f},{B:.2f},{S:.2f},{U:.2f}")
+    if Factory.clientname == 'client1':
+        print(f"[{Factory.clientname:<10}][PRE] "
+              f"Qoe:{Qoe:>6.2f}, "
+              f"rebuffer_time:{D1:>6.2f}, "
+              f"rebuffer_count:{D2:>6.2f}, "
+              f"quality_score:{B:>6.2f}, "
+              f"frame_difference:{S:>6.2f}, "
+              f"quality_difference:{U:>6.2f}")
+        print(f"[{Factory.clientname:<10}][quality]{Factory.videoSegmentStatus.get_quality()}")
+        #print(f"[{Factory.clientname:<10}][quality_mao]{Factory.videoSegmentStatus.get_quality_map()}")
     return Qoe
 
 

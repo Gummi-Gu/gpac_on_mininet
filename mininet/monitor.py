@@ -7,11 +7,11 @@ from tabulate import tabulate
 import util
 
 
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient=util.StreamingMonitorClient()
 
 latest_rate_history = {}
 latest_delay_history = {}
-total_bandwidth=24/8
+total_bandwidth=20/8
 
 # 改为保存最近10秒的 (timestamp, delay, rate)
 summary_state = defaultdict(lambda: deque())

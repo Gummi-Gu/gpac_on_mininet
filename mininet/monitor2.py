@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 import util
 
-streamingMonitorClient=util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient=util.StreamingMonitorClient()
 def mark2bw(x):
     if x == 10:
         return 8

@@ -1,5 +1,8 @@
+import pandas as pd
 from flask import Flask, request, jsonify, send_file
+from numpy.distutils.exec_command import temp_file_name
 from sympy import threaded
+import random
 from tabulate import tabulate
 from collections import defaultdict
 from datetime import datetime
@@ -71,11 +74,7 @@ TRAFFIC_CLASSES_MARK = {
     '10.0.0.3' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
     #'10.0.0.4' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30}
 }
-TRAFFIC_CLASSES_DELAY = {
-    '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
-    '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
-    #'10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
-}
+
 
 ip_maps={
     'client1':'0.0.0.0',
@@ -86,6 +85,76 @@ ip_maps={
 orign_quality_tiled={
     'data':[1,2,3],
 }
+
+#========== 时延 ==========
+TRAFFIC_CLASSES_DELAY = {
+    '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
+    '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
+    #'10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
+}
+
+
+# 加载链路数据（从 CSV 文件读取）
+def load_link_data(csv_file):
+    # 读取 CSV 文件并返回 DataFrame
+    df = pd.read_csv(csv_file)
+    return df
+
+
+# 按 Source 和 Destination 组合分组链路
+def group_by_source_destination(df):
+    # 按 Source 和 Destination 分组，返回一个字典，key 是 (Source, Destination) 组合，value 是对应的时延数据列表
+    grouped = df.groupby(['Source', 'Destination'])['RTT'].apply(list).to_dict()
+    return grouped
+
+
+# 为每个 IP 随机选择一个链路
+def assign_random_links(grouped_data):
+    for ip in TRAFFIC_CLASSES_DELAY:
+        # 随机选择一个 (Source, Destination) 组合
+        random_source_dest = random.choice(list(grouped_data.keys()))
+        TRAFFIC_CLASSES_DELAY[ip]['source'], TRAFFIC_CLASSES_DELAY[ip]['destination'] = random_source_dest
+        # 随机选择该组合的一个时延
+        TRAFFIC_CLASSES_DELAY[ip]['delay'] = random.choice(grouped_data[random_source_dest])
+        TRAFFIC_CLASSES_DELAY[ip]['index'] = 0  # 初始时设置为第一个时间片
+
+
+# 更新链路时延数据，切换到下一个时间片
+def next_traffic_classes_delay():
+    global time_slot_index,grouped_data
+
+    # 锁定更新操作
+    with lock:
+        time_slot_index = (time_slot_index + 1) % num_time_slots
+        for ip in TRAFFIC_CLASSES_DELAY:
+            # 获取当前 IP 所选的 Source 和 Destination
+            source = TRAFFIC_CLASSES_DELAY[ip]['source']
+            destination = TRAFFIC_CLASSES_DELAY[ip]['destination']
+
+            # 获取当前时间片的链路时延
+            current_time = time_slot_index + 1
+            # 获取这个 (Source, Destination) 对应的所有时延
+            link_data = grouped_data.get((source, destination), [])
+            if link_data:
+                # 如果有时延数据，更新当前时间片的链路时延
+                TRAFFIC_CLASSES_DELAY[ip]['delay'] = link_data[(current_time - 1) % len(link_data)]*50
+
+
+# 配置时间片数量和锁
+num_time_slots = 688  # 假设有 688 个时间片
+time_slot_index = 0  # 当前时间片索引
+
+# 加载链路数据
+csv_file = 'valid_links.csv'  # 替换成实际的 CSV 文件路径
+link_data = load_link_data(csv_file)
+
+# 按 Source 和 Destination 分组链路数据
+grouped_data = group_by_source_destination(link_data)
+
+# 初始化时分配随机链路
+assign_random_links(grouped_data)
+
+# ========== ===========
 
 
 def mark2bw(x):
@@ -149,6 +218,11 @@ def update_summary_rate_stats():
 @app.route('/get/traffic_classes_mark', methods=['GET'])
 def get_traffic_classes_mark():
     with lock:
+        temp_float=round(random.uniform(0.8,1.2),1)
+        temp={
+            '10.0.0.3' : {'port': 10086, '12600': temp_float*0.65, '3150':temp_float*0.25, '785':temp_float*0.05, '200':temp_float*0.05},
+        }
+        TRAFFIC_CLASSES_MARK.update(temp)
         return jsonify(TRAFFIC_CLASSES_MARK)
 
 # 接口：更新 TRAFFIC_CLASSES_MARK
@@ -165,6 +239,7 @@ def update_traffic_classes_mark():
 
 @app.route('/get/traffic_classes_delay', methods=['GET'])
 def get_traffic_classes_delay():
+    next_traffic_classes_delay()
     with lock:
         return jsonify(TRAFFIC_CLASSES_DELAY)
 

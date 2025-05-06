@@ -144,6 +144,8 @@ class VideoSegmentStatus:
         return self.rebuff_time
     def get_rebuff_count(self):
         return self.rebuff_count
+    def get_quality_map(self):
+        return self.quality_map
 
 
     # -------------------- 定时记录 --------------------
