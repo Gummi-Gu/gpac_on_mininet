@@ -87,6 +87,16 @@ def compute_opacity_heatmap(str,rgb,level_num):
         for j in range(Factory.tile_size):
             block = opacity[i*part_h:(i+1)*part_h, j*part_w:(j+1)*part_w]
             heatmap[i, j] = np.sum(block)
+
+
+    plt.figure(figsize=(Factory.tile_size, Factory.tile_size))
+    plt.imshow(heatmap, cmap='hot', interpolation='nearest')
+    plt.colorbar(label='Opacity Score')
+    plt.title("Opacity Heatmap " + str)
+    plt.xticks(range(Factory.tile_size))
+    plt.yticks(range(Factory.tile_size))
+    plt.gca().invert_yaxis()
+
     # 扁平化再进行分级
     flat = heatmap.flatten()
     min_val = flat.min()
@@ -99,18 +109,12 @@ def compute_opacity_heatmap(str,rgb,level_num):
         # 标准化到0~1之间
         norm = (flat - min_val) / (max_val - min_val)
         # 按比例映射到等级（1~level_num）
-        levels = np.around(norm * (level_num-1),0).astype(np.uint8)
+        if str == "resized_rgb" or str == "prev_circle":
+            levels = np.around(norm *0.85 * (level_num - 1), 0).astype(np.uint8)
+        else:
+            levels = np.around(norm * (level_num-1),0).astype(np.uint8)
     #levels[levels == 0] = 1  # 确保最小等级为1
     levels=levels.reshape(heatmap.shape)
-
-    plt.figure(figsize=(Factory.tile_size, Factory.tile_size))
-    plt.imshow(heatmap, cmap='hot', interpolation='nearest')
-    plt.colorbar(label='Opacity Score')
-    plt.title("Opacity Heatmap " + str)
-    plt.xticks(range(Factory.tile_size))
-    plt.yticks(range(Factory.tile_size))
-    plt.gca().invert_yaxis()
-
     # 创建保存路径，并加上序号
     save_path = f"Client/logs/img_{Factory.clientname}/{str}/{counter}.png"
 
@@ -136,7 +140,8 @@ def get_qualitys(rgb,u,v,preu,prev):
     #merged_level = np.maximum(level1, np.maximum(level2, level3))
     #print(level1.flatten())
     #print(level2.flatten())
-    merged_level = np.maximum(level1,level2)
+    level4 = np.ceil(np.maximum(level1,  level3))
+    merged_level = np.maximum(level2,level4)
     return merged_level,level1,level2,level3
 
 
