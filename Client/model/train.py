@@ -1,5 +1,5 @@
 import csv
-
+import time
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -35,19 +35,19 @@ def train():
     # 训练参数
     config = {
         'batch_size': 16,
-        'num_epochs': 1,
-        'lr': 1e-5,
+        'num_epochs': 50,
+        'lr': 1e-4,
         'lr_step_size': 10,
         'lr_gamma': 0.1,
         'weight_decay': 1e-5,
         'save_dir': 'Client/model/checkpoints',
         'log_interval': 10,
         'device': 'cuda' if torch.cuda.is_available() else 'cpu',
-        'val': True
+        'val': True,
+        'pretrained_model_path': 'Client/model/checkpoints/best_model_20250510_125217.pt'  # 预训练模型路径
     }
 
     # 初始化数据集和数据加载器
-
     train_dataset = VRDataset(
         video_root='Client/model/data/train/video',
         motion_csv_root='Client/model/data/train/csv',
@@ -78,6 +78,12 @@ def train():
     # 初始化模型
     model = build_model(pretrained=True).to(config['device'])
 
+    # 加载预训练模型权重（如果存在）
+    if os.path.exists(config['pretrained_model_path']):
+        checkpoint = torch.load(config['pretrained_model_path'], map_location=config['device'])
+        model.load_state_dict(checkpoint['state_dict'])
+        print(f"加载预训练模型: {config['pretrained_model_path']}")
+
     def quaternion_angle_loss(q_pred, q_true):
         # 归一化四元数
         q_pred = q_pred / torch.norm(q_pred, dim=-1, keepdim=True)
@@ -91,6 +97,7 @@ def train():
         angle_diff = 2 * torch.acos(dot_product_abs)
 
         return torch.mean(angle_diff ** 2)  # 平方误差
+
     criterion = quaternion_angle_loss
     optimizer = Adam(
         model.parameters(),
@@ -160,6 +167,8 @@ def train():
 
             avg_val_loss = val_loss / len(val_loader)
             print(f'Epoch {epoch + 1} Val Loss: {avg_val_loss:.4f}')
+            with open('train_log.txt', 'a') as f:
+                f.write(f'Epoch {epoch + 1} Val Loss: {avg_val_loss:.4f}\n')
 
             # 保存最佳模型
             if avg_val_loss < best_val_loss:
@@ -170,11 +179,12 @@ def train():
                     'optimizer': optimizer.state_dict(),
                     'loss': best_val_loss
                 }
-                torch.save(checkpoint, os.path.join(config['save_dir'], f'best_model_{timestamp}.pt'))
+                torch.save(checkpoint, os.path.join(config['save_dir'], f'best_model_{time.time()}.pt'))
+                print('保存')
         # 更新学习率
         scheduler.step()
 
 
 if __name__ == '__main__':
     train()
-    save(save_target,"Client/model/data/target.csv")
+    save(save_target, "Client/model/data/target.csv")
