@@ -69,9 +69,9 @@ class StreamingMonitorClient:
         return self._send_data("update_heatmap", payload)
 
 
-    def submit_orign_quality_tiled(self,data) -> bool:
+    def submit_orign_quality_tiled(self,data,client_id) -> bool:
         payload = {
-            "data": data
+            client_id: data
         }
         return self._send_data("update/orign_quality_tiled", payload)
 
