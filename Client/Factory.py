@@ -97,7 +97,7 @@ class VideoSegmentStatus:
     def set_all_quality_tiled(self, quality_list):
         if len(quality_list) != self.tile_num:
             raise ValueError("Length mismatch")
-        streamingMonitorClient.submit_orign_quality_tiled(quality_list)
+        streamingMonitorClient.submit_orign_quality_tiled(quality_list,clientname)
         self.quality_tiled = [self.quality_map[q] for q in quality_list]
 
 
