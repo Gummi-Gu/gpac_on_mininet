@@ -113,15 +113,16 @@ def QoEpre(level):
     #print(qua)
     level=level.flatten()
     B=0
+    temp_map=[0.0625*0.1,0.125*0.25,0.25*0.5,1]
     for j,i in enumerate(qua):
         if i==0:
-            B+=1*level[j]
+            B+=1*temp_map[level[j]]
         if i==1:
-            B+=2*level[j]
+            B+=2*temp_map[level[j]]
         if i==2:
-            B+=4*level[j]
+            B+=4*temp_map[level[j]]
         if i == 3:
-            B += 8 * level[j]
+            B += 8 * temp_map[level[j]]
     B=B/Factory.tile_num
 
     matrix1,matrix2=qua,last_Qoa
@@ -167,7 +168,7 @@ def QoEpre(level):
     diff_matrix_normalized = (diff_matrix - np.min(diff_matrix)) / max(0.1,(np.max(diff_matrix) - np.min(diff_matrix)))
     U=np.sum(diff_matrix_normalized)/Factory.tile_num
 
-    Qoe = -4 * D1 - 1 * D2 + 1 * B - 1 * S - 2 * U
+    Qoe = -4 * D1 - 1 * D2 + 5 * B - 1 * S - 2 * U
 
     last_Qoa=qua
     last_rebuff_time=Factory.videoSegmentStatus.get_rebuff_time()
