@@ -1,4 +1,13 @@
 # created by virtualenv automatically
-.idea
-__pycache__
+.idea/
+__pycache__/
 .venv
+*log*
+*.txt
+log/
+*.csv
+*.bat
+Client/precomputed_maps
+saved_models
+Client/model/data
+Client/model/checkpoints
