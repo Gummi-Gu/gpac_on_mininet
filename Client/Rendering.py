@@ -132,12 +132,12 @@ class Viewpoint:
         #with keyboard.Listener(on_press=self.on_press) as listener:
         #    listener.join()
         #data = pd.read_csv('./Client/video_0_droped.csv')  # 替换为你的实际路径
-        Factory.yaw = -19
-        Factory.pitch = 94
-        Factory.videoSegmentStatus.set_xyzw(0.078, -0.716, 0.026, 0.693)
-        return
+        #Factory.yaw = 180
+        #Factory.pitch = 94
+        #Factory.videoSegmentStatus.set_xyzw(0.078, -0.716, 0.026, 0.693)
+        #return
 
-        df = pd.read_csv('Client/model/data/train/csv/4/video_4.csv')
+        df = pd.read_csv('Client/video_4.csv')
 
         # 保留1位小数并去重
         df['PlaybackTimeRounded'] = df['PlaybackTime'].round(1)
@@ -156,7 +156,7 @@ class Viewpoint:
             Factory.yaw=yaw
             Factory.pitch=pitch
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
-            print(yaw,pitch,x,y,z,w)
+            #print(yaw,pitch,x,y,z,w)
             time.sleep(0.1)
             #print(f"[Rendering] {time.time()}")
             #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
