@@ -1,3 +1,5 @@
+import json
+
 import pandas as pd
 from flask import Flask, request, jsonify, send_file
 from numpy.distutils.exec_command import temp_file_name
@@ -20,12 +22,10 @@ string_dict = {
 quality_map = {
     'client1':{0:0,1:1,2:2,3:3},
     'client2':{0:0,1:1,2:2,3:3},
-    #'client3':{0:0,1:1,2:2,3:3}
 }
 rebuffer_config = {
     'client1':{'re_buffer': 1,'play_buffer': 2},
     'client2':{'re_buffer': 2,'play_buffer': 3},
-    #'client3':{'re_buffer': 1000000,'play_buffer': 1000000}
 }
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
@@ -49,9 +49,6 @@ track_stats = defaultdict(lambda: defaultdict(lambda: {
 }))
 
 summary_rate_stats = {
-    'client1': {'size':0.0,'time':0.0},
-    'client2':{'size':0.0,'time':0.0},
-    #'client3':{'size':0.0,'time':0.0}
 }
 
 link_metrics = defaultdict(lambda: {
@@ -72,18 +69,16 @@ client_stats = defaultdict(lambda: {
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
     '10.0.0.3' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
-    #'10.0.0.4' : {'port': 10086, '12600': 10, '3150':20, '785':30, '200':30}
 }
 
 
 ip_maps={
     'client1':'0.0.0.0',
     'client2':'0.0.0.0',
-    #'client3':'0.0.0.0'
 }
 
 orign_quality_tiled={
-    'data':[1,2,3],
+    'client1':[1,2,3],
 }
 
 #========== 时延 ==========
@@ -152,7 +147,7 @@ link_data = load_link_data(csv_file)
 grouped_data = group_by_source_destination(link_data)
 
 # 初始化时分配随机链路
-assign_random_links(grouped_data)
+#assign_random_links(grouped_data)
 
 # ========== ===========
 
@@ -208,21 +203,26 @@ def update_summary_rate_stats():
     if data:
         with lock:
             summary_rate_stats.update(data)
-        #print(summary_rate_stats)
-        return jsonify({"status": "success", "message": "ip_maps updated"})
+            # 将数据以 JSON 格式追加写入到 bandwidth.txt
+            with open("bandwidth.txt", "a") as f:
+                f.write(json.dumps(data) + "\n")
+        return jsonify({"status": "success", "message": "summary_rate_stats updated"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
 
 
 # 接口：获取 TRAFFIC_CLASSES_MARK
+temp_float=1.0
 @app.route('/get/traffic_classes_mark', methods=['GET'])
 def get_traffic_classes_mark():
+    global temp_float
     with lock:
-        temp_float=round(random.uniform(0.8,1.2),1)
-        temp={
-            '10.0.0.3' : {'port': 10086, '12600': temp_float*0.65, '3150':temp_float*0.25, '785':temp_float*0.05, '200':temp_float*0.05},
-        }
-        TRAFFIC_CLASSES_MARK.update(temp)
+        #delta = random.choice([-0.1, 0, 0.1])
+        #temp_float = round(min(2.0, max(0.3, temp_float + delta)), 1)
+        #temp={
+        #    '10.0.0.3' : {'port': 10086, '12600': temp_float*0.65, '3150':temp_float*0.25, '785':temp_float*0.05, '200':temp_float*0.05},
+        #}
+        #TRAFFIC_CLASSES_MARK.update(temp)
         return jsonify(TRAFFIC_CLASSES_MARK)
 
 # 接口：更新 TRAFFIC_CLASSES_MARK
@@ -239,7 +239,7 @@ def update_traffic_classes_mark():
 
 @app.route('/get/traffic_classes_delay', methods=['GET'])
 def get_traffic_classes_delay():
-    next_traffic_classes_delay()
+    #next_traffic_classes_delay()
     with lock:
         return jsonify(TRAFFIC_CLASSES_DELAY)
 
@@ -257,6 +257,10 @@ def update_traffic_classes_delay():
 
 @app.route('/get/quality_map', methods=['GET'])
 def get_quality_map():
+    #for k, (min_val, max_val) in {2: (1, 3), 3: (2, 3)}.items():
+            #delta = random.choice([-1, 0, 1])
+            #new_val = quality_map['client2'][k] + delta
+            #quality_map['client2'][k] = max(min_val, min(max_val, new_val))
     with lock:
         return jsonify(quality_map)
 
