@@ -71,7 +71,7 @@ class StreamingMonitorClient:
 
     def submit_orign_quality_tiled(self,data) -> bool:
         payload = {
-            "data": data
+            data
         }
         return self._send_data("update/orign_quality_tiled", payload)
 
