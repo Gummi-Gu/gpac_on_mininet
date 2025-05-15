@@ -94,7 +94,7 @@ class TrafficControl:
         # 阶段4：构建TC配置
         tc_cmds = [
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.1)}mbit'
+            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.05)}mbit'
         ]
 
         # 为每个唯一标记创建TC类
@@ -107,7 +107,7 @@ class TrafficControl:
 
                 tc_cmds.extend([
                     f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
-                    f'htb rate {item["bw"]}mbit ceil {item["bw"]+ 1}mbit',
+                    f'htb rate {item["bw"]}mbit ceil {item["bw"]+ 0.3}mbit',
                     f'tc filter add dev server-eth0 parent 1: protocol ip '
                     f'handle {mark} fw flowid 1:{mark}'
                 ])

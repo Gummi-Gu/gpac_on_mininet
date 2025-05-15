@@ -11,7 +11,7 @@ streamingMonitorClient=util.StreamingMonitorClient()
 
 latest_rate_history = {}
 latest_delay_history = {}
-total_bandwidth=20/8
+total_bandwidth=24/8
 
 # 改为保存最近10秒的 (timestamp, delay, rate)
 summary_state = defaultdict(lambda: deque())
@@ -110,7 +110,7 @@ while True:
         if bitrate == 'default':
             continue
         for client_id, stats in clients.items():
-            utilization = (stats['latest_rate'] / total_bandwidth) * 100  # 假设最大带宽是100
+            utilization = (stats['latest_rate'] / total_bandwidth) * 100  
             if client_id not in bitrate_summary:
                 bitrate_summary[client_id] = {
                     'total_delay': 0.0,
