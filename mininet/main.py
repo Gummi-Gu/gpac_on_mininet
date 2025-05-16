@@ -36,9 +36,6 @@ ip_maps={
     #'client3':'0.0.0.0'
 }
 
-
-
-
 class TrafficControl:
     @staticmethod
     def adjust(server):
@@ -94,7 +91,7 @@ class TrafficControl:
         # 阶段4：构建TC配置
         tc_cmds = [
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.05)}mbit'
+            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw*1.1)}mbit'
         ]
 
         # 为每个唯一标记创建TC类
@@ -107,7 +104,7 @@ class TrafficControl:
 
                 tc_cmds.extend([
                     f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
-                    f'htb rate {item["bw"]}mbit ceil {item["bw"]+ 0.3}mbit',
+                    f'htb rate {item["bw"]}mbit ceil {item["bw"]}mbit',
                     f'tc filter add dev server-eth0 parent 1: protocol ip '
                     f'handle {mark} fw flowid 1:{mark}'
                 ])
@@ -188,39 +185,7 @@ class TrafficControl:
     @staticmethod
     def report_traffic_classes():
         # 合并后输出
-        print("Merged Traffic Classes Configuration:")
-        merged_traffic = {}
-
-        # 合并 TRAFFIC_CLASSES_MARK 和 TRAFFIC_CLASSES_DELAY
-        for ip, config in TRAFFIC_CLASSES_MARK.items():
-            if ip not in merged_traffic:
-                merged_traffic[ip] = {'client': '', 'port': config['port'], 'marks': {}, 'delay': 0, 'loss': 0}
-
-            # 合并标记
-            for string, mark in config.items():
-                if string != 'port':
-                    merged_traffic[ip]['marks'][string] = mark
-
-        for ip, config in TRAFFIC_CLASSES_DELAY.items():
-            if ip not in merged_traffic:
-                merged_traffic[ip] = {'client': config['client'], 'port': '', 'marks': {}, 'delay': config['delay'],
-                                      'loss': config['loss']}
-            else:
-                # 合并延迟和丢包率
-                merged_traffic[ip]['client'] = config['client']
-                merged_traffic[ip]['delay'] = config['delay']
-                merged_traffic[ip]['loss'] = config['loss']
-
-        # 输出合并后的配置
-        for ip, config in merged_traffic.items():
-            print(f"IP: {ip}")
-            print(f"  Client: {config['client']}")
-            print(f"  Port: {config['port']}")
-            print(f"  Marks: {config['marks']}")
-            print(f"  Delay: {config['delay']} ms")
-            print(f"  Loss: {config['loss']} %")
-            print("")  # 空行分隔
-            streamingMonitorClient.submit_link_metrics(config['client'],config['delay'],config['loss'],TRAFFIC_CLASSES_MARK[ip])
+        print("Traffic Classes Configuration:")
 
 
 def setup_network():
@@ -307,7 +272,6 @@ def setup_network():
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
-            TrafficControl.report_traffic_classes()
             time.sleep(1)
             '''
             TrafficControl.report_traffic_classes()

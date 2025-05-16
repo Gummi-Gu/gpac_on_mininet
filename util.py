@@ -143,6 +143,10 @@ class StreamingMonitorClient:
         """获取 orign_quality_tiled 数据"""
         return self._get_data("get/orign_quality_tiled")
 
+    def fetch_traffic_classes_mark(self):
+        pass
+
+
 if __name__ == "__main__":
     s=StreamingMonitorClient()
     print(s.fetch_orign_quality_tiled())
