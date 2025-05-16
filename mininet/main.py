@@ -69,7 +69,6 @@ class TrafficControl:
         }))
         current_mark = 10  # 起始标记值
 
-        print(traffic_classes_band)
         # 遍历所有IP和配置
         for ip, config in traffic_classes_band.items():
             # 为每个字符串对应的带宽生成独立标记
@@ -81,6 +80,8 @@ class TrafficControl:
                         'bw': bw*total_bandwidth
                     }
                     current_mark += 10  # 步长10保证唯一
+
+        print(ip_mark_mapping)
 
         # 阶段2：计算总带宽需求
         total_bw = total_bandwidth
