@@ -153,11 +153,11 @@ class Viewpoint:
                                                  row['UnitQuaternion.y'],
                                                  row['UnitQuaternion.z'],
                                                  row['UnitQuaternion.w'])
-            Factory.yaw=yaw
-            Factory.pitch=pitch
+            Factory.yaw=yaw-15
+            Factory.pitch=pitch-15
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
             #print(yaw,pitch,x,y,z,w)
-            time.sleep(0.1)
+            time.sleep(0.066)
             #print(f"[Rendering] {time.time()}")
             #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
 

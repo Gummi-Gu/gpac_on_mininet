@@ -96,6 +96,7 @@ def compute_opacity_heatmap(str,rgb,level_num):
     plt.xticks(range(Factory.tile_size))
     plt.yticks(range(Factory.tile_size))
     plt.gca().invert_yaxis()
+    #plt.show()
 
     # 扁平化再进行分级
     flat = heatmap.flatten()
@@ -142,6 +143,7 @@ def get_qualitys(rgb,u,v,preu,prev):
     #print(level2.flatten())
     level4 = np.ceil(np.maximum(level1,  level3))
     merged_level = np.maximum(level2,level4)
+    #print(merged_level)
     return merged_level,level1,level2,level3
 
 

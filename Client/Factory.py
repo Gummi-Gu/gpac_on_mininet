@@ -47,14 +47,14 @@ class VideoSegmentStatus:
         self.rgb_resized = None
         self.rebuff_time = 0
         self.rebuff_count = 0
-        self.quality_tiled = [0 for _ in range(tile_num)]
+        self.quality_tiled = [2 for _ in range(tile_num)]
         self.qoe=0
         self.tile_num = tile_num
         self.videos = []
         self.motions = []
         self.bitrate_map = {0:200, 1: 785, 2: 3150, 3: 12600}
         self.Qoe=0
-        self.quality_map  = {0: 0, 1: 1, 2: 3, 3: 3}
+        self.quality_map  = {0: 0, 1: 1, 2: 2, 3: 3}
 
 
         os.makedirs(log_dir, exist_ok=True)
@@ -79,7 +79,7 @@ class VideoSegmentStatus:
         self.z=z
         self.w=w
         self.motions.append([self.x, self.y, self.z, self.w])
-        if len(self.motions) > 10:
+        if len(self.motions) > 32:
             self.motions.pop(0)
 
 

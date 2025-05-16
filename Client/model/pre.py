@@ -65,7 +65,6 @@ def start():
     thread.start()
 
 def pre():
-    time.sleep(1)
     while True:
         start_time=time.time()
         # 模拟接收一帧实时数据（10维向量）
@@ -100,6 +99,7 @@ def pre():
             merged_level,level1,level2,level3=pred.get_qualitys(rgb,Factory.u,Factory.v,Factory.preu,Factory.prev)
             Factory.videoSegmentStatus.Qoe=QoEpre(level2)
             merged_level=np.insert(merged_level.flatten(), 0, 0).tolist()
+            merged_level[5]=3
             #print(f"[PRE] {merged_level}")
             Factory.videoSegmentStatus.set_all_quality_tiled(merged_level)
         time.sleep(max(0.0,1-time.time()+start_time))  # 模拟一秒一个输入数据，可以去掉或改为接收信号的时间间隔

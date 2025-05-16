@@ -123,8 +123,8 @@ class ReducedActionSpace:
 
         # 缓冲区配置（2种预设）
         self.buffer_presets = {
-            0: 1,  # 低延迟模式
-            1: 3  # 高流畅性模式
+            0: 1, # 低延迟模式
+            1: 3   # 流畅模式
         }
 
     def get_action(self, action_idx):

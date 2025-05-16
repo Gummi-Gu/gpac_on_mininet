@@ -268,7 +268,7 @@ def proxy(path):
                         yield chunk
             finally:
                 resp.close()
-                duration = time.time() - start_time
+                duration = time.time() - start_time + 0.025
                 declared_size = int(resp.headers.get('Content-Length', actual_size))
                 update_stats(track_id, bitrate, duration, declared_size)
                 logger.debug(f"Served {filename} ({declared_size // 1024}KB) in {duration:.2f}s")
