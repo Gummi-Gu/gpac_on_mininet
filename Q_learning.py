@@ -635,7 +635,7 @@ def client_training_loop(client_id, num_episodes, ep,init_model,reason=True):
                 state_tensor = client.get_state(state)
                 # 这里不更新 epsilon，也不存 replay，也不调用 update_model
                 action_idx = client.select_action(state_tensor)
-                action_idx = 21 # ceshi
+                #action_idx = 21 # ceshi
                 action = client.action_space.get_action(action_idx)
                 print(f"[Episode {ep}] 选择动作：{action}")
                 new_state, reward, done = env.step(action_idx)
