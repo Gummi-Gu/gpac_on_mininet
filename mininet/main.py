@@ -204,6 +204,7 @@ def setup_network():
         client2 = net.addHost('client2', ip='10.0.0.3/24')
         #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
+        '''
         switch1 = net.addSwitch('switch1', protocols=protocolName)
         switch2 = net.addSwitch('switch2', protocols=protocolName)
         switch3 = net.addSwitch('switch3', protocols=protocolName)
@@ -226,10 +227,11 @@ def setup_network():
         net.addLink(switch8, switch5)
 
         net.addLink(switch8, s1)
+        '''
 
         net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
-        net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, switch2, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
+        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
         #net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
@@ -251,7 +253,7 @@ def setup_network():
         #client2.cmd('ifconfig client2-eth1 0.0.0.0')
         #client3.cmd('ifconfig client3-eth1 0.0.0.0')
         print("dhclient start")
-        server.cmd('dhclient server-eth1')
+        print(server.cmd('dhclient server-eth1'))
         #client1.cmd('dhclient client1-eth1')
         #client2.cmd('dhclient client2-eth1')
         #client3.cmd('dhclient client3-eth1')
