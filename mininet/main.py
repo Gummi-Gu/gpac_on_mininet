@@ -216,9 +216,6 @@ def setup_network():
 
         net.start()
 
-        CLI(net)
-
-
 
         #net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         #net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
