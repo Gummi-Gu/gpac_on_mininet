@@ -204,15 +204,15 @@ def setup_network():
         client2 = net.addHost('client2', ip='10.0.0.3/24')
         #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
-        switch1 = net.addSwitch('switch1', protocols=protocolName)
-        switch2 = net.addSwitch('switch2', protocols=protocolName)
-        switch3 = net.addSwitch('switch3', protocols=protocolName)
-        switch4 = net.addSwitch('switch4', protocols=protocolName)
-        switch5 = net.addSwitch('switch5', protocols=protocolName)
-        switch6 = net.addSwitch('switch6', protocols=protocolName)
-        switch7 = net.addSwitch('switch7', protocols=protocolName)
-        switch8 = net.addSwitch('switch8', protocols=protocolName)
-        switch9 = net.addSwitch('switch9', protocols=protocolName)
+        switch1 = net.addSwitch('switch1')
+        switch2 = net.addSwitch('switch2')
+        switch3 = net.addSwitch('switch3')
+        switch4 = net.addSwitch('switch4')
+        switch5 = net.addSwitch('switch5')
+        switch6 = net.addSwitch('switch6')
+        switch7 = net.addSwitch('switch7')
+        switch8 = net.addSwitch('switch8')
+        switch9 = net.addSwitch('switch9')
 
         net.addLink(switch1, switch2)
         net.addLink(switch1, switch4)
@@ -225,7 +225,7 @@ def setup_network():
         net.addLink(switch7, switch9)
         net.addLink(switch8, switch5)
 
-        net.addLink(switch8, s1)
+        net.addLink(switch9, s1)
 
         net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
