@@ -193,7 +193,6 @@ class TrafficControl:
 
 def setup_network():
     try:
-        protocolName = "OpenFlow13"
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
         c0 = net.addController('c0')
 
@@ -214,9 +213,9 @@ def setup_network():
         switch8 = net.addSwitch('switch8')
         switch9 = net.addSwitch('switch9')
 
-        net.addLink(server, switch3, cls=TCLink, bw=1000, intfName1='server-eth0')
-        net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, switch2, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(server, switch3)
+        net.addLink(client1, switch1)
+        net.addLink(client2, switch2)
         
         net.addLink(switch1, switch2)
         net.addLink(switch1, switch3)
