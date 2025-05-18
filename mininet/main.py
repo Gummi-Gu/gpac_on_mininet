@@ -200,6 +200,9 @@ def setup_network():
         # 添加交换机
         s1 = net.addSwitch('s1')
         s2 = net.addSwitch('s2')
+        s3 = net.addSwitch('s3')
+        s4 = net.addSwitch('s4')
+        s5 = net.addSwitch('s5')
 
         # 添加主机
         server = net.addHost('server',ip='10.0.0.1')
@@ -207,12 +210,15 @@ def setup_network():
         client2 = net.addHost('client2',ip='10.0.0.3')
 
         # 主机和交换机连接
-        net.addLink(server, s1)
-        net.addLink(client1, s1)
-        net.addLink(client2, s2)
+        net.addLink(server, s5)
+        net.addLink(client1, s2)
+        net.addLink(client2, s3)
 
         # 交换机间全连接或至少连通
         net.addLink(s1, s2)
+        net.addLink(s2, s3)
+        net.addLink(s3, s4)
+        net.addLink(s3, s5)
 
         net.start()
 
