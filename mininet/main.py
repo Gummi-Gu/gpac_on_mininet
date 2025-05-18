@@ -252,8 +252,8 @@ def setup_network():
         switch9.start([c0])
 
         print('network start')
-        os.system('ifconfig eth1 0.0.0.0')
-        os.system('ovs-vsctl add-port s2 eth1')
+        #os.system('ifconfig eth1 0.0.0.0')
+        #os.system('ovs-vsctl add-port s2 eth1')
 
         #server.cmd('ifconfig server-eth1 0.0.0.0')
         #client1.cmd('ifconfig client1-eth1 0.0.0.0')
@@ -266,17 +266,17 @@ def setup_network():
 
         # 给server配置两个接口IP
         server.setIP('10.0.0.1/24', intf='server-eth0')
-        server.setIP('192.168.16.201/24', intf='server-eth1')
+        #server.setIP('192.168.16.201/24', intf='server-eth1')
         server.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  server-eth1')
 
         # 给client1配置两个接口IP
         client1.setIP('10.0.0.2/24', intf='client1-eth0')
-        client1.setIP('192.168.16.202/24', intf='client1-eth1')
+        #client1.setIP('192.168.16.202/24', intf='client1-eth1')
         client1.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  client1-eth1')
 
         # 给client2配置两个接口IP
         client2.setIP('10.0.0.3/24', intf='client2-eth0')
-        client2.setIP('192.168.16.203/24', intf='client2-eth1')
+        #client2.setIP('192.168.16.203/24', intf='client2-eth1')
         client2.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  client2-eth1')
 
         #client3.cmd('dhclient client3-eth1')
