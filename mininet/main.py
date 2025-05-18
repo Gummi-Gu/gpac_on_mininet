@@ -195,7 +195,7 @@ def setup_network():
     try:
         protocolName = "OpenFlow13"
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-        net.addController('c0')
+        c0 = net.addController('c0')
         s1 = net.addSwitch('s1')
         s2 = net.addSwitch('s2')
 
@@ -236,7 +236,17 @@ def setup_network():
         net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
         #net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
         print('network set')
-
+        c0.start()
+        s1.start([c0])
+        switch1.start([c0])
+        switch2.start([c0])
+        switch3.start([c0])
+        switch4.start([c0])
+        switch5.start([c0])
+        switch6.start([c0])
+        switch7.start([c0])
+        switch8.start([c0])
+        switch9.start([c0])
         net.start()
         print('network start')
         os.system('ifconfig eth1 0.0.0.0')
@@ -277,6 +287,7 @@ def setup_network():
         server.cmd('screen -dm bash_server')
 
 
+
         def get_eth1_ip(host):
             output = host.cmd(f'ifconfig {host.name}-eth1')
             match = re.search(r'inet (\d+\.\d+\.\d+\.\d+)', output)
@@ -298,8 +309,6 @@ def setup_network():
                     if client.submit_ip_maps(ip_maps) is True:
                         break
                     time.sleep(max_retry_interval)
-        submit_with_retry(streamingMonitorClient, ip_maps)
-
 
         server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
         #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
@@ -311,37 +320,15 @@ def setup_network():
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
         print('monitor start')
 
+
+        CLI(net)
+        '''
+        submit_with_retry(streamingMonitorClient, ip_maps)
         while True:
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             time.sleep(1)
-            '''
-            TrafficControl.report_traffic_classes()
-            user_input = input(
-                "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
-            if user_input == 'adjust':
-                TrafficControl.adjust(server)
-            elif user_input == 'delay':
-                TrafficControl.adjust_loss_and_delay(net)
-            elif user_input == 'test':
-                server = net.get('server')
-
-                def test_ping_connection(client, server_ip):
-                    # 测试延迟和丢包情况
-                    print(f"\nTesting ping from {client.IP()} to {server_ip}...")
-
-                    # 使用 ping 测试并设置发送的包数为 10（-c 10）
-                    result = client.cmd(f"ping -c 10 {server_ip}")  # 进行10次ping测试
-                    print(result)
-
-                # 测试 10.0.0.1 到 10.0.0.2 和 10.0.0.3 的延迟和丢包
-                test_ping_connection(net.get('client1'), '10.0.0.1')
-                test_ping_connection(net.get('client2'), '10.0.0.1')
-                #test_ping_connection(net.get('client3'), '10.0.0.1')
-            else:
-                print("Invalid input!")
-            '''
 
     except KeyboardInterrupt:
         net.stop()
@@ -349,7 +336,7 @@ def setup_network():
     finally:
         os.system("sudo mn -c")
         os.system("sudo pkill screen")
-
+'''
 
 if __name__ == '__main__':
     setup_network()
