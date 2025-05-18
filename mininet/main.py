@@ -210,9 +210,9 @@ def setup_network():
         client2 = net.addHost('client2',ip='10.0.0.3')
 
         # 主机和交换机连接
-        net.addLink(server, s5)
-        net.addLink(client1, s2)
-        net.addLink(client2, s3)
+        net.addLink(server, s5, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth0')
+        net.addLink(client2, s3, cls=TCLink, bw=1000, intfName1='client2-eth0')
 
         # 交换机间全连接或至少连通
         net.addLink(s1, s2)
