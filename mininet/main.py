@@ -214,20 +214,15 @@ def setup_network():
         switch8 = net.addSwitch('switch8')
         switch9 = net.addSwitch('switch9')
 
-        net.addLink(server, switch9, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(server, switch3, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, switch2, cls=TCLink, bw=1000, intfName1='client2-eth0')
         
         net.addLink(switch1, switch2)
-        net.addLink(switch1, switch4)
-        net.addLink(switch1, switch6)
+        net.addLink(switch1, switch3)
         net.addLink(switch2, switch3)
-        net.addLink(switch4, switch5)
-        net.addLink(switch5, switch3)
-        net.addLink(switch6, switch7)
-        net.addLink(switch7, switch3)
-        net.addLink(switch7, switch9)
-        net.addLink(switch8, switch5)
+
+
 
 
 
