@@ -202,9 +202,9 @@ def setup_network():
         s2 = net.addSwitch('s2')
 
         # 添加主机
-        server = net.addHost('server')
-        client1 = net.addHost('client1')
-        client2 = net.addHost('client2')
+        server = net.addHost('server',ip='10.0.0.1')
+        client1 = net.addHost('client1',ip='10.0.0.2')
+        client2 = net.addHost('client2',ip='10.0.0.3')
 
         # 主机和交换机连接
         net.addLink(server, s1)
