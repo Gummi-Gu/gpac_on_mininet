@@ -196,14 +196,14 @@ def setup_network():
         protocolName = "OpenFlow13"
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
         c0 = net.addController('c0')
-        s1 = net.addSwitch('s1')
-        s2 = net.addSwitch('s2')
+
 
         server = net.addHost('server', ip='10.0.0.1/24')
         client1 = net.addHost('client1', ip='10.0.0.2/24')
         client2 = net.addHost('client2', ip='10.0.0.3/24')
         #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
+        s2 = net.addSwitch('s2')
         switch1 = net.addSwitch('switch1')
         switch2 = net.addSwitch('switch2')
         switch3 = net.addSwitch('switch3')
@@ -214,6 +214,10 @@ def setup_network():
         switch8 = net.addSwitch('switch8')
         switch9 = net.addSwitch('switch9')
 
+        net.addLink(server, switch9, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
+        net.addLink(client2, switch2, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        
         net.addLink(switch1, switch2)
         net.addLink(switch1, switch4)
         net.addLink(switch1, switch6)
@@ -225,11 +229,8 @@ def setup_network():
         net.addLink(switch7, switch9)
         net.addLink(switch8, switch5)
 
-        net.addLink(switch9, s1)
 
-        net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
-        net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, switch2, cls=TCLink, bw=1000, intfName1='client2-eth0')
+
         #net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         #net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
         #net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
@@ -238,18 +239,6 @@ def setup_network():
         print('network set')
 
         net.start()
-
-        c0.start()
-        s1.start([c0])
-        switch1.start([c0])
-        switch2.start([c0])
-        switch3.start([c0])
-        switch4.start([c0])
-        switch5.start([c0])
-        switch6.start([c0])
-        switch7.start([c0])
-        switch8.start([c0])
-        switch9.start([c0])
 
         print('network start')
         #os.system('ifconfig eth1 0.0.0.0')
@@ -265,17 +254,17 @@ def setup_network():
         #client2.cmd('dhclient client2-eth1')
 
         # 给server配置两个接口IP
-        server.setIP('10.0.0.1/24', intf='server-eth0')
+        #server.setIP('10.0.0.1/24', intf='server-eth0')
         #server.setIP('192.168.16.201/24', intf='server-eth1')
         #server.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  server-eth1')
 
         # 给client1配置两个接口IP
-        client1.setIP('10.0.0.2/24', intf='client1-eth0')
+        #client1.setIP('10.0.0.2/24', intf='client1-eth0')
         #client1.setIP('192.168.16.202/24', intf='client1-eth1')
         #client1.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  client1-eth1')
 
         # 给client2配置两个接口IP
-        client2.setIP('10.0.0.3/24', intf='client2-eth0')
+        #client2.setIP('10.0.0.3/24', intf='client2-eth0')
         #client2.setIP('192.168.16.203/24', intf='client2-eth1')
         #client2.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  client2-eth1')
 
