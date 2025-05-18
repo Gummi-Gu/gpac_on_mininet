@@ -236,6 +236,9 @@ def setup_network():
         net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
         #net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
         print('network set')
+
+        net.start()
+
         c0.start()
         s1.start([c0])
         switch1.start([c0])
@@ -247,7 +250,7 @@ def setup_network():
         switch7.start([c0])
         switch8.start([c0])
         switch9.start([c0])
-        net.start()
+
         print('network start')
         os.system('ifconfig eth1 0.0.0.0')
         os.system('ovs-vsctl add-port s2 eth1')
@@ -329,14 +332,15 @@ def setup_network():
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             time.sleep(1)
-
+        '''
     except KeyboardInterrupt:
         net.stop()
         pass
     finally:
         os.system("sudo mn -c")
         os.system("sudo pkill screen")
-'''
+
+
 
 if __name__ == '__main__':
     setup_network()
