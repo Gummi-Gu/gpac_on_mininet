@@ -194,75 +194,39 @@ class TrafficControl:
 def setup_network():
     try:
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-
         net.addController('c0')
-
-        # 添加交换机
-        s0 = net.addSwitch('s0')
         s1 = net.addSwitch('s1')
-        #s2 = net.addSwitch('s2')
-        #s3 = net.addSwitch('s3')
-        #s4 = net.addSwitch('s4')
-        #s5 = net.addSwitch('s5')
+        s2 = net.addSwitch('s2')
 
-        # 添加主机
-        server = net.addHost('server',ip='10.0.0.1')
-        client1 = net.addHost('client1',ip='10.0.0.2')
-        client2 = net.addHost('client2',ip='10.0.0.3')
+        server = net.addHost('server', ip='10.0.0.1/24')
+        client1 = net.addHost('client1', ip='10.0.0.2/24')
+        client2 = net.addHost('client2', ip='10.0.0.3/24')
+        #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
-        # 主机和交换机连接
         net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
-
-        # 交换机间全连接或至少连通
-        #net.addLink(s1, s2)
-        #net.addLink(s2, s3)
-        #net.addLink(s3, s4)
-        #net.addLink(s3, s5)
-
-        net.start()
-
-
         #net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
-        net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
-        net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
-        net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
+        net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
+        net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
+        net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
         #net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
         print('network set')
 
+        net.start()
         print('network start')
         os.system('ifconfig eth1 0.0.0.0')
-        os.system('ovs-vsctl add-port s0 eth1')
+        os.system('ovs-vsctl add-port s2 eth1')
 
         server.cmd('ifconfig server-eth1 0.0.0.0')
         client1.cmd('ifconfig client1-eth1 0.0.0.0')
         client2.cmd('ifconfig client2-eth1 0.0.0.0')
         #client3.cmd('ifconfig client3-eth1 0.0.0.0')
-        print('ip request')
         server.cmd('dhclient server-eth1')
         client1.cmd('dhclient client1-eth1')
         client2.cmd('dhclient client2-eth1')
-
-        # 给server配置两个接口IP
-        #server.setIP('10.0.0.1/24', intf='server-eth0')
-        #server.setIP('192.168.16.201', intf='server-eth1')
-        #server.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  server-eth1')
-        #server.cmd('route add -net 192.168.16.0/24 gw 192.168.16.2 dev  server-eth1')
-
-        # 给client1配置两个接口IP
-        #client1.setIP('10.0.0.2/24', intf='client1-eth0')
-        #client1.setIP('192.168.16.202', intf='client1-eth1')
-        #client1.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  client1-eth1')
-        #client1.cmd('route add -net 192.168.16.0/24 gw 192.168.16.2 dev  client1-eth1')
-
-        # 给client2配置两个接口IP
-        #client2.setIP('10.0.0.3/24', intf='client2-eth0')
-        #client2.setIP('192.168.16.203', intf='client2-eth1')
-        #client2.cmd('route add -net 192.168.0.0/16 gw 192.168.16.2 dev  client2-eth1')
-        #client2.cmd('route add -net 192.168.16.0/24 gw 192.168.16.2 dev  client2-eth1')
-
         #client3.cmd('dhclient client3-eth1')
+        print('ip request')
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
         print(client2.cmd('ifconfig'))
@@ -271,7 +235,6 @@ def setup_network():
         client2.cmd('screen -dm bash_client2')
         #client3.cmd('screen -dm bash_client3')
         server.cmd('screen -dm bash_server')
-
 
 
         def get_eth1_ip(host):
@@ -295,6 +258,8 @@ def setup_network():
                     if client.submit_ip_maps(ip_maps) is True:
                         break
                     time.sleep(max_retry_interval)
+        submit_with_retry(streamingMonitorClient, ip_maps)
+
 
         server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
         #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
@@ -306,16 +271,38 @@ def setup_network():
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
         print('monitor start')
 
-
-        CLI(net)
-        '''
-        submit_with_retry(streamingMonitorClient, ip_maps)
         while True:
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             time.sleep(1)
-        '''
+            '''
+            TrafficControl.report_traffic_classes()
+            user_input = input(
+                "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
+            if user_input == 'adjust':
+                TrafficControl.adjust(server)
+            elif user_input == 'delay':
+                TrafficControl.adjust_loss_and_delay(net)
+            elif user_input == 'test':
+                server = net.get('server')
+
+                def test_ping_connection(client, server_ip):
+                    # 测试延迟和丢包情况
+                    print(f"\nTesting ping from {client.IP()} to {server_ip}...")
+
+                    # 使用 ping 测试并设置发送的包数为 10（-c 10）
+                    result = client.cmd(f"ping -c 10 {server_ip}")  # 进行10次ping测试
+                    print(result)
+
+                # 测试 10.0.0.1 到 10.0.0.2 和 10.0.0.3 的延迟和丢包
+                test_ping_connection(net.get('client1'), '10.0.0.1')
+                test_ping_connection(net.get('client2'), '10.0.0.1')
+                #test_ping_connection(net.get('client3'), '10.0.0.1')
+            else:
+                print("Invalid input!")
+            '''
+
     except KeyboardInterrupt:
         net.stop()
         pass
