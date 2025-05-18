@@ -193,19 +193,43 @@ class TrafficControl:
 
 def setup_network():
     try:
+        protocolName = "OpenFlow13"
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-        net.addController('c0')
-        s1 = net.addSwitch('s1')
-        s2 = net.addSwitch('s2')
+        net.addController('c0',port=6653)
+        s1 = net.addSwitch('s1', protocols=protocolName)
+        s2 = net.addSwitch('s2', protocols=protocolName)
 
         server = net.addHost('server', ip='10.0.0.1/24')
         client1 = net.addHost('client1', ip='10.0.0.2/24')
         client2 = net.addHost('client2', ip='10.0.0.3/24')
         #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
+        switch1 = net.addSwitch('switch1', protocols=protocolName)
+        switch2 = net.addSwitch('switch2', protocols=protocolName)
+        switch3 = net.addSwitch('switch3', protocols=protocolName)
+        switch4 = net.addSwitch('switch4', protocols=protocolName)
+        switch5 = net.addSwitch('switch5', protocols=protocolName)
+        switch6 = net.addSwitch('switch6', protocols=protocolName)
+        switch7 = net.addSwitch('switch7', protocols=protocolName)
+        switch8 = net.addSwitch('switch8', protocols=protocolName)
+        switch9 = net.addSwitch('switch9', protocols=protocolName)
+
+        net.addLink(switch1, switch2)
+        net.addLink(switch1, switch4)
+        net.addLink(switch1, switch6)
+        net.addLink(switch2, switch3)
+        net.addLink(switch4, switch5)
+        net.addLink(switch5, switch3)
+        net.addLink(switch6, switch7)
+        net.addLink(switch7, switch3)
+        net.addLink(switch7, switch9)
+        net.addLink(switch8, switch5)
+
+        net.addLink(switch8, s1)
+
         net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
-        net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(client1, switch1, cls=TCLink, bw=1000, intfName1='client1-eth0')
+        net.addLink(client2, switch2, cls=TCLink, bw=1000, intfName1='client2-eth0')
         #net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         net.addLink(server, s2, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s2, cls=TCLink, bw=1000, intfName1='client1-eth1')
