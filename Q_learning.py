@@ -717,22 +717,27 @@ def client_training_loop(client_id, num_episodes, ep,init_model,reason=True):
 class FederatedServer:
     def __init__(self, num_clients):
         self.global_model = ClientDQN()
-        self.client_models = [ClientDQN() for _ in range(num_clients)]
+        self.client_models = {f"client{i}":ClientDQN() for i in range(num_clients)}
 
     def aggregate(self):
         """联邦平均聚合"""
         global_dict = self.global_model.state_dict()
         for key in global_dict:
             global_dict[key] = torch.mean(
-                torch.stack([client.state_dict()[key] for client in self.client_models]),
+                torch.stack([client.state_dict()[key] for idx , client in self.client_models]),
                 dim=0
             )
         self.global_model.load_state_dict(global_dict)
 
     def distribute_model(self):
         """分发全局模型到各客户端"""
-        for client in self.client_models:
-            client.load_state_dict(self.global_model.state_dict())
+        for idx, client in self.client_models:
+            #client.load_state_dict(self.global_model.state_dict())
+            client.receive_global_model(self.global_model.get_local_parameters())
+
+    def set_client_model(self,idx,state__dict):
+        """读入客户端的新模型"""
+        self.client_models[idx].receive_global_model(state__dict)
 
 
 # ====================== 使用示例 ======================
