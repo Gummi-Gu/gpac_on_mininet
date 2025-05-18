@@ -195,32 +195,33 @@ def setup_network():
     try:
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
 
+        net.addController('c0')
 
+        # 添加交换机
+        s1 = net.addSwitch('s1')
+        s2 = net.addSwitch('s2')
+        s3 = net.addSwitch('s3')
+        s4 = net.addSwitch('s4')
+
+        # 添加主机
         server = net.addHost('server', ip='10.0.0.1/24')
         client1 = net.addHost('client1', ip='10.0.0.2/24')
         client2 = net.addHost('client2', ip='10.0.0.3/24')
-        #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
-        s2 = net.addSwitch('s2')
-        switch1 = net.addSwitch('switch1')
-        switch2 = net.addSwitch('switch2')
-        switch3 = net.addSwitch('switch3')
-        switch4 = net.addSwitch('switch4')
-        switch5 = net.addSwitch('switch5')
-        switch6 = net.addSwitch('switch6')
-        switch7 = net.addSwitch('switch7')
-        switch8 = net.addSwitch('switch8')
-        switch9 = net.addSwitch('switch9')
+        # 主机和交换机连接
+        net.addLink(server, s3)
+        net.addLink(client1, s1)
+        net.addLink(client2, s2)
 
-        net.addLink(server, switch3)
-        net.addLink(client1, switch1)
-        net.addLink(client2, switch2)
-        
-        net.addLink(switch1, switch2)
-        net.addLink(switch1, switch3)
-        net.addLink(switch3, switch4)
+        # 交换机间全连接或至少连通
+        net.addLink(s1, s2)
+        net.addLink(s1, s3)
+        net.addLink(s3, s4)
+        net.addLink(s2, s4)  # 这条链路很重要，保证s2和s3之间连通
 
+        net.start()
 
+        CLI(net)
 
 
 
@@ -230,8 +231,6 @@ def setup_network():
         #net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth1')
         #net.addLink(client3, s2, cls=TCLink, bw=1000, intfName1='client3-eth1')
         print('network set')
-
-        net.start()
 
         print('network start')
         #os.system('ifconfig eth1 0.0.0.0')
