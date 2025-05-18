@@ -193,41 +193,16 @@ class TrafficControl:
 
 def setup_network():
     try:
-        protocolName = "OpenFlow13"
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-        net.addController('c0',port=6653)
-        s1 = net.addSwitch('s1', protocols=protocolName)
-        s2 = net.addSwitch('s2', protocols=protocolName)
+        net.addController('c0')
+        s1 = net.addSwitch('s1')
+        s2 = net.addSwitch('s2')
 
         server = net.addHost('server', ip='10.0.0.1/24')
         client1 = net.addHost('client1', ip='10.0.0.2/24')
         client2 = net.addHost('client2', ip='10.0.0.3/24')
         #client3 = net.addHost('client3', ip='10.0.0.4/24')
 
-        '''
-        switch1 = net.addSwitch('switch1', protocols=protocolName)
-        switch2 = net.addSwitch('switch2', protocols=protocolName)
-        switch3 = net.addSwitch('switch3', protocols=protocolName)
-        switch4 = net.addSwitch('switch4', protocols=protocolName)
-        switch5 = net.addSwitch('switch5', protocols=protocolName)
-        switch6 = net.addSwitch('switch6', protocols=protocolName)
-        switch7 = net.addSwitch('switch7', protocols=protocolName)
-        switch8 = net.addSwitch('switch8', protocols=protocolName)
-        switch9 = net.addSwitch('switch9', protocols=protocolName)
-
-        net.addLink(switch1, switch2)
-        net.addLink(switch1, switch4)
-        net.addLink(switch1, switch6)
-        net.addLink(switch2, switch3)
-        net.addLink(switch4, switch5)
-        net.addLink(switch5, switch3)
-        net.addLink(switch6, switch7)
-        net.addLink(switch7, switch3)
-        net.addLink(switch7, switch9)
-        net.addLink(switch8, switch5)
-
-        net.addLink(switch8, s1)
-        '''
 
         net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
@@ -244,20 +219,15 @@ def setup_network():
         os.system('ifconfig eth1 0.0.0.0')
         os.system('ovs-vsctl add-port s2 eth1')
 
-        #server.setIP('192.168.16.201/24', intf='server-eth1')
-        #client1.setIP('192.168.16.202/24', intf='client1-eth1')
-        #client2.setIP('192.168.16.203/24', intf='client2-eth1')
-
         server.cmd('ifconfig server-eth1 0.0.0.0')
-        #client1.cmd('ifconfig client1-eth1 0.0.0.0')
-        #client2.cmd('ifconfig client2-eth1 0.0.0.0')
+        client1.cmd('ifconfig client1-eth1 0.0.0.0')
+        client2.cmd('ifconfig client2-eth1 0.0.0.0')
         #client3.cmd('ifconfig client3-eth1 0.0.0.0')
-        print("dhclient start")
-        print(server.cmd('dhclient server-eth1'))
-        #client1.cmd('dhclient client1-eth1')
-        #client2.cmd('dhclient client2-eth1')
+        print('ip request')
+        server.cmd('dhclient server-eth1')
+        client1.cmd('dhclient client1-eth1')
+        client2.cmd('dhclient client2-eth1')
         #client3.cmd('dhclient client3-eth1')
-        print('screen start')
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
         print(client2.cmd('ifconfig'))
