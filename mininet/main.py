@@ -194,7 +194,6 @@ class TrafficControl:
 def setup_network():
     try:
         net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-        c0 = net.addController('c0')
 
 
         server = net.addHost('server', ip='10.0.0.1/24')
@@ -219,7 +218,7 @@ def setup_network():
         
         net.addLink(switch1, switch2)
         net.addLink(switch1, switch3)
-        net.addLink(switch2, switch3)
+        net.addLink(switch3, switch4)
 
 
 
