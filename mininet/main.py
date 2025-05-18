@@ -222,7 +222,7 @@ def setup_network():
         #client3.cmd('dhclient client3-eth1')
         print('ip request')
         server.cmd('ifconfig server-eth1 192.168.16.201/24')
-        client1.cmd('route add default gw 192.168.16.2 dev server-eth1')
+        server.cmd('route add default gw 192.168.16.2 dev server-eth1')
 
         client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
         client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
