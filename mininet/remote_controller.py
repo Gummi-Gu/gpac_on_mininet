@@ -646,26 +646,26 @@ class ControllerMain(simple_switch_13.SimpleSwitch13):
         """
         if ROUTING_TYPE == RoutingType.DFS:
             id_forward = functions.build_connection_between_hosts_id(src_ip, dst_ip)
-            if "192" not in src_ip or "192" not in dst_ip:
-                path_optimal, paths = self.routing_shortest_path.get_optimal_path(self.latency_dict, h1[0], h2[0])
-                paths = functions.filter_paths(self.latency_dict, paths, Config.max_possible_paths)
-                if Config.qMode.value == QMode.SHORTEST_PATH.value:
-                    # print("latency dict: {}".format(self.latency_dict_SPF))
-                    path_optimal, paths = self.routing_shortest_path.get_optimal_path(self.latency_dict_SPF, h1[0], h2[0])
-                    path_optimal = [1, 2, 4]
-                    print("OPTIMAL: {}".format(path_optimal))
-                    # time.sleep(20)
-                self.paths_per_flows[id_forward] = paths
-                if self.bias.value == BiasRL.SPF.value or Config.qMode.value == QMode.SHORTEST_PATH.value:
-                    print("DFS routing src_ip: {} dst_ip: {} path: {}".format(src_ip, dst_ip, path_optimal))
-                    self.routing_shortest_path.install_path(self, path_optimal, h1[1], h2[1], src_ip, dst_ip, 'ipv4')
-                    self.chosen_path_per_flow[id_forward] = path_optimal
-                elif self.bias.value == BiasRL.RANDOM.value and Config.qMode.value != QMode.SHORTEST_PATH.value:
-                    chosen_path = random.choice(paths)
-                    self.routing_shortest_path.install_path(self, chosen_path, h1[1], h2[1], src_ip, dst_ip, 'ipv4')
-                    self.chosen_path_per_flow[id_forward] = chosen_path
+            path_optimal, paths = self.routing_shortest_path.get_optimal_path(self.latency_dict, h1[0], h2[0])
+            paths = functions.filter_paths(self.latency_dict, paths, Config.max_possible_paths)
+            if Config.qMode.value == QMode.SHORTEST_PATH.value:
+                # print("latency dict: {}".format(self.latency_dict_SPF))
+                path_optimal, paths = self.routing_shortest_path.get_optimal_path(self.latency_dict_SPF, h1[0], h2[0])
+                path_optimal = [1, 2, 4]
+                print("OPTIMAL: {}".format(path_optimal))
+                # time.sleep(20)
+            self.paths_per_flows[id_forward] = paths
+            if self.bias.value == BiasRL.SPF.value or Config.qMode.value == QMode.SHORTEST_PATH.value:
+                print("DFS routing src_ip: {} dst_ip: {} path: {}".format(src_ip, dst_ip, path_optimal))
+                self.routing_shortest_path.install_path(self, path_optimal, h1[1], h2[1], src_ip, dst_ip, 'ipv4')
+                self.chosen_path_per_flow[id_forward] = path_optimal
+            elif self.bias.value == BiasRL.RANDOM.value and Config.qMode.value != QMode.SHORTEST_PATH.value:
+                chosen_path = random.choice(paths)
+                self.routing_shortest_path.install_path(self, chosen_path, h1[1], h2[1], src_ip, dst_ip, 'ipv4')
+                self.chosen_path_per_flow[id_forward] = chosen_path
+                if '192' not in src_ip:
                     print("XXXXXXXXXXXXXRouted RandomXXXXXXXXXXXXXXX chosenpath: {} fw id: {}".format(chosen_path,
-                                                                                                      id_forward))
+                                                                                                  id_forward))
 
     # prev: self, src_ip, dst_ip, newPath
     def reroute(self, id_forward, new_path):
