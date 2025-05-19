@@ -224,7 +224,7 @@ def setup_network():
                                ip='127.0.0.1',
                                protocol='tcp',
                                port=6633)
-        c1 = net.addController('c1')
+        c1 = net.addController('c1',port=6634)
         s0 = net.addSwitch('s0')
         s1 = net.addSwitch('s1',cls=OVSKernelSwitch)
         s2 = net.addSwitch('s2',cls=OVSKernelSwitch)
