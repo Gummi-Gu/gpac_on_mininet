@@ -294,14 +294,14 @@ def setup_network():
         #client2.cmd('dhclient client2-eth1')
         print('ip request')
         input()
-        #server.cmd('ifconfig server-eth1 192.168.16.201/24')
-        #server.cmd('route add default gw 192.168.16.2 dev server-eth1')
+        server.cmd('ifconfig server-eth1 192.168.16.201/24')
+        server.cmd('route add default gw 192.168.16.2 dev server-eth1')
 
-        #client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
-        #client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
+        client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
+        client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
 
-        #client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
-        #client2.cmd('route add default gw 192.168.16.2 dev client2-eth1')
+        client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
+        client2.cmd('route add default gw 192.168.16.2 dev client2-eth1')
 
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
