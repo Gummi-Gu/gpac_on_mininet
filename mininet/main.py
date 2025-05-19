@@ -1,15 +1,36 @@
 import os
 import random
 import re
+import subprocess
 import time
 from collections import defaultdict
 
 import util
 
 from mininet.net import Mininet
-from mininet.node import Controller, OVSSwitch
-from mininet.link import TCLink
+from mininet.node import Controller, RemoteController, OVSController
+from mininet.node import CPULimitedHost, Host, Node
+from mininet.node import OVSKernelSwitch, UserSwitch
 from mininet.cli import CLI
+from mininet.log import setLogLevel, info
+from mininet.link import TCLink, Intf
+
+import random
+import os, stat
+import json
+import time
+import copy
+import csv
+import requests
+import sys
+sys.path.append("...")
+sys.path.append("..")
+sys.path.append("../controller")
+sys.path.append(".")
+print(os.getcwd())
+print(sys.path.__str__())
+from config import Config
+
 
 streamingMonitorClient=util.StreamingMonitorClient()
 
@@ -193,18 +214,24 @@ class TrafficControl:
 
 def setup_network():
     try:
-        net = Mininet(controller=Controller, switch=OVSSwitch, link=TCLink)
-        net.addController('c0')
+        controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
+        time.sleep(3)
+        net = Mininet(link=TCLink)
+        c0 = net.addController(name='c0',
+                               controller=RemoteController,
+                               ip='127.0.0.1',
+                               protocol='tcp',
+                               port=6633)
         s0 = net.addSwitch('s0')
-        s1 = net.addSwitch('s1')
-        s2 = net.addSwitch('s2')
-        s3 = net.addSwitch('s3')
-        s4 = net.addSwitch('s4')
-        s5 = net.addSwitch('s5')
-        s6 = net.addSwitch('s6')
-        s7 = net.addSwitch('s7')
-        s8 = net.addSwitch('s8')
-        s9 = net.addSwitch('s9')
+        s1 = net.addSwitch('s1',cls=OVSKernelSwitch)
+        s2 = net.addSwitch('s2',cls=OVSKernelSwitch)
+        s3 = net.addSwitch('s3',cls=OVSKernelSwitch)
+        s4 = net.addSwitch('s4',cls=OVSKernelSwitch)
+        s5 = net.addSwitch('s5',cls=OVSKernelSwitch)
+        s6 = net.addSwitch('s6',cls=OVSKernelSwitch)
+        s7 = net.addSwitch('s7',cls=OVSKernelSwitch)
+        s8 = net.addSwitch('s8',cls=OVSKernelSwitch)
+        s9 = net.addSwitch('s9',cls=OVSKernelSwitch)
 
         net.addLink(s1, s2)
         net.addLink(s3, s2)
@@ -222,11 +249,22 @@ def setup_network():
         net.addLink(server, s9, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth0')
-        #net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
-        #net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
-        #net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
+        net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
+        net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
+        net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
         print('network set')
-        net.start()
+        net.build()
+        c0.start()
+        s0.start()
+        s1.start([c0])
+        s2.start([c0])
+        s3.start([c0])
+        s4.start([c0])
+        s5.start([c0])
+        s6.start([c0])
+        s7.start([c0])
+        s8.start([c0])
+        s9.start([c0])
         print('network start')
         #os.system('ifconfig eth1 0.0.0.0')
         #os.system('ovs-vsctl add-port s0 eth1')
@@ -238,14 +276,14 @@ def setup_network():
         #client2.cmd('dhclient client2-eth1')
         #client3.cmd('dhclient client3-eth1')
         print('ip request')
-        #server.cmd('ifconfig server-eth1 192.168.16.201/24')
-        #server.cmd('route add default gw 192.168.16.2 dev server-eth1')
+        server.cmd('ifconfig server-eth1 192.168.16.201/24')
+        server.cmd('route add default gw 192.168.16.2 dev server-eth1')
 
-        #client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
-        #client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
+        client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
+        client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
 
-        #client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
-        #client2.cmd('route add default gw 192.168.16.2 dev client2-eth1')
+        client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
+        client2.cmd('route add default gw 192.168.16.2 dev client2-eth1')
 
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
@@ -276,51 +314,19 @@ def setup_network():
                     if client.submit_ip_maps(ip_maps) is True:
                         break
                     time.sleep(max_retry_interval)
-        submit_with_retry(streamingMonitorClient, ip_maps)
-
-
         server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
-        #server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS monitor python3 monitor.py')
         client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
         client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
-        #client3.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
         print('server start')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
         print('monitor start')
-
+        submit_with_retry(streamingMonitorClient, ip_maps)
         while True:
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
             time.sleep(1)
-            '''
-            TrafficControl.report_traffic_classes()
-            user_input = input(
-                "\nEnter 'adjust' to throttle rates; 'delay' to adjust delay/loss; 'test' to test connections: ").strip().lower()
-            if user_input == 'adjust':
-                TrafficControl.adjust(server)
-            elif user_input == 'delay':
-                TrafficControl.adjust_loss_and_delay(net)
-            elif user_input == 'test':
-                server = net.get('server')
-
-                def test_ping_connection(client, server_ip):
-                    # 测试延迟和丢包情况
-                    print(f"\nTesting ping from {client.IP()} to {server_ip}...")
-
-                    # 使用 ping 测试并设置发送的包数为 10（-c 10）
-                    result = client.cmd(f"ping -c 10 {server_ip}")  # 进行10次ping测试
-                    print(result)
-
-                # 测试 10.0.0.1 到 10.0.0.2 和 10.0.0.3 的延迟和丢包
-                test_ping_connection(net.get('client1'), '10.0.0.1')
-                test_ping_connection(net.get('client2'), '10.0.0.1')
-                #test_ping_connection(net.get('client3'), '10.0.0.1')
-            else:
-                print("Invalid input!")
-            '''
-
     except KeyboardInterrupt:
         net.stop()
         pass
