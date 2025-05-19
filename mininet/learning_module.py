@@ -249,7 +249,7 @@ def learning_module(pipe, ):
                         average_latency_list.append(get_average_latency(current_combination, latencydict))
                         rewards_list.append(reward)
                         reward_saving_list.append(reward)
-                        print("Average lat: {} reward: {}".format(average_latency_list, rewards_list))
+                        #print("Average lat: {} reward: {}".format(average_latency_list, rewards_list))
                         # check if epsilon should be recalculated
                         if exploration_mode.value == ExplorationMode.FALLING_EPS.value:
                             epsilon = calc_epsilon(general_iterator)
@@ -304,12 +304,12 @@ def learning_module(pipe, ):
                                 else:
                                     current_state = get_next_state(state_transitions, current_state, action)
 
-                                print("Action: {} \nNext State: {} \nPrevState: {} \nPrevReward: {}".format(previous_action,
-                                                                                                      current_state,
-                                                                                                      previous_state,
-                                                                                                      np.mean(
-                                                                                                          rewards_list))
-                                      )
+                                #print("Action: {} \nNext State: {} \nPrevState: {} \nPrevReward: {}".format(previous_action,
+                                #                                                                      current_state,
+                                #                                                                      previous_state,
+                                #                                                                      np.mean(
+                                #                                                                          rewards_list))
+                                #      )
                             # log output
                             if (general_iterator % 100) < 1:
                                 print("-------number of batch: {} epsilon: {}".format(general_iterator, epsilon))
