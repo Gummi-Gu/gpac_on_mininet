@@ -88,7 +88,7 @@ while True:
             avg_rate = sum(r for _, _, r in records) / len(records)
         else:
             avg_delay = avg_rate = 0.0
-        utilization=avg_rate/avg_delay*1000/total_bandwidth
+        utilization=avg_rate/avg_delay*1000/total_bandwidth*100
         track_table_data.append((
             'sum', str(client_id_num),
             f"{avg_delay:.1f}ms", f"{avg_rate:.1f}MB/s",
