@@ -216,9 +216,10 @@ def setup_network():
     try:
         #os.system('sudo fuser -k 6633/tcp')
         #os.system('sudo fuser -k 6653/tcp')
-        controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
-        time.sleep(3)
+        #controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
+        #time.sleep(3)
         net = Mininet(controller=Controller,link=TCLink)
+        input()
         #c0 = net.addController(name='c0',controller=RemoteController,ip='127.0.0.1',protocol='tcp',port=6633)
         c0 = net.addController('c0')
         s0 = net.addSwitch('s0')
@@ -263,6 +264,7 @@ def setup_network():
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
         print('network set')
+        input()
         net.start()
         '''
         net.build()
@@ -279,6 +281,7 @@ def setup_network():
         s9.start([c0])
         '''
         print('network start')
+        input()
         #os.system('ifconfig eth1 0.0.0.0')
         #os.system('ovs-vsctl add-port s0 eth1')
         #server.cmd('ifconfig server-eth1 0.0.0.0')
@@ -289,6 +292,7 @@ def setup_network():
         #client2.cmd('dhclient client2-eth1')
         #client3.cmd('dhclient client3-eth1')
         print('ip request')
+        input()
         server.cmd('ifconfig server-eth1 192.168.16.201/24')
         server.cmd('route add default gw 192.168.16.2 dev server-eth1')
 
