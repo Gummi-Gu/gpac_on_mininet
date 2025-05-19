@@ -61,7 +61,7 @@ while True:
                     f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
                     f"{stats['latest_delay']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # 当前和上一秒的时延
                     f"{stats['latest_rate']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # 当前和上一秒的速率
-                    stats['resolution'], f"{utilization:.2f}%"
+                    stats['resolution'], 0.0
                 ))
 
     for client_id, stats in client_summary.items():
