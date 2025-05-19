@@ -217,7 +217,7 @@ def setup_network():
         #os.system('sudo fuser -k 6633/tcp')
         #os.system('sudo fuser -k 6653/tcp')
         controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
-        #time.sleep(3)
+        time.sleep(3)
         net = Mininet(controller=Controller,link=TCLink)
         #c0 = net.addController(name='c0',controller=RemoteController,ip='127.0.0.1',protocol='tcp',port=6633)
         c0 = net.addController('c0')
