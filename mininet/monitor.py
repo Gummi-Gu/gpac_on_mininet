@@ -71,7 +71,7 @@ while True:
         prev_latest_rate = latest_rate_history.get(prev_key, 0.0)  # 上一秒的速率
         prev_latest_delay = latest_delay_history.get(prev_key, 0.0)  # 上一秒的时延
         #summary_rate_stats[client_id]['size']=summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1e3
-        utilization = (summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1000 / total_bandwidth) * 100
+        #utilization = (summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1000 / total_bandwidth) * 100
         latest_rate_history[prev_key] = summary_rate_stats[client_id]['size']
         latest_delay_history[prev_key] = summary_rate_stats[client_id]['time']
         client_id_num = ''.join(re.findall(r'\d+', client_id))
@@ -88,6 +88,7 @@ while True:
             avg_rate = sum(r for _, _, r in records) / len(records)
         else:
             avg_delay = avg_rate = 0.0
+        utilization=avg_rate/avg_delay*1000/total_bandwidth
         track_table_data.append((
             'sum', str(client_id_num),
             f"{avg_delay:.1f}ms", f"{avg_rate:.1f}MB/s",
