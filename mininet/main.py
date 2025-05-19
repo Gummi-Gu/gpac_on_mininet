@@ -297,15 +297,15 @@ def setup_network():
         print('ip request')
         input()
         server.cmd('ifconfig server-eth1 192.168.16.201/24')
-        print(server.cmd('ping -c 2 192.168.16.1'))
+        print(server.cmd('ping -c 4 192.168.16.1'))
         #server.cmd('route add default gw 192.168.16.2 dev server-eth1')
 
         client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
-        print(client1.cmd('ping -c 2 192.168.16.1'))
+        print(client1.cmd('ping -c 4 192.168.16.1'))
         #client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
 
         client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
-        print(client2.cmd('ping -c 2 192.168.16.1'))
+        print(client2.cmd('ping -c 4 192.168.16.1'))
         #client2.cmd('route add default gw 192.168.16.2 dev client2-eth1')
 
         print(server.cmd('ifconfig'))
