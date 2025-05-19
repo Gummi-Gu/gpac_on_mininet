@@ -196,15 +196,12 @@ class TrafficControl:
             loss_prob = TRAFFIC_CLASSES_DELAY[ip]['loss']
             delay = TRAFFIC_CLASSES_DELAY[ip]['delay']
 
-            # 输出当前配置
-            #print(f"Adjusting {target} (IP: {ip}) with loss: {loss_prob}% and delay: {delay}ms.")
             # 删除现有的 qdisc 配置（避免冲突）
             server.cmd(f'tc qdisc del dev {target}-eth0 root 2>/dev/null')#tc qdisc del dev client1-eth0 root 2>/dev/null
             # 设置丢包率为独立的 qdisc
             server.cmd(f'tc qdisc add dev {target}-eth0 root netem delay {delay}ms loss {loss_prob}% ')#tc qdisc add dev client1-eth0 root netem delay 20ms loss 20%
             # 输出已应用的延迟和丢包率
             server.cmd(f"tc qdisc show dev {target}-eth0")
-            #print(f"Applied {loss_prob}% loss and {delay}ms delay to {target} (IP: {ip}).")
 
     @staticmethod
     def report_traffic_classes():
@@ -214,99 +211,64 @@ class TrafficControl:
 
 def setup_network():
     try:
-        #os.system('sudo fuser -k 6633/tcp')
-        #os.system('sudo fuser -k 6653/tcp')
-        #controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
-        #time.sleep(3)
-        net = Mininet(controller=Controller,link=TCLink)
-        input()
-        #c0 = net.addController(name='c0',controller=RemoteController,ip='127.0.0.1',protocol='tcp',port=6633)
-        c0 = net.addController('c0')
+        subprocess.Popen(["ryu-manager", "remote_controller.py"])
+        time.sleep(3)
+        net = Mininet(topo=None,
+                      build=False,
+                      ipBase='10.0.0.0/8', link=TCLink)
+        c0 = net.addController(name='c0',
+                               controller=RemoteController,
+                               ip='127.0.0.1',
+                               protocol='tcp',
+                               port=6633)
         s0 = net.addSwitch('s0')
-        '''
         s1 = net.addSwitch('s1',cls=OVSKernelSwitch)
         s2 = net.addSwitch('s2',cls=OVSKernelSwitch)
         s3 = net.addSwitch('s3',cls=OVSKernelSwitch)
         s4 = net.addSwitch('s4',cls=OVSKernelSwitch)
-        s5 = net.addSwitch('s5',cls=OVSKernelSwitch)
-        s6 = net.addSwitch('s6',cls=OVSKernelSwitch)
-        s7 = net.addSwitch('s7',cls=OVSKernelSwitch)
-        s8 = net.addSwitch('s8',cls=OVSKernelSwitch)
-        s9 = net.addSwitch('s9',cls=OVSKernelSwitch)
-        '''
-        s1 = net.addSwitch('s1')
-        s2 = net.addSwitch('s2')
-        s3 = net.addSwitch('s3')
-        s4 = net.addSwitch('s4')
-        s5 = net.addSwitch('s5')
-        s6 = net.addSwitch('s6')
-        s7 = net.addSwitch('s7')
-        s8 = net.addSwitch('s8')
-        s9 = net.addSwitch('s9')
 
         net.addLink(s1, s2)
-        net.addLink(s3, s2)
-        net.addLink(s4, s2)
-        net.addLink(s5, s2)
-        net.addLink(s6, s2)
-        net.addLink(s7, s6)
-        net.addLink(s8, s6)
-        net.addLink(s9, s6)
+        net.addLink(s2, s4)
+        net.addLink(s1, s3)
+        net.addLink(s3, s4)
 
 
         server = net.addHost('server', ip='10.0.0.1')
         client1 = net.addHost('client1', ip='10.0.0.2')
         client2 = net.addHost('client2', ip='10.0.0.3')
 
-        net.addLink(server, s9, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(server, s4, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
         net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
+
         print('network set')
-        input()
-        net.start()
-        '''
         net.build()
         c0.start()
-        s0.start([c1])
+        s0.start([c0])
         s1.start([c0])
         s2.start([c0])
         s3.start([c0])
         s4.start([c0])
-        s5.start([c0])
-        s6.start([c0])
-        s7.start([c0])
-        s8.start([c0])
-        s9.start([c0])
-        '''
+
         print('network start')
-        input()
         os.system('ifconfig eth1 0.0.0.0')
         os.system('ovs-vsctl add-port s0 eth1')
         os.system('sudo ip addr add 192.168.16.129/24 dev s0')
         os.system('sudo ip link set dev s0 up')
         os.system('sudo ip link set dev eth1 up')
-        #server.cmd('ifconfig server-eth1 0.0.0.0')
-        #client1.cmd('ifconfig client1-eth1 0.0.0.0')
-        #client2.cmd('ifconfig client2-eth1 0.0.0.0')
-        #server.cmd('dhclient server-eth1')
-        #client1.cmd('dhclient client1-eth1')
-        #client2.cmd('dhclient client2-eth1')
+
         print('ip request')
-        input()
         server.cmd('ifconfig server-eth1 192.168.16.201/24')
         print(server.cmd('ping -c 4 192.168.16.1'))
-        #server.cmd('route add default gw 192.168.16.2 dev server-eth1')
 
         client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
         print(client1.cmd('ping -c 4 192.168.16.1'))
-        #client1.cmd('route add default gw 192.168.16.2 dev client1-eth1')
 
         client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
         print(client2.cmd('ping -c 4 192.168.16.1'))
-        #client2.cmd('route add default gw 192.168.16.2 dev client2-eth1')
 
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
