@@ -259,9 +259,9 @@ def setup_network():
         client1 = net.addHost('client1', ip='10.0.0.2')
         client2 = net.addHost('client2', ip='10.0.0.3')
 
-        net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
-        net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        #net.addLink(server, s1, cls=TCLink, bw=1000, intfName1='server-eth0')
+        #net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
+        #net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
         net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
@@ -284,7 +284,7 @@ def setup_network():
         '''
         print('network start')
         input()
-        #os.system('ifconfig eth1 0.0.0.0')
+        os.system('ifconfig eth1 0.0.0.0')
         os.system('ovs-vsctl add-port s0 eth1')
         #server.cmd('ifconfig server-eth1 0.0.0.0')
         #client1.cmd('ifconfig client1-eth1 0.0.0.0')
