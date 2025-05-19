@@ -214,18 +214,15 @@ class TrafficControl:
 
 def setup_network():
     try:
-        os.system('sudo fuser -k 6633/tcp')
-        os.system('sudo fuser -k 6653/tcp')
+        #os.system('sudo fuser -k 6633/tcp')
+        #os.system('sudo fuser -k 6653/tcp')
         controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
-        time.sleep(3)
-        net = Mininet(link=TCLink)
-        c0 = net.addController(name='c0',
-                               controller=RemoteController,
-                               ip='127.0.0.1',
-                               protocol='tcp',
-                               port=6633)
-        c1 = net.addController('c1',port=6634)
+        #time.sleep(3)
+        net = Mininet(controller=Controller,link=TCLink)
+        #c0 = net.addController(name='c0',controller=RemoteController,ip='127.0.0.1',protocol='tcp',port=6633)
+        c0 = net.addController('c0')
         s0 = net.addSwitch('s0')
+        '''
         s1 = net.addSwitch('s1',cls=OVSKernelSwitch)
         s2 = net.addSwitch('s2',cls=OVSKernelSwitch)
         s3 = net.addSwitch('s3',cls=OVSKernelSwitch)
@@ -235,6 +232,16 @@ def setup_network():
         s7 = net.addSwitch('s7',cls=OVSKernelSwitch)
         s8 = net.addSwitch('s8',cls=OVSKernelSwitch)
         s9 = net.addSwitch('s9',cls=OVSKernelSwitch)
+        '''
+        s1 = net.addSwitch('s1')
+        s2 = net.addSwitch('s2')
+        s3 = net.addSwitch('s3')
+        s4 = net.addSwitch('s4')
+        s5 = net.addSwitch('s5')
+        s6 = net.addSwitch('s6')
+        s7 = net.addSwitch('s7')
+        s8 = net.addSwitch('s8')
+        s9 = net.addSwitch('s9')
 
         net.addLink(s1, s2)
         net.addLink(s3, s2)
@@ -256,6 +263,8 @@ def setup_network():
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
         print('network set')
+        net.start()
+        '''
         net.build()
         c0.start()
         s0.start([c1])
@@ -268,6 +277,7 @@ def setup_network():
         s7.start([c0])
         s8.start([c0])
         s9.start([c0])
+        '''
         print('network start')
         #os.system('ifconfig eth1 0.0.0.0')
         #os.system('ovs-vsctl add-port s0 eth1')
