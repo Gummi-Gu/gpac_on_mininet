@@ -214,7 +214,7 @@ class TrafficControl:
 
 def setup_network():
     try:
-        os.system('sudo fuser -k 6653/tcp')
+        os.system('sudo fuser -k 6633/tcp')
         controller = subprocess.Popen(["ryu-manager", "remote_controller.py"])
         time.sleep(3)
         net = Mininet(link=TCLink)
