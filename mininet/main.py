@@ -128,7 +128,7 @@ class TrafficControl:
 
                 tc_cmds.extend([
                     f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
-                    f'htb rate {item["bw"]}mbit ceil {item["bw"]}mbit',
+                    f'htb rate {item["bw"]}mbit ceil {item["bw"]+1}mbit',
                     f'tc filter add dev server-eth0 parent 1: protocol ip '
                     f'handle {mark} fw flowid 1:{mark}'
                 ])
