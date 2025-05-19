@@ -337,6 +337,9 @@ def setup_network():
                     if client.submit_ip_maps(ip_maps) is True:
                         break
                     time.sleep(max_retry_interval)
+
+        submit_with_retry(streamingMonitorClient, ip_maps)
+
         server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
         client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
         client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
@@ -344,7 +347,6 @@ def setup_network():
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
         print('monitor start')
-        submit_with_retry(streamingMonitorClient, ip_maps)
         while True:
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
