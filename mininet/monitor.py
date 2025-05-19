@@ -24,8 +24,6 @@ while True:
     bitrate_stats = streamingMonitorClient.fetch_bitrate_stats()
     link_metrics = streamingMonitorClient.fetch_link_metrics()
     client_stats = streamingMonitorClient.fetch_client_stats()
-
-
     track_table_data = []
     client_summary = {}
 
