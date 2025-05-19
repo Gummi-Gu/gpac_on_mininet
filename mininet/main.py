@@ -255,7 +255,7 @@ def setup_network():
         print('network set')
         net.build()
         c0.start()
-        s0.start()
+        s0.start([c0])
         s1.start([c0])
         s2.start([c0])
         s3.start([c0])
