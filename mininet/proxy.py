@@ -39,7 +39,7 @@ app = Flask(__name__)
 CORS(app, origins="*")
 
 # 监控客户端和异步队列
-streamingMonitorClient = util.StreamingMonitorClient('http://192.168.3.22:5000')
+streamingMonitorClient = util.StreamingMonitorClient('http://192.168.16.1:5000')
 stats_queue = queue.Queue(maxsize=10000)
 
 
