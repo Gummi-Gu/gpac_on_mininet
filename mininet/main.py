@@ -222,6 +222,7 @@ def setup_network():
                                ip='127.0.0.1',
                                protocol='tcp',
                                port=6633)
+        c1 = net.addController('c1')
         s0 = net.addSwitch('s0')
         s1 = net.addSwitch('s1',cls=OVSKernelSwitch)
         s2 = net.addSwitch('s2',cls=OVSKernelSwitch)
@@ -255,7 +256,7 @@ def setup_network():
         print('network set')
         net.build()
         c0.start()
-        s0.start([c0])
+        s0.start([c1])
         s1.start([c0])
         s2.start([c0])
         s3.start([c0])
