@@ -235,6 +235,7 @@ def setup_network():
         s9 = net.addSwitch('s9',cls=OVSKernelSwitch)
         '''
         s1 = net.addSwitch('s1')
+        '''
         s2 = net.addSwitch('s2')
         s3 = net.addSwitch('s3')
         s4 = net.addSwitch('s4')
@@ -252,6 +253,7 @@ def setup_network():
         net.addLink(s7, s6)
         net.addLink(s8, s6)
         net.addLink(s9, s6)
+        '''
 
         server = net.addHost('server', ip='10.0.0.1')
         client1 = net.addHost('client1', ip='10.0.0.2')
