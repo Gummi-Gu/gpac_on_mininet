@@ -304,7 +304,7 @@ def learning_module(pipe, ):
                                 else:
                                     current_state = get_next_state(state_transitions, current_state, action)
 
-                                print("Action: {} Next State: {} PrevState: {} PrevReward: {}".format(previous_action,
+                                print("Action: {} \nNext State: {} \nPrevState: {} \nPrevReward: {}".format(previous_action,
                                                                                                       current_state,
                                                                                                       previous_state,
                                                                                                       np.mean(
