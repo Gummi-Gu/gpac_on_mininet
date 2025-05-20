@@ -266,19 +266,23 @@ def setup_network():
         print('ip request')
         server.cmd('ifconfig server-eth1 192.168.16.201/24')
         print(server.cmd('ping -c 3 192.168.16.1'))
-        print(server.cmd('ping -c 3 192.168.16.1'))
+
 
         client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
         print(client1.cmd('ping -c 3 192.168.16.1'))
-        print(client1.cmd('ping -c 3 192.168.16.1'))
+
 
         client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
         print(client2.cmd('ping -c 3 192.168.16.1'))
-        print(client2.cmd('ping -c 3 192.168.16.1'))
+
 
         client3.cmd('ifconfig client3-eth1 192.168.16.204/24')
         print(client2.cmd('ping -c 3 192.168.16.1'))
+
+        print(server.cmd('ping -c 3 192.168.16.1'))
+        print(client1.cmd('ping -c 3 192.168.16.1'))
         print(client2.cmd('ping -c 3 192.168.16.1'))
+        print(client3.cmd('ping -c 3 192.168.16.1'))
 
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
