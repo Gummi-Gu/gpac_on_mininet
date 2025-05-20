@@ -414,11 +414,11 @@ class LocalEnvSimulator:
 
 
         # === 5. 带宽利用率 ===
-        delay=0
+        delay=1
         for d in self.avg_band_list:
             delay=max(delay,d[1])
-        total_used_bw = sum(q[0] for q in self.avg_band_list)/delay*1000*8 # 使用总带宽
-        bandwidth_efficiency = total_used_bw / total_bandwidth
+        total_used_bw = sum(q[0] for q in self.avg_band_list)/delay*1000 # 使用总带宽
+        bandwidth_efficiency = total_used_bw / total_bandwidth * 8
 
         # === 6. 时延 ===
         delay=self.actual_delay / 1000
@@ -571,11 +571,12 @@ class LocalEnvSimulator:
             avg_qoe_list.append(_avg_qoe)
         for i,_ in enumerate(all_band_per_round[0]):
             _avg_band=0
-            _avg_time=500
+            _avg_time=1
             for band_list in all_band_per_round:
                 _avg_band+=band_list[i][0]
-                _avg_time=max(band_list[i][1],_avg_band)
+                _avg_time+=band_list[i][1]
             _avg_band/=N
+            _avg_time/=N
             avg_band_list.append((_avg_band,_avg_time))
 
         sum_band = {'12600': 0, '3150': 0, '785': 0, '200': 0}
