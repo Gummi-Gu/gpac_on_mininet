@@ -281,6 +281,14 @@ class DQNClient:
         """返回当前模型参数（用于联邦聚合）"""
         return self.policy_net.state_dict()
 
+    def request_global_model(self):
+        data = {"model_weights": self.get_local_parameters()}
+        response = requests.post(f"http://localhost:5000/upload_client_model/{client_ip}", json=data)
+        response = requests.get("http://localhost:5000/get_global_model")
+        weights = {k: torch.tensor(v) for k, v in response.json()["model_weights"].items()}
+        self.receive_global_model(weights)
+        pass
+
 
 # ====================== 环境模拟接口 ======================
 class LocalEnvSimulator:
@@ -708,12 +716,15 @@ def client_training_loop(client_id, num_episodes, ep,init_model,reason=True):
                 model_path = os.path.join(save_dir, f"client_dqn_ep{episode}_{total_reward}_{timestamp}.pt")
                 torch.save(client.policy_net.state_dict(), model_path)
                 print(f"[模型保存] Episode {episode} 模型已保存至 {model_path}")
+                #client.request_global_model()
+
 
             # 输出训练信息
             print(f"Client {client_id} Episode {episode}, Total Reward: {total_reward:.2f}, Epsilon: {client.epsilon:.2f}")
 
 
 # ====================== 联邦接口 ======================
+'''
 class FederatedServer:
     def __init__(self, num_clients):
         self.global_model = ClientDQN()
@@ -739,7 +750,7 @@ class FederatedServer:
         """读入客户端的新模型"""
         self.client_models[idx].receive_global_model(state__dict)
 
-
+'''
 # ====================== 使用示例 ======================
 if __name__ == "__main__":
     client_ip = sys.argv[1] if len(sys.argv) > 1 else '10.0.0.2'

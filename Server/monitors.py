@@ -49,6 +49,14 @@ track_stats = defaultdict(lambda: defaultdict(lambda: {
 }))
 
 summary_rate_stats = {
+    'client1': {
+        'size': 1,
+        'time': 1
+    },
+    'client2': {
+        'size': 1,
+        'time': 1
+    },
 }
 
 link_metrics = defaultdict(lambda: {

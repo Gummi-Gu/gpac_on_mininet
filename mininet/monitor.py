@@ -89,9 +89,10 @@ while True:
         utilization=avg_rate/avg_delay*1000/total_bandwidth*100
         track_table_data.append((
             'sum', str(client_id_num),
-            f"{avg_delay:.1f}ms", f"{avg_rate:.1f}MB/s",
+            f"{avg_delay:.1f}ms", f"{avg_rate/avg_delay*1000:.1f}MB/s",
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
-            f"{summary_rate_stats[client_id]['size']:.1f}MB/s", f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
+            f"{summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1000:.1f}MB/s",
+            f"{prev_latest_rate/prev_latest_delay*1000:.1f}MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"
         ))
 
