@@ -97,7 +97,7 @@ while True:
         ))
     sum_all_len=0
     sum_all_rate=0
-    sum_all_delay=0
+    sum_all_delay=1
     for client_id, stats in summary_state.items():
         sum_all_len+=len(stats)
         sum_all_rate+=sum(r for _, _, r in stats) / len(stats)
