@@ -330,7 +330,7 @@ def setup_network():
             streamingMonitorClient.submit_ip_maps(ip_maps)
             TrafficControl.adjust(server)
             TrafficControl.adjust_loss_and_delay(net)
-            time.sleep(1)
+            time.sleep(2)
     except KeyboardInterrupt:
         net.stop()
         pass
