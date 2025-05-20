@@ -93,8 +93,22 @@ while True:
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
             f"{summary_rate_stats[client_id]['size']:.1f}MB/s",
             f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
-            0.0, f"{utilization:.2f}%"
+            0.0, 0.0
         ))
+    sum_all_len=0
+    sum_all_rate=0
+    sum_all_delay=0
+    for client_id, stats in summary_state.items():
+        sum_all_len+=len(stats)
+        sum_all_rate+=sum(r for _, _, r in stats) / len(stats)
+        sum_all_delay=max(sum_all_delay, sum(d for _, d, _ in stats) / len(stats))
+    track_table_data.append((
+        'sum','all',
+        f"{sum_all_delay:.1f}ms", f"{sum_all_rate:.1f}MB/s",
+        0.0,0.0,
+        0.0,0.0,
+        0.0,f"{sum_all_rate/sum_all_delay*1000:.1f}"
+    ))
 
     # headers也同步增加
     track_headers = ['Trk', 'Clt', 'AvgDly', 'AvgRt', 'LatDly','PrvDly','LatRt', 'PrvRat','BitRt', 'Uti']
