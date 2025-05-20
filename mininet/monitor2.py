@@ -73,10 +73,6 @@ while True:
                 current_mark += 10  # 步长10保证唯一
 
     for ip, item0 in ip_mark_mapping.items():
-        for str_key, item1 in item0.items():
-            print(f'ip:{ip}', f'str_key:{str_key}', f'bw:{item1["bw"]}')
-
-    for ip, item0 in ip_mark_mapping.items():
         link_data.append((ip,item0['12600'],item0['3150'],item0['785'],item0['200']))
 
     link_table = tabulate(link_data, headers=link_headers, tablefmt="pretty", floatfmt=".2f")
