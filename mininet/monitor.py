@@ -107,7 +107,7 @@ while True:
         f"{sum_all_delay:.1f}ms", f"{sum_all_rate:.1f}MB/s",
         0.0,0.0,
         0.0,0.0,
-        0.0,f"{sum_all_rate/sum_all_delay*1000:.1f}"
+        0.0,f"{sum_all_rate/sum_all_delay*1000/total_bandwidth*100:.1f}%"
     ))
 
     # headers也同步增加

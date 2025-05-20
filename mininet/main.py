@@ -115,7 +115,7 @@ class TrafficControl:
         # 阶段4：构建TC配置
         tc_cmds = [
             'tc qdisc add dev server-eth0 root handle 1: htb',
-            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw)*1.1}mbit'
+            f'tc class add dev server-eth0 parent 1: classid 1:1 htb rate {int(total_bw)}mbit'
         ]
 
         # 为每个唯一标记创建TC类
