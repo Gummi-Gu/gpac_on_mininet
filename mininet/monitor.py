@@ -2,6 +2,8 @@ import re
 import time
 from collections import defaultdict
 from collections import defaultdict, deque
+from os import write
+
 from tabulate import tabulate
 
 import util
@@ -109,6 +111,8 @@ while True:
         0.0,0.0,
         0.0,f"{sum_all_rate/sum_all_delay*1000/total_bandwidth*100:.1f}%"
     ))
+    with open('log_1.log','a') as f:
+        f.write(f"{sum_all_rate/sum_all_delay*1000/total_bandwidth*100:.1f}%\n")
 
     # headers也同步增加
     track_headers = ['Trk', 'Clt', 'AvgDly', 'AvgRt', 'LatDly','PrvDly','LatRt', 'PrvRat','BitRt', 'Uti']
