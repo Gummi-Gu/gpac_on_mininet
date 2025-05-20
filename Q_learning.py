@@ -759,8 +759,10 @@ if __name__ == "__main__":
     print(f"start: {client_ip},{client_name}")
     if client_name == 'client1':
         modules.append("Client.main1")
-    else:
+    elif client_name == 'client2':
         modules.append("Client.main2")
+    elif client_name == 'client3':
+        modules.append("Client.main3")
     set_log()
     for module in modules:
         process_infos.append(start_single_client(venv_python, module, project_root))
