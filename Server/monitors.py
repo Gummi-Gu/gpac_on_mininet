@@ -22,10 +22,12 @@ string_dict = {
 quality_map = {
     'client1':{0:0,1:1,2:2,3:3},
     'client2':{0:0,1:1,2:2,3:3},
+    'client3':{0:0,1:1,2:2,3:3},
 }
 rebuffer_config = {
     'client1':{'re_buffer': 1,'play_buffer': 2},
     'client2':{'re_buffer': 2,'play_buffer': 3},
+    'client3':{'re_buffer': 1,'play_buffer': 2},
 }
 # 数据结构定义
 # 这里track_stats新增了客户端ID的层级
@@ -50,11 +52,15 @@ track_stats = defaultdict(lambda: defaultdict(lambda: {
 
 summary_rate_stats = {
     'client1': {
-        'size': 1,
+        'size': 0,
         'time': 1
     },
     'client2': {
-        'size': 1,
+        'size': 0,
+        'time': 1
+    },
+    'client3': {
+        'size': 0,
         'time': 1
     },
 }
@@ -75,8 +81,9 @@ client_stats = defaultdict(lambda: {
 
 # 新增的数据结构
 TRAFFIC_CLASSES_MARK = {
-    '10.0.0.2' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
-    '10.0.0.3' : {'port': 10086, '12600': 0.65, '3150':0.25, '785':0.05, '200':0.05},
+    '10.0.0.2' : {'port': 10086, '12600': 0.0, '3150':0.0, '785':0.00, '200':0.00},
+    '10.0.0.3' : {'port': 10086, '12600': 0.0, '3150':0.0, '785':0.00, '200':0.00},
+    '10.0.0.4' : {'port': 10086, '12600': 0.0, '3150':0.0, '785':0.00, '200':0.00},
 }
 
 
@@ -93,7 +100,7 @@ orign_quality_tiled={
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
     '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
-    #'10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
+    '10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
 }
 
 
@@ -155,7 +162,7 @@ link_data = load_link_data(csv_file)
 grouped_data = group_by_source_destination(link_data)
 
 # 初始化时分配随机链路
-#assign_random_links(grouped_data)
+assign_random_links(grouped_data)
 
 # ========== ===========
 
@@ -225,12 +232,6 @@ temp_float=1.0
 def get_traffic_classes_mark():
     global temp_float
     with lock:
-        #delta = random.choice([-0.1, 0, 0.1])
-        #temp_float = round(min(2.0, max(0.3, temp_float + delta)), 1)
-        #temp={
-        #    '10.0.0.3' : {'port': 10086, '12600': temp_float*0.65, '3150':temp_float*0.25, '785':temp_float*0.05, '200':temp_float*0.05},
-        #}
-        #TRAFFIC_CLASSES_MARK.update(temp)
         return jsonify(TRAFFIC_CLASSES_MARK)
 
 # 接口：更新 TRAFFIC_CLASSES_MARK

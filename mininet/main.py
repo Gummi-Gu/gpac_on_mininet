@@ -44,17 +44,17 @@ TRAFFIC_CLASSES = {
 TRAFFIC_CLASSES_MARK = {
     '10.0.0.2' : {'port': 10086, '12600': 20, '3150':20, '785':30, '200':30},
     '10.0.0.3' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30},
-    #'10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
+    '10.0.0.4' : {'port': 10086, '12600': 10, '3150':10, '785':30, '200':30}
 }
 TRAFFIC_CLASSES_DELAY = {
     '10.0.0.2' : {'client': 'client1','delay': 0, 'loss':0},
     '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
-    #'10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
+    '10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
 }
 ip_maps={
     'client1':'0.0.0.0',
     'client2':'0.0.0.0',
-    #'client3':'0.0.0.0'
+    'client3':'0.0.0.0'
 }
 
 class TrafficControl:
@@ -236,13 +236,16 @@ def setup_network():
         server = net.addHost('server', ip='10.0.0.1')
         client1 = net.addHost('client1', ip='10.0.0.2')
         client2 = net.addHost('client2', ip='10.0.0.3')
+        client3 = net.addHost('client2', ip='10.0.0.3')
 
         net.addLink(server, s4, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
+        net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client3-eth1')
 
         print('network set')
         net.build()
@@ -262,19 +265,24 @@ def setup_network():
 
         print('ip request')
         server.cmd('ifconfig server-eth1 192.168.16.201/24')
-        print(server.cmd('ping -c 4 192.168.16.1'))
+        print(server.cmd('ping -c 3 192.168.16.1'))
 
         client1.cmd('ifconfig client1-eth1 192.168.16.202/24')
-        print(client1.cmd('ping -c 4 192.168.16.1'))
+        print(client1.cmd('ping -c 3 192.168.16.1'))
 
         client2.cmd('ifconfig client2-eth1 192.168.16.203/24')
-        print(client2.cmd('ping -c 4 192.168.16.1'))
+        print(client2.cmd('ping -c 3 192.168.16.1'))
+
+        client3.cmd('ifconfig client2-eth1 192.168.16.204/24')
+        print(client2.cmd('ping -c 3 192.168.16.1'))
 
         print(server.cmd('ifconfig'))
         print(client1.cmd('ifconfig'))
         print(client2.cmd('ifconfig'))
+        print(client3.cmd('ifconfig'))
         client1.cmd('screen -dm bash_client1')
         client2.cmd('screen -dm bash_client2')
+        client3.cmd('screen -dm bash_client3')
         server.cmd('screen -dm bash_server')
 
 
@@ -305,6 +313,7 @@ def setup_network():
         server.cmd('cd /home/mininet/gpac_on_mininet/Server && screen -dmS server python3 server_train.py')
         client1.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy1 python3 proxy.py client1')
         client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy2 python3 proxy.py client2')
+        client2.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS proxy3 python3 proxy.py client3')
         print('server start')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor python3 monitor.py')
         server.cmd('cd /home/mininet/gpac_on_mininet/mininet && screen -dmS monitor1 python3 monitor2.py')
