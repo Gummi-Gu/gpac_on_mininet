@@ -86,13 +86,13 @@ while True:
             avg_rate = sum(r for _, _, r in records) / len(records)
         else:
             avg_delay = avg_rate = 0.0
-        utilization=avg_rate/avg_delay*1000/total_bandwidth*100
+        utilization=avg_rate/total_bandwidth*100
         track_table_data.append((
             'sum', str(client_id_num),
-            f"{avg_delay:.1f}ms", f"{avg_rate/avg_delay*1000:.1f}MB/s",
+            f"{avg_delay:.1f}ms", f"{avg_rate:.1f}MB/s",
             f"{summary_rate_stats[client_id]['time']:.1f}ms", f"{prev_latest_delay:.1f}ms",  # sum行上一秒delay为0.0
-            f"{summary_rate_stats[client_id]['size']/summary_rate_stats[client_id]['time']*1000:.1f}MB/s",
-            f"{prev_latest_rate/prev_latest_delay*1000:.1f}MB/s",  # sum行上一秒rate为0.0
+            f"{summary_rate_stats[client_id]['size']:.1f}MB/s",
+            f"{prev_latest_rate:.1f}MB/s",  # sum行上一秒rate为0.0
             0.0, f"{utilization:.2f}%"
         ))
 
@@ -102,7 +102,7 @@ while True:
 
     # Bitrate Stats 表格
     bitrate_headers = ['Bitrat', 'CltID', 'AvgDly', 'AvgRat', 'LatDly',
-                       'LatRat', 'Avgsize','Utiliz']
+                       'LatRat', 'Avgsize']
     bitrate_table_data = []
     bitrate_summary = {}
 
@@ -126,8 +126,7 @@ while True:
             bitrate_table_data.append((
                 bitrate, client_id, f"{stats['avg_delay']:.1f}ms", f"{stats['avg_rate']:.1f}MB/s",
                 f"{stats['latest_delay']:.1f}ms", f"{stats['latest_rate']:.1f}MB/s",
-                f"{stats['avg_size']:.1f}KB",
-                f"{utilization:.2f}%"
+                f"{stats['avg_size']:.1f}KB"
             ))
 
     bitrate_table = tabulate(bitrate_table_data, headers=bitrate_headers, tablefmt="pretty", floatfmt=".2f")

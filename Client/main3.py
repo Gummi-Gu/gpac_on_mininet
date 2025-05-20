@@ -1,3 +1,4 @@
+import os
 import sys
 import threading
 import Client.Factory as Factory
@@ -24,7 +25,7 @@ def run_pipeline():
         src = fs.load_src(sys.argv[1])
     else:
         src = fs.load_src(f"http://{ip}:10086/01/files/dash_tiled.mpd")
-
+    os.system(f"ping {ip}")
     # 加载自定义 filter 并设置其源
     my_filter = Factory.bufferFilter
     my_filter.set_source(src)
