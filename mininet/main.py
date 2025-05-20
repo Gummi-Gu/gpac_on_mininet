@@ -102,9 +102,9 @@ class TrafficControl:
                     }
                     current_mark += 10  # 步长10保证唯一
 
-        #for ip,item0 in ip_mark_mapping.items():
-        #    for str_key,item1 in item0.items():
-        #        print(f'ip:{ip}',f'str_key:{str_key}',f'bw:{item1["bw"]}')
+        for ip,item0 in ip_mark_mapping.items():
+            for str_key,item1 in item0.items():
+                print(f'ip:{ip}',f'str_key:{str_key}',f'bw:{item1["bw"]}')
 
         # 阶段2：计算总带宽需求
         total_bw = total_bandwidth
@@ -128,7 +128,7 @@ class TrafficControl:
 
                 tc_cmds.extend([
                     f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
-                    f'htb rate {item["bw"]}mbit ceil {item["bw"]+1}mbit',
+                    f'htb rate {item["bw"]}mbit ceil {item["bw"]}mbit',
                     f'tc filter add dev server-eth0 parent 1: protocol ip '
                     f'handle {mark} fw flowid 1:{mark}'
                 ])
