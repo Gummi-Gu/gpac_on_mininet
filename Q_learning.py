@@ -414,7 +414,10 @@ class LocalEnvSimulator:
 
 
         # === 5. 带宽利用率 ===
-        total_used_bw = sum(q for q in self.avg_band_list)*8 # 使用总带宽
+        delay=0
+        for d in self.avg_band_list:
+            delay=max(delay,d[1])
+        total_used_bw = sum(q[0] for q in self.avg_band_list)/delay*1000*8 # 使用总带宽
         bandwidth_efficiency = total_used_bw / total_bandwidth
 
         # === 6. 时延 ===
@@ -425,7 +428,7 @@ class LocalEnvSimulator:
         for _ in range(0):
             band_list.append(1)
         N = len(band_list)
-        fairness_band = (sum(q for q in band_list) ** 2) / (N * sum(q ** 2 for q in band_list) + 1e-6) if N > 0 else 0
+        fairness_band = (sum(q[0] for q in band_list) ** 2) / (N * sum(q[0] ** 2 for q in band_list) + 1e-6) if N > 0 else 0
 
         # 公平性函数：低于0.8急剧下降（sigmoid）
         def fairness_score(x, k=40):
@@ -514,7 +517,7 @@ class LocalEnvSimulator:
                 avg_delay+=stats['time']
             band_list = []
             for client_id, stats in temp.items():
-                band = stats['size']/stats['time']*1000  # 获取客户端的 带宽情况
+                band = (stats['size'],stats['time'])  # 获取客户端的 带宽情况
                 if band is not None:
                     band_list.append(band)
             if band_list:
@@ -568,10 +571,12 @@ class LocalEnvSimulator:
             avg_qoe_list.append(_avg_qoe)
         for i,_ in enumerate(all_band_per_round[0]):
             _avg_band=0
+            _avg_time=500
             for band_list in all_band_per_round:
-                _avg_band+=band_list[i]
+                _avg_band+=band_list[i][0]
+                _avg_time=max(band_list[i][1],_avg_band)
             _avg_band/=N
-            avg_band_list.append(_avg_band)
+            avg_band_list.append((_avg_band,_avg_time))
 
         sum_band = {'12600': 0, '3150': 0, '785': 0, '200': 0}
         for i, j in avg_num.items():
