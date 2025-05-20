@@ -241,11 +241,11 @@ def setup_network():
         net.addLink(server, s4, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
-        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
+        net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
         net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')
-        net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client3-eth1')
+        net.addLink(client3, s0, cls=TCLink, bw=1000, intfName1='client3-eth1')
 
         print('network set')
         net.build()
