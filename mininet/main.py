@@ -102,10 +102,6 @@ class TrafficControl:
                     }
                     current_mark += 10  # 步长10保证唯一
 
-        for ip,item0 in ip_mark_mapping.items():
-            for str_key,item1 in item0.items():
-                print(f'ip:{ip}',f'str_key:{str_key}',f'bw:{item1["bw"]}')
-
         # 阶段2：计算总带宽需求
         total_bw = total_bandwidth
 
