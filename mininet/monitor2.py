@@ -20,21 +20,64 @@ summary_state=defaultdict(lambda: {
     'count': 0
 })
 
+total_bandwidth=20
+
 while True:
-    link_metrics = streamingMonitorClient.fetch_link_metrics()
     client_stats = streamingMonitorClient.fetch_client_stats()
     quality_map = streamingMonitorClient.fetch_quality_map()
 
     # Link Metrics 表格
-    link_headers = ['Client ID', 'Delay(ms)', 'Loss Rate(%)', '12600_rate', '3150_rate', '785_rate','200_rate']
+    link_headers = ['Client ID', '12600_rate', '3150_rate', '785_rate','200_rate']
     link_data = []
 
-    for client_id, stats in link_metrics.items():
-        bw_12600 = mark2bw(stats['marks']['12600'])
-        bw_3150 = mark2bw(stats['marks']['3150'])
-        bw_785 = mark2bw(stats['marks']['785'])
-        bw_200 = mark2bw(stats['marks']['200'])
-        link_data.append((client_id, stats['delay'], stats['loss_rate'], bw_12600, bw_3150, bw_785, bw_200))
+    traffic_classes_band = streamingMonitorClient.fetch_traffic_classes_mark()
+    normalized = {}
+    # 手动计算总和
+    total = 0
+    for ip, data in traffic_classes_band.items():
+        # 提取除 'port' 外的码率字段
+        bitrate_weights = {k: v for k, v in data.items() if k != 'port'}
+        for v in bitrate_weights.values():
+            total += v
+
+    for ip, data in traffic_classes_band.items():
+        bitrate_weights = {k: v for k, v in data.items() if k != 'port'}
+        # 避免除以 0
+        if total == 0:
+            norm_weights = {k: 0 for k in bitrate_weights}
+        else:
+            norm_weights = {k: v / total for k, v in bitrate_weights.items()}
+
+        # 组合结果
+        normalized[ip] = {'port': data['port'], **norm_weights}
+
+    traffic_classes_band = normalized
+
+    # 阶段1：为每个(ip, 带宽)生成唯一标记
+    ip_mark_mapping = defaultdict(lambda: defaultdict(lambda: {
+        'mark': 0,
+        'bw': 0
+    }))
+    current_mark = 10  # 起始标记值
+
+    # 遍历所有IP和配置
+    for ip, config in traffic_classes_band.items():
+        # 为每个字符串对应的带宽生成独立标记
+        for str_key in ['12600', '3150', '785', '200']:
+            if (bw := config.get(str_key)) is not None:
+                # 每个IP的每个带宽分配唯一标记
+                ip_mark_mapping[ip][str_key] = {
+                    'mark': current_mark,
+                    'bw': bw * total_bandwidth
+                }
+                current_mark += 10  # 步长10保证唯一
+
+    for ip, item0 in ip_mark_mapping.items():
+        for str_key, item1 in item0.items():
+            print(f'ip:{ip}', f'str_key:{str_key}', f'bw:{item1["bw"]}')
+
+    for ip, item0 in ip_mark_mapping.items():
+        link_data.append((ip,item0['12600'],item0['3150'],item0['785'],item0['200']))
 
     link_table = tabulate(link_data, headers=link_headers, tablefmt="pretty", floatfmt=".2f")
 
