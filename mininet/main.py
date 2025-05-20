@@ -236,7 +236,7 @@ def setup_network():
         server = net.addHost('server', ip='10.0.0.1')
         client1 = net.addHost('client1', ip='10.0.0.2')
         client2 = net.addHost('client2', ip='10.0.0.3')
-        client3 = net.addHost('client2', ip='10.0.0.3')
+        client3 = net.addHost('client3', ip='10.0.0.4')
 
         net.addLink(server, s4, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
