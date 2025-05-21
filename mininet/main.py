@@ -244,10 +244,10 @@ def setup_network():
         client2 = net.addHost('client2', ip='10.0.0.3')
         client3 = net.addHost('client3', ip='10.0.0.4')
 
-        net.addLink(server, s4, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(server, s9, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
-        net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
-        net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
+        net.addLink(client2, s2, cls=TCLink, bw=1000, intfName1='client2-eth0')
+        net.addLink(client3, s3, cls=TCLink, bw=1000, intfName1='client3-eth0')
         net.addLink(server, s0, cls=TCLink, bw=1000, intfName1='server-eth1')
         net.addLink(client1, s0, cls=TCLink, bw=1000, intfName1='client1-eth1')
         net.addLink(client2, s0, cls=TCLink, bw=1000, intfName1='client2-eth1')

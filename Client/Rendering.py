@@ -19,6 +19,8 @@ import numpy as np
 class Viewpoint:
     def __init__(self,choice=0):
         # 设置输出参数
+        self.pitch_offset = 0
+        self.yaw_offset=0
         self.output_width = 800
         self.output_height = 600
         self.angle_thread = threading.Thread(target=self.listen_for_keys)
@@ -127,8 +129,23 @@ class Viewpoint:
             raise e
         return data["map_x"], data["map_y"],data["u"], data["v"]
 
+    def on_press(self, key):
+        try:
+            if key.char == 'w':
+                self.pitch_offset += 15
+            elif key.char == 's':
+                self.pitch_offset -= 15
+            elif key.char == 'a':
+                self.yaw_offset -= 15
+            elif key.char == 'd':
+                self.yaw_offset += 15
+        except AttributeError:
+            pass  # For special keys
+
     def listen_for_keys(self):
         # 启动监听器
+        listener = keyboard.Listener(on_press=self.on_press)
+        listener.start()
 
         df = pd.read_csv('Client/video_4.csv')
 
@@ -146,8 +163,8 @@ class Viewpoint:
                                                  row['UnitQuaternion.y'],
                                                  row['UnitQuaternion.z'],
                                                  row['UnitQuaternion.w'])
-            Factory.yaw=yaw-15
-            Factory.pitch=pitch-15
+            Factory.yaw=yaw-15+self.yaw_offset
+            Factory.pitch=pitch-15+self.pitch_offset
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
             #print(yaw,pitch,x,y,z,w)
             time.sleep(0.066)

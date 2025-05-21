@@ -26,7 +26,6 @@ def run_pipeline():
     else:
         #src = fs.load_src(f"http://127.0.0.1:10085/01/files/dash_tiled.mpd")
         src = fs.load_src(f"http://{ip}:10086/01/files/dash_tiled.mpd")
-    os.system(f"ping {ip}")
     # 加载自定义 filter 并设置其源
     my_filter = Factory.bufferFilter
     my_filter.set_source(src)
