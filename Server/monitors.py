@@ -388,7 +388,7 @@ def update_client_stats():
             'last_update': datetime.now()
         })
         with open("QoE",'a') as f:
-            f.write(client_stats)
+            f.write(str(client_stats))
     return jsonify({'status': 'success'})
 
 @app.route('/link_metrics', methods=['POST'])

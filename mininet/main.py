@@ -124,7 +124,7 @@ class TrafficControl:
 
                 tc_cmds.extend([
                     f'tc class add dev server-eth0 parent 1:1 classid 1:{mark} '
-                    f'htb rate {item["bw"]+0.5}mbit ceil {item["bw"]+1}mbit',
+                    f'htb rate {item["bw"]+1}mbit ceil {item["bw"]+1.5}mbit',
                     f'tc filter add dev server-eth0 parent 1: protocol ip '
                     f'handle {mark} fw flowid 1:{mark}'
                 ])
@@ -244,7 +244,7 @@ def setup_network():
         client2 = net.addHost('client2', ip='10.0.0.3')
         client3 = net.addHost('client3', ip='10.0.0.4')
 
-        net.addLink(server, s9, cls=TCLink, bw=1000, intfName1='server-eth0')
+        net.addLink(server, s4, cls=TCLink, bw=1000, intfName1='server-eth0')
         net.addLink(client1, s1, cls=TCLink, bw=1000, intfName1='client1-eth0')
         net.addLink(client2, s1, cls=TCLink, bw=1000, intfName1='client2-eth0')
         net.addLink(client3, s1, cls=TCLink, bw=1000, intfName1='client3-eth0')
