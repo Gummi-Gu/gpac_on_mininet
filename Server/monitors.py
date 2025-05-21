@@ -194,7 +194,6 @@ def update_orign_quality_tiled():
     if data:
         with lock:
             orign_quality_tiled.update(data)
-        #print(summary_rate_stats)
         return jsonify({"status": "success", "message": "orign_quality_tiled"})
     else:
         return jsonify({"status": "error", "message": "Invalid data"}), 400
@@ -388,7 +387,8 @@ def update_client_stats():
             'qoe': data['qoe'],
             'last_update': datetime.now()
         })
-        #print(client_stats)
+        with open("QoE",'a') as f:
+            f.write(client_stats)
     return jsonify({'status': 'success'})
 
 @app.route('/link_metrics', methods=['POST'])

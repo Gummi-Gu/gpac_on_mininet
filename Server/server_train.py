@@ -1,10 +1,12 @@
 import os
 from flask import Flask, abort, send_file
 from werkzeug.serving import make_server, ThreadedWSGIServer
-from concurrent.futures import ThreadPoolExecutor  # 新增线程池库
+from concurrent.futures import ThreadPoolExecutor
+from flask_cors import CORS# 新增线程池库
 import queue
 
 app = Flask(__name__)
+CORS(app)
 FILE_DIRECTORY = 'files'
 os.makedirs(FILE_DIRECTORY, exist_ok=True)
 ALLOWED_CLIENTS = {'01', '02'}

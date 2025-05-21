@@ -129,13 +129,6 @@ class Viewpoint:
 
     def listen_for_keys(self):
         # 启动监听器
-        #with keyboard.Listener(on_press=self.on_press) as listener:
-        #    listener.join()
-        #data = pd.read_csv('./Client/video_0_droped.csv')  # 替换为你的实际路径
-        #Factory.yaw = 180
-        #Factory.pitch = 94
-        #Factory.videoSegmentStatus.set_xyzw(0.078, -0.716, 0.026, 0.693)
-        #return
 
         df = pd.read_csv('Client/video_4.csv')
 
@@ -158,8 +151,6 @@ class Viewpoint:
             Factory.videoSegmentStatus.set_xyzw(x,y,z,w)
             #print(yaw,pitch,x,y,z,w)
             time.sleep(0.066)
-            #print(f"[Rendering] {time.time()}")
-            #print(f"[Rendering] yaw:{self.yaw}_pitch:{self.pitch}")
 
     def quaternion_to_yaw_pitch(self,x, y, z, w):
         norm = math.sqrt(w * w + x * x + y * y + z * z)

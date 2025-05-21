@@ -88,7 +88,7 @@ class HeadMotionPredictor(nn.Module):
         pooled = F.adaptive_avg_pool2d(vid_feat, (16, 24))  # [B, 1, 16, 24]
         pooled_flat = pooled.view(batch_size, -1)  # [B, 384]
 
-        # 可学习压缩
+        # 线性压缩
         compressed = self.compressor(pooled_flat)  # [B, 24]
 
         # 时间维度扩展

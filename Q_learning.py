@@ -44,8 +44,7 @@ def set_log():
 
 def log_metrics(S_qoe, delay, fairness_qoe, fairness_band, bandwidth_efficiency,
                 P_qoe, P_buffer, bw):
-    # delay 除以 100
-    delay_adjusted = (delay*1000)//100*100
+    delay_adjusted = delay*1000
 
     log_message = (
         f"S_qoe={S_qoe}, delay={delay_adjusted:.4f}, fairness_qoe={fairness_qoe}, "
@@ -103,7 +102,7 @@ class ClientDQN(nn.Module):
 # ====================== 缩减后的动作空间设计 ======================
 class ReducedActionSpace:
     def __init__(self):
-        # 离散化带宽因子（3种选择）
+        # 离散化带宽因子
         self.bw_options = {
             0: 0.5,# 保守带宽利用
             1: 0.65,
@@ -114,21 +113,21 @@ class ReducedActionSpace:
             6: 2  # 激进模式
         }
 
-        # 质量调整策略（3种全局策略）
+        # 质量调整策略
         self.quality_strategies = {
             0: [0, 0, 1, 3],  # 性价比模式
             1: [0, 1, 2, 3],  # 正常模式
             2: [0, 3, 3, 3]   # 全高模式
         }
 
-        # 缓冲区配置（2种预设）
+        # 缓冲区配置
         self.buffer_presets = {
             0: 1, # 低延迟模式
             1: 3   # 流畅模式
         }
 
     def get_action(self, action_idx):
-        """将离散动作编号解码为具体参数组合"""
+        """将离散动作编号解码"""
         bw_idx = action_idx // (len(self.quality_strategies) * len(self.buffer_presets))
         remaining = action_idx % (len(self.quality_strategies) * len(self.buffer_presets))
 
@@ -153,9 +152,8 @@ class ReducedActionSpace:
 # ====================== 客户端智能体 ======================
 class DQNClient:
     def __init__(self, client_id, gamma, ep, init_model_path=None):
-        self.client_id = client_id  # 质量等级映射表
+        self.client_id = client_id
 
-        # 模型参数
         self.action_space = ReducedActionSpace()
         self.output_dim = self.action_space.action_space_size  # 18
         self.input_dim = 5  # [预测带宽, 缓冲区, 实际带宽, 实际时延， Qoe]
@@ -164,7 +162,7 @@ class DQNClient:
         self.policy_net = ClientDQN(self.input_dim, self.output_dim).to(device)
         self.target_net = ClientDQN(self.input_dim, self.output_dim).to(device)
 
-        # 新增模型加载逻辑
+        # 新增模型加载
         if init_model_path is not None:
             if os.path.exists(init_model_path):
                 print(f"Loading initial model from {init_model_path}")
@@ -187,13 +185,8 @@ class DQNClient:
         # 经验回放
         self.memory = ReplayBuffer(10000)
 
-        # 本地环境状态
-        self.current_state = None
-        self.current_quality = {}
-
     def get_state(self, env_data):
         """从环境数据中提取本地状态并进行归一化"""
-        # env_data 应包含：预测带宽，缓冲区状态，实际带宽
         predicted_bw = env_data['predicted_bandwidth']
         buffer_level = env_data['buffer_level']
         actual_band = env_data['actual_bandwidth']
@@ -203,7 +196,6 @@ class DQNClient:
         for i,j in predicted_bw.items():
             predicted_bw_sum+=j
         predicted_bw_sum/=1000
-        # 状态归一化
         state = np.array([
             predicted_bw_sum/2,
             buffer_level / 3.5,
@@ -222,7 +214,7 @@ class DQNClient:
         return torch.FloatTensor(state).to(device)
 
     def select_action(self, state):
-        """ε-贪婪策略选择动作"""
+        """ε-贪婪策略"""
         if np.random.random() < self.epsilon:
             if state[3]<0.4:
                 return np.random.randint(int(self.output_dim*4/7))
@@ -282,6 +274,7 @@ class DQNClient:
         return self.policy_net.state_dict()
 
     def request_global_model(self):
+        """请求全局模型"""
         data = {"model_weights": self.get_local_parameters()}
         response = requests.post(f"http://localhost:5000/upload_client_model/{client_ip}", json=data)
         response = requests.get("http://localhost:5000/get_global_model")
@@ -292,7 +285,7 @@ class DQNClient:
 
 # ====================== 环境模拟接口 ======================
 class LocalEnvSimulator:
-    """简化的本地环境模拟器"""
+    """本地环境收集"""
 
     def __init__(self):
         # 初始状态
@@ -328,15 +321,14 @@ class LocalEnvSimulator:
             3: '12600'
         }
         temp={}
-        # 遍历所有 quality 等级
-
+        # 归一化
         sum_band=self.predicted_bandwidth.copy()
         total=0
         for i in sum_band.values():
             total += i
         for k in sum_band:
             sum_band[k] = sum_band[k] / total if total != 0 else 0  # 防止除以0
-
+        #根据映射二次分配
         for quality_value in range(4):
             # 找出所有 value 为当前 quality 的 key
             keys = [k for k, v in enumerate(quality_map) if v == quality_value]
@@ -350,6 +342,7 @@ class LocalEnvSimulator:
             temp[bitrate_mapping[quality_value]] = total
         sum_band=temp
 
+        #应用带宽
         traffic_classes_mark_update = {
             client_ip: {'port': 10086,
                         '12600': total_bw*sum_band['12600'],
@@ -358,10 +351,12 @@ class LocalEnvSimulator:
                         '200': total_bw*sum_band['200']},
         }
         self.update("traffic_classes_mark",traffic_classes_mark_update)
+        #质量二次分配
         quality_map_update = {
             client_name: {0:quality_map[0],1:quality_map[1],2:quality_map[2],3:quality_map[3]}
         }
         self.update("quality_map", quality_map_update)
+        #缓冲区二次分配
         rebuffer_config_update = {
             client_name: {'re_buffer': action['buffer'], 'play_buffer': action['buffer']+1},
         }
@@ -371,16 +366,11 @@ class LocalEnvSimulator:
         print("########## 等待生效 ##########")
         time.sleep(8)
 
-
+        #获取状态
         state=self.get_state()
-        # 这里简化奖励计算，实际应根据QoE公式计算
+        # 奖励计算
         reward = self.calculate_reward(action['bw_factor'])
-        '''
-        # 更新环境状态（示例逻辑）
-        self.predicted_bandwidth = self.predicted_bandwidth * 0.9 + np.random.normal(0, 500)
-        self.buffer_level = max(0, self.buffer_level + (np.random.rand() - 0.5))
-        self.actual_bandwidth = self.actual_bandwidth * 0.95 + np.random.normal(0, 300)
-        '''
+ 
 
         return state, reward, False  # 假设不会终止
 
@@ -390,7 +380,7 @@ class LocalEnvSimulator:
             self.buffer_queue.get()
         self.buffer_queue.put(self.buffer_level)
         buffer_list = list(self.buffer_queue.queue)
-        P_buffer = np.std(buffer_list) if len(buffer_list)>2 else 0 # 标准化后计算标准差
+        P_buffer = np.std(buffer_list) if len(buffer_list)>2 else 0
         P_buffer = 1 / (1 + np.exp(-P_buffer))
 
         # === 2. 当前 QoE 获取 ===
@@ -430,7 +420,7 @@ class LocalEnvSimulator:
         N = len(band_list)
         fairness_band = (sum(q[0] for q in band_list) ** 2) / (N * sum(q[0] ** 2 for q in band_list) + 1e-6) if N > 0 else 0
 
-        # 公平性函数：低于0.8急剧下降（sigmoid）
+        # 公平性函数：低于0.8急剧下降
         def fairness_score(x, k=40):
             return 1 / (1 + exp(-k * (x - 0.8)))
 
@@ -438,7 +428,7 @@ class LocalEnvSimulator:
         def qoe_score(q, fq):
             # 在 QoE 计算中直接考虑公平性，fq < 0.8 会急剧影响 QoE
             fair_qoe = q * fairness_score(fq)
-            return 1 / (1 + exp(-10 * (fair_qoe - 0.5)))
+            return 1 / (1 + exp(-15 * (fair_qoe - 0.5)))
 
         # 平底型时延奖励函数：最优在 [0.4, 0.6]
         def delay_score(d, k=10):
@@ -449,10 +439,10 @@ class LocalEnvSimulator:
 
         def compute_reward(q, d, fq, fb, bu, sq, sb,
                            alpha1=5, alpha2=2, alpha3=1):
-            Q = qoe_score(q, fq)  # 计算 QoE（已经包含公平性）
-            D = delay_score(d)  # 计算时延奖励
-            F_fair = fairness_score(fb)  # 计算带宽公平性
-            BU = bu  # 计算带宽利用率
+            Q = qoe_score(q, fq)  
+            D = delay_score(d)  
+            F_fair = fairness_score(fb)  
+            BU = bu  
             total=alpha1+alpha2+alpha3
             reward = alpha1 * (Q + D) + alpha2 * (F_fair + BU) - alpha3 * (sq + sb)
             reward /= total
@@ -490,6 +480,7 @@ class LocalEnvSimulator:
         print("########## 开始收集 ##########")
         for _ in range(N):
             time.sleep(1)
+            # === 1.收集视口预测第一次码率分配 ===
             temp=streamingMonitorClient.fetch_orign_quality_tiled()
             for i in temp[client_name]:
                 if i == 0:
@@ -500,7 +491,7 @@ class LocalEnvSimulator:
                     avg_num['3150']+=1
                 elif i == 3:
                     avg_num['12600']+=1
-
+            # === 2.收集每质量视频块平均大小 ===
             temp=streamingMonitorClient.fetch_bitrate_stats()
             for bitrate, clients in temp.items():
                 if bitrate == 'default':
@@ -509,24 +500,28 @@ class LocalEnvSimulator:
                     if client_id != client_name:
                         continue
                     avg_size[bitrate].append(stats['avg_size'])
+            # === 3.计算本机带宽利用率 ===
             temp=streamingMonitorClient.fetch_summary_rate_stats()
             for client_id, stats in temp.items():
                 if client_id != client_name:
                     continue
                 avg_band+=stats['size']/stats['time']*1000
                 avg_delay+=stats['time']
+            # === 4. 计算整体带宽利用率 ===
             band_list = []
             for client_id, stats in temp.items():
-                band = (stats['size'],stats['time'])  # 获取客户端的 带宽情况
+                band = (stats['size'],stats['time'])
                 if band is not None:
                     band_list.append(band)
             if band_list:
                 all_band_per_round.append(band_list)
+            # === 5. 计算自身QoE水平 ===
             temp=streamingMonitorClient.fetch_client_states()
             for client_id, buffer in temp.items():
                 if client_id != client_name:
                     continue
                 avg_qoe+=buffer['qoe']
+            # === 6. 整体QoE水平 ===
             qoe_list = []
             for client_id, buffer in temp.items():
                 qoe = buffer.get('qoe')  # 获取客户端的 QoE 值
@@ -534,16 +529,15 @@ class LocalEnvSimulator:
                     qoe_list.append(qoe)
             if qoe_list:
                 all_qoe_per_round.append(qoe_list)
+            # === 7. 计算缓冲区水平 ===
             temp=streamingMonitorClient.fetch_rebuffer_config()
             for client_id, buffer in temp.items():
                 if client_id != client_name:
                     continue
                 avg_buffer['rebuffer']+=buffer['re_buffer']
                 avg_buffer['play']+=buffer['play_buffer']
-
-        for key in avg_num:
-            avg_num[key] /= N
-
+        
+        # 卡尔曼滤波函数预测平均大小
         def predict_next(data):
             kf = KalmanFilter(dim_x=2, dim_z=1)
             kf.F = np.array([[1, 1], [0, 1]])
@@ -557,12 +551,14 @@ class LocalEnvSimulator:
             return float(kf.x[0])
         avg_size = {k: predict_next(v) if len(v) >= N else 1 for k, v in avg_size.items()}
 
+        #求均值
+        for key in avg_num:
+            avg_num[key] /= N
         for key in avg_buffer:
             avg_buffer[key] /= N
         avg_band /= N
         avg_delay /= N
         avg_qoe /= N
-
         for i,_ in enumerate(all_qoe_per_round[0]):
             _avg_qoe=0
             for qoe_list in all_qoe_per_round:
@@ -579,6 +575,7 @@ class LocalEnvSimulator:
             _avg_time/=N
             avg_band_list.append((_avg_band,_avg_time))
 
+        #带宽预测结果
         sum_band = {'12600': 0, '3150': 0, '785': 0, '200': 0}
         for i, j in avg_num.items():
             sum_band[i] = j * avg_size[i]
@@ -617,6 +614,7 @@ modules = [
 process_infos = []
 
 def start_single_client(venv_python, module, project_root):
+    """启动客户端"""
     print(f"Starting {module}...")
     p = subprocess.Popen(
         [venv_python, "-m", module],
@@ -624,6 +622,7 @@ def start_single_client(venv_python, module, project_root):
     )
     return {"module": module, "process": p, "start_time": time.time()}
 def restart_client(process_info, venv_python, project_root):
+    """重启客户端"""
     p = process_info["process"]
     module = process_info["module"]
     if p.poll() is None:
@@ -647,7 +646,6 @@ def client_training_loop(client_id, num_episodes, ep,init_model,reason=True):
             state = env.get_state()
             for i in range(5):
                 state_tensor = client.get_state(state)
-                # 这里不更新 epsilon，也不存 replay，也不调用 update_model
                 action_idx = client.select_action(state_tensor)
                 #action_idx = 21 # ceshi
                 action = client.action_space.get_action(action_idx)
@@ -669,21 +667,19 @@ def client_training_loop(client_id, num_episodes, ep,init_model,reason=True):
             time.sleep(5)
             state = env.get_state()
             total_reward = 0
-
-            # 模拟单次训练（实际应替换为与真实环境交互）
-            for i in range(5):  # 假设每个episode包含10个决策步骤
-                # 获取状态并选择动作
+            for i in range(5):  # 假设每个episode包含5个决策步骤
                 print(f"\n==========参数==========\n"
                     f"episodes: {episode,i}\n"
                     f"epsilon:{client.epsilon}")
+                #获取状态
                 state_tensor = client.get_state(state)
+                #动作决策
                 action = client.select_action(state_tensor)
                 print("\n==========动作==========\n"
                     f"action:{env.action_space.get_action(action)} \n")
                 # 执行动作并获取新状态
                 new_state, reward, done = env.step(action)
                 total_reward += reward
-
                 # 存储经验
                 client.memory.push(
                     state_tensor.cpu().numpy(),
@@ -692,17 +688,13 @@ def client_training_loop(client_id, num_episodes, ep,init_model,reason=True):
                     client.get_state(new_state).cpu().numpy(),
                     done
                 )
-
                 # 更新状态
                 state = new_state
-
                 # 训练模型
                 if len(client.memory.buffer) > client.batch_size:
                     loss = client.update_model()
-
                 print(f"\n========== 结果 ==========\n"
                     f"reward: {reward}\n")
-
                 print("\n==================== next ====================\n")
             #重启
             for i, info in enumerate(process_infos):
@@ -769,7 +761,9 @@ if __name__ == "__main__":
         modules.append("Client.main2")
     elif client_name == 'client3':
         modules.append("Client.main3")
+    #设置log
     set_log()
+    #启动模型
     for module in modules:
         process_infos.append(start_single_client(venv_python, module, project_root))
     time.sleep(10)
@@ -783,7 +777,6 @@ if __name__ == "__main__":
             reason=True
         )
     except BaseException as e:
-        # 捕获 KeyboardInterrupt、SystemExit 以及其他所有异常
         print(f"\nExit received ({type(e).name}): {e}")
     finally:
         print("\nKeyboard interrupt received. Stopping all clients...")
