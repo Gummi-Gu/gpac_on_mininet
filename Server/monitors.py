@@ -109,9 +109,6 @@ TRAFFIC_CLASSES_DELAY = {
     '10.0.0.3' : {'client': 'client2','delay': 0, 'loss':0},
     '10.0.0.4' : {'client': 'client3','delay': 0, 'loss':0}
 }
-
-
-
 # 加载链路数据（从 CSV 文件读取）
 def load_link_data(csv_file):
     # 读取 CSV 文件并返回 DataFrame
@@ -155,7 +152,7 @@ def next_traffic_classes_delay():
             link_data = grouped_data.get((source, destination), [])
             if link_data:
                 # 如果有时延数据，更新当前时间片的链路时延
-                TRAFFIC_CLASSES_DELAY[ip]['delay'] = link_data[(current_time - 1) % len(link_data)]*50
+                TRAFFIC_CLASSES_DELAY[ip]['delay'] = link_data[(current_time - 1) % len(link_data)]
 
 
 # 配置时间片数量和锁
@@ -255,7 +252,7 @@ def update_traffic_classes_mark():
 
 @app.route('/get/traffic_classes_delay', methods=['GET'])
 def get_traffic_classes_delay():
-    #next_traffic_classes_delay()
+    next_traffic_classes_delay()
     with lock:
         return jsonify(TRAFFIC_CLASSES_DELAY)
 

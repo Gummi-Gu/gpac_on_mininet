@@ -18,19 +18,20 @@ from Server.monitors import client_stats
 
 width=4096#2560#3840
 height=2048#1440#1920
-tile_num=10
-tile_size=3
-level_num=4
+tile_num=10#块数
+tile_size=3#块长
+level_num=4#质量等级
 
-clientname=''
+clientname=''#客户段
 press_start=True
+#实例声明
 dash=None
 viewpoint=None
 fs=None
 bufferFilter=None
 dash_interface=None
 render=None
-videoSegmentStatus=None
+videoSegmentStatus=None#视频相关参数
 ip_maps=None
 fov,yaw,pitch,u,v,preu,prev=120,0,0,0,0,0,0
 pre_qua=[]

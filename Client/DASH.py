@@ -15,9 +15,7 @@ class MyCustomDASHAlgo:
     #get notification when a new group (i.e., set of adaptable qualities, `AdaptationSet` in DASH) is created. Some groups may be left unexposed by the DASH client
     #the qualities are sorted from min bandwidth/quality to max bandwidth/quality
     def on_new_group(self, group):
-        #print('new group ' + str(group.idx) + ' qualities ' + str(len(group.qualities)) + ' codec ' + group.qualities[0].codec);
         srd=group.SRD
-        #print(f'{srd.x} {srd.y}')
         self.srd_position.append(srd)
 
     #perform adaptation logic - return value is the new quality index, or -1 to keep as current, -2 to discard  (debug, segments won't be fetched/decoded)

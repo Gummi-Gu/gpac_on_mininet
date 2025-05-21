@@ -81,7 +81,6 @@ class MyFilter(gpac.FilterCustom):
                     self.rebuff_sum_time += (dur_time - self.dur - 0.2)
                     self.rebuff_count+=1
         self.rebuff_time=start_time
-        #print(self.dur,self.rebuff_sum_time,self.rebuff_count)
         #only one PID in this example
         for pid in self.ipids:
             title = ""
@@ -98,8 +97,6 @@ class MyFilter(gpac.FilterCustom):
             pck = pid.get_packet()
             if pck is None:
                 break
-            #frame interface, data is in GPU memory or internal to decoder, try to grab it
-            #we do so by creating a clone of the packet, reusing the same clone at each call to reduce memory allocations
             if pck.frame_ifce:
                 self.tmp_pck = pck.clone(self.tmp_pck)
                 if self.tmp_pck == None:
@@ -122,10 +119,7 @@ class MyFilter(gpac.FilterCustom):
             #get packet duration for later sleep
             if self.buffering is False:
                 time.sleep(dur*5)
-            #print(dur-(time.time() - start_time))
             self.dur=dur
-            #print("[BufferFilter]",time.time() - start_time)
-            #time.sleep(self.dur)
             # dummy player, this does not take into account the time needed to draw the frame, so we will likely drift
             pid.drop_packet()
 
